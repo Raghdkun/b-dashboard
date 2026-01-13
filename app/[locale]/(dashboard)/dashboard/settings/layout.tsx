@@ -1,0 +1,63 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
+import { Separator } from "@/components/ui/separator";
+
+export default function SettingsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("settings");
+  const pathname = usePathname();
+  const params = useParams();
+  const locale = params?.locale as string || "en";
+
+  const settingsTabs = [
+    { value: "profile", label: t("tabs.profile"), href: `/${locale}/dashboard/settings/profile` },
+    { value: "account", label: t("tabs.account"), href: `/${locale}/dashboard/settings/account` },
+    { value: "appearance", label: t("tabs.appearance"), href: `/${locale}/dashboard/settings/appearance` },
+    { value: "preferences", label: t("tabs.preferences"), href: `/${locale}/dashboard/settings/preferences` },
+    { value: "themes", label: t("tabs.themes"), href: `/${locale}/dashboard/settings/themes` },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+      />
+
+      <Separator />
+
+      <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:gap-12">
+        <aside className="lg:w-1/5">
+          <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1 overflow-x-auto">
+            {settingsTabs.map((tab) => {
+              const isActive = pathname === tab.href || pathname.endsWith(tab.value);
+              return (
+                <Link
+                  key={tab.value}
+                  href={tab.href}
+                  className={cn(
+                    "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+        <div className="flex-1 lg:max-w-2xl">{children}</div>
+      </div>
+    </div>
+  );
+}

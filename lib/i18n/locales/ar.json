@@ -1,0 +1,412 @@
+{
+  "common": {
+    "search": "بحث...",
+    "logout": "تسجيل الخروج",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "reset": "إعادة تعيين",
+    "export": "تصدير",
+    "import": "استيراد",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "confirm": "تأكيد",
+    "success": "تم بنجاح",
+    "noResults": "لا توجد نتائج.",
+    "home": "الرئيسية",
+    "toggleMenu": "تبديل القائمة",
+    "refresh": "تحديث",
+    "start": "بدء",
+    "pause": "إيقاف مؤقت",
+    "discard": "تجاهل",
+    "keepEditing": "متابعة التعديل",
+    "active": "نشط",
+    "user": "مستخدم",
+    "guest": "ضيف",
+    "email": "البريد الإلكتروني",
+    "guestEmail": "guest@example.com",
+    "justNow": "الآن",
+    "minutesAgo": "منذ {count} دقيقة",
+    "hoursAgo": "منذ {count} ساعة",
+    "daysAgo": "منذ {count} يوم",
+    "totalIssues": "إجمالي المشاكل",
+    "filesScanned": "الملفات الممسوحة",
+    "withIssues": "بها مشاكل"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "collapse": "طي",
+    "breadcrumb": "التنقل",
+    "devTools": {
+      "title": "أدوات المطور",
+      "i18n": "ذكاء الترجمة"
+    }
+  },
+  "breadcrumbs": {
+    "dashboard": "لوحة التحكم",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "account": "الحساب",
+    "appearance": "المظهر",
+    "preferences": "التفضيلات",
+    "themes": "السمات",
+    "devTools": "أدوات المطور",
+    "dev-tools": "أدوات المطور",
+    "i18n": "ذكاء الترجمة",
+    "test-detection": "اختبار الكشف",
+    "en": "الإنجليزية",
+    "ar": "العربية"
+  },
+  "auth": {
+    "login": {
+      "title": "مرحباً بعودتك",
+      "description": "أدخل بيانات اعتمادك للوصول إلى حسابك",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signIn": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "register": "إنشاء حساب",
+      "error": "الرجاء إدخال البريد الإلكتروني وكلمة المرور",
+      "failed": "فشل تسجيل الدخول. حاول مرة أخرى."
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "description": "أدخل بياناتك للبدء",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "submit": "إنشاء حساب",
+      "haveAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول"
+    },
+    "forgotPassword": {
+      "title": "إعادة تعيين كلمة المرور",
+      "description": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين",
+      "email": "البريد الإلكتروني",
+      "submit": "إرسال رابط إعادة التعيين",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "checkEmail": "تحقق من بريدك الإلكتروني",
+      "checkEmailDescription": "لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+    }
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً بعودتك! إليك نظرة عامة على مساحة عملك.",
+    "customize": "تخصيص",
+    "customizeDescription": "ترتيب وتكوين أدوات لوحة التحكم",
+    "editMode": "وضع التعديل",
+    "saveLayout": "حفظ التخطيط",
+    "cancelEdit": "إلغاء",
+    "resetLayout": "إعادة تعيين التخطيط",
+    "addWidget": "إضافة أداة",
+    "removeWidget": "إزالة الأداة",
+    "widgetSettings": "إعدادات الأداة",
+    "views": {
+      "title": "العروض",
+      "saveAs": "حفظ كعرض",
+      "loadView": "تحميل العرض",
+      "deleteView": "حذف العرض",
+      "default": "افتراضي",
+      "setDefault": "تعيين كافتراضي"
+    },
+    "empty": {
+      "title": "لا توجد أدوات بعد",
+      "description": "أضف أدوات لتخصيص لوحة التحكم"
+    },
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "activeNow": "نشط الآن",
+      "revenue": "الإيرادات",
+      "growth": "النمو",
+      "fromLastMonth": "من الشهر الماضي",
+      "currentlyOnline": "متصل حالياً",
+      "comparedToLastQuarter": "مقارنة بالربع السابق"
+    },
+    "recentUsers": "المستخدمون الجدد",
+    "widgets": {
+      "totalRevenue": {
+        "title": "إجمالي الإيرادات",
+        "description": "تتبع إجمالي إيراداتك مع مقارنة الاتجاهات"
+      },
+      "totalUsers": {
+        "title": "إجمالي المستخدمين",
+        "description": "مراقبة نمو قاعدة المستخدمين"
+      },
+      "activeSessions": {
+        "title": "الجلسات النشطة",
+        "description": "عدد الجلسات النشطة في الوقت الفعلي"
+      },
+      "conversionRate": {
+        "title": "معدل التحويل",
+        "description": "تتبع أداء التحويل الخاص بك"
+      },
+      "revenueChart": {
+        "title": "الإيرادات عبر الزمن",
+        "description": "تصور اتجاهات الإيرادات بالرسم البياني الخطي"
+      },
+      "salesByCategory": {
+        "title": "المبيعات حسب الفئة",
+        "description": "مقارنة المبيعات عبر فئات المنتجات"
+      },
+      "trafficSources": {
+        "title": "مصادر الزيارات",
+        "description": "اعرف من أين يأتي زوارك"
+      },
+      "recentOrders": {
+        "title": "الطلبات الأخيرة",
+        "description": "أحدث الطلبات مع تتبع الحالة"
+      },
+      "topProducts": {
+        "title": "أفضل المنتجات",
+        "description": "قائمة المنتجات الأفضل أداءً"
+      },
+      "activityFeed": {
+        "title": "سجل النشاط",
+        "description": "أحدث أنشطة وأحداث النظام"
+      },
+      "quickActions": {
+        "title": "الإجراءات السريعة",
+        "description": "اختصارات للمهام الشائعة"
+      }
+    },
+    "resetConfirm": {
+      "title": "إعادة تعيين التخطيط؟",
+      "description": "سيؤدي هذا إلى استعادة تخطيط لوحة التحكم الافتراضي وإزالة جميع التخصيصات."
+    },
+    "discardChanges": {
+      "title": "تجاهل التغييرات؟",
+      "description": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد تجاهلها؟"
+    },
+    "widgetNotFound": "الأداة غير موجودة",
+    "placeholders": {
+      "lineChart": "عنصر الرسم البياني الخطي",
+      "barChart": "عنصر الرسم البياني العمودي",
+      "pieChart": "عنصر الرسم البياني الدائري",
+      "table": "عنصر الجدول",
+      "list": "عنصر القائمة",
+      "feed": "عنصر التغذية",
+      "quickActions": "عنصر الإجراءات السريعة",
+      "widgetContent": "محتوى الأداة"
+    }
+  },
+  "users": {
+    "title": "المستخدمون",
+    "description": "إدارة المستخدمين وصلاحياتهم.",
+    "addUser": "إضافة مستخدم",
+    "searchPlaceholder": "البحث عن مستخدمين...",
+    "noUsers": "لم يتم العثور على مستخدمين.",
+    "columns": {
+      "user": "المستخدم",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "role": "الدور",
+      "status": "الحالة",
+      "joined": "تاريخ الانضمام"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة إعدادات حسابك وتفضيلاتك.",
+    "tabs": {
+      "profile": "الملف الشخصي",
+      "account": "الحساب",
+      "appearance": "المظهر",
+      "preferences": "التفضيلات",
+      "themes": "السمات"
+    },
+    "profile": {
+      "title": "الملف الشخصي",
+      "description": "إدارة معلومات ملفك الشخصي العام.",
+      "avatar": "الصورة الرمزية",
+      "name": "الاسم",
+      "namePlaceholder": "أدخل اسمك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "bio": "نبذة",
+      "bioPlaceholder": "أخبرنا عن نفسك",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "account": {
+      "title": "الحساب",
+      "description": "إدارة أمان حسابك وإعداداته.",
+      "changePassword": "تغيير كلمة المرور",
+      "changePasswordDescription": "قم بتحديث كلمة المرور للحفاظ على أمان حسابك.",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "updatePassword": "تحديث كلمة المرور",
+      "dangerZone": "منطقة الخطر",
+      "dangerZoneDescription": "إجراءات لا يمكن التراجع عنها.",
+      "deleteAccount": "حذف الحساب",
+      "deleteAccountDescription": "حذف حسابك وجميع البيانات المرتبطة به نهائياً."
+    },
+    "appearance": {
+      "title": "المظهر",
+      "description": "تخصيص مظهر لوحة التحكم.",
+      "theme": "السمة",
+      "themeDescription": "اختر نظام الألوان المفضل لديك للواجهة.",
+      "light": "فاتح",
+      "lightDescription": "وضع فاتح بخلفيات مشرقة",
+      "dark": "داكن",
+      "darkDescription": "وضع داكن لتقليل إجهاد العين",
+      "system": "النظام",
+      "systemDescription": "اتبع إعدادات نظامك"
+    },
+    "preferences": {
+      "title": "التفضيلات",
+      "description": "تخصيص تجربة لوحة التحكم الخاصة بك.",
+      "language": "اللغة",
+      "languageDescription": "اختر لغتك المفضلة للواجهة.",
+      "selectLanguage": "اختر اللغة"
+    },
+    "themes": {
+      "title": "مدير السمات",
+      "description": "إنشاء واستيراد وإدارة سمات الألوان المخصصة للوحة التحكم.",
+      "import": "استيراد",
+      "importTitle": "استيراد سمة",
+      "importDescription": "الصق JSON السمة أو ارفع ملف .json لاستيراد سمة مخصصة.",
+      "jsonInput": "JSON السمة",
+      "orUpload": "أو ارفع ملفاً:",
+      "cancel": "إلغاء",
+      "active": "نشط",
+      "deleteTitle": "حذف السمة",
+      "deleteDescription": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "delete": "حذف",
+      "addTheme": "إضافة سمة",
+      "importFromJson": "استيراد من JSON",
+      "exportTitle": "تصدير السمة",
+      "exportDescription": "تحميل أو نسخ السمة بتنسيق JSON أو CSS.",
+      "close": "إغلاق"
+    }
+  },
+  "devTools": {
+    "title": "أدوات المطور",
+    "i18n": {
+      "title": "ذكاء الترجمة",
+      "description": "كشف ومراقبة مشاكل الترجمة في الوقت الفعلي",
+      "badge": "أدوات المطور",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "issues": "المشاكل",
+        "locales": "اللغات",
+        "routes": "المسارات",
+        "settings": "الإعدادات"
+      },
+      "health": {
+        "title": "درجة صحة الترجمة",
+        "score": "الدرجة",
+        "trend": "الاتجاه",
+        "improving": "يتحسن",
+        "stable": "مستقر",
+        "declining": "يتراجع",
+        "issues": "مشاكل",
+        "critical": "حرجة"
+      },
+      "issues": {
+        "title": "مشاكل الترجمة",
+        "description": "تم العثور على {count} مشكلة",
+        "noIssues": "لا توجد مشاكل!",
+        "noIssuesHint": "تصفح التطبيق لاكتشاف مشاكل الترجمة",
+        "selectAll": "تحديد الكل",
+        "selected": "تم تحديد {count}",
+        "resolve": "حل",
+        "delete": "حذف",
+        "acknowledge": "إقرار",
+        "markResolved": "وضع علامة كمحلول",
+        "wontFix": "لن يتم الإصلاح"
+      },
+      "issueTypes": {
+        "missing": "مفاتيح مفقودة",
+        "missingDesc": "مفاتيح الترجمة غير موجودة",
+        "fallback": "استخدام البديل",
+        "fallbackDesc": "استخدام لغة خاطئة",
+        "hardcoded": "نصوص ثابتة",
+        "hardcodedDesc": "نص لا يستخدم الترجمة",
+        "overflow": "تجاوز النص",
+        "overflowDesc": "اقتطاع المحتوى",
+        "rtlAlignment": "محاذاة RTL",
+        "rtlAlignmentDesc": "مشاكل اتجاه التخطيط",
+        "rtlDirection": "اتجاه RTL",
+        "rtlDirectionDesc": "مشاكل اتجاه النص"
+      },
+      "controls": {
+        "title": "عناصر التحكم في الكشف",
+        "active": "نشط",
+        "paused": "متوقف",
+        "detectionActive": "الكشف نشط",
+        "detectionHint": "تتبع مشاكل الترجمة في الوقت الفعلي",
+        "start": "بدء",
+        "pause": "إيقاف مؤقت",
+        "missingKeys": "مفاتيح مفقودة",
+        "fallbackUsage": "استخدام البديل",
+        "rtlIssues": "مشاكل RTL",
+        "refresh": "تحديث",
+        "export": "تصدير",
+        "import": "استيراد",
+        "clearResolved": "مسح المحلولة",
+        "clearAll": "مسح جميع المشاكل",
+        "reset": "إعادة تعيين",
+        "resetConfirm": "إعادة تعيين جميع البيانات؟ لا يمكن التراجع عن هذا."
+      },
+      "locales": {
+        "en": "الإنجليزية",
+        "ar": "العربية",
+        "healthScore": "درجة الصحة",
+        "keysUsed": "المفاتيح المستخدمة",
+        "missing": "مفقودة",
+        "fallbacks": "البدائل"
+      },
+      "hardcoded": {
+        "title": "نصوص مكتوبة مباشرة",
+        "refresh": "تحديث",
+        "filesScanned": "الملفات الممسوحة",
+        "withIssues": "بها مشاكل",
+        "totalIssues": "إجمالي المشاكل",
+        "lastScan": "آخر فحص",
+        "noIssues": "لم يتم اكتشاف نصوص مكتوبة مباشرة!",
+        "noResults": "لم يتم العثور على نتائج التحليل. قم بتشغيل \"pnpm analyze:i18n\" لفحص قاعدة الكود.",
+        "runCommand": "قم بتشغيل",
+        "inTerminal": "في الطرفية",
+        "copyKey": "نسخ المفتاح"
+      },
+      "export": {
+        "title": "تصدير",
+        "download": "تحميل",
+        "asJson": "تصدير كـ JSON",
+        "asCsv": "تصدير كـ CSV",
+        "asMarkdown": "تصدير كـ Markdown"
+      },
+      "summary": {
+        "issuesFound": "تم العثور على {count} مشكلة",
+        "noIssues": "لا توجد مشاكل",
+        "total": "الإجمالي"
+      }
+    }
+  },
+  "test": {
+    "nonExistent": {
+      "welcomeMessage": "مرحباً بك في صفحة الاختبار"
+    }
+  },
+  "features": {
+    "undefinedFeature": {
+      "title": "ميزة غير محددة"
+    }
+  },
+  "errors": {
+    "unknownCode": {
+      "description": "حدث خطأ غير معروف"
+    }
+  }
+}

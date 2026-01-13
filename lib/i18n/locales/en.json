@@ -1,0 +1,412 @@
+{
+  "common": {
+    "search": "Search...",
+    "logout": "Log out",
+    "profile": "Profile",
+    "settings": "Settings",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "reset": "Reset",
+    "export": "Export",
+    "import": "Import",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "confirm": "Confirm",
+    "success": "Success",
+    "noResults": "No results found.",
+    "home": "Home",
+    "toggleMenu": "Toggle menu",
+    "refresh": "Refresh",
+    "start": "Start",
+    "pause": "Pause",
+    "discard": "Discard",
+    "keepEditing": "Keep editing",
+    "active": "Active",
+    "user": "User",
+    "guest": "Guest",
+    "email": "Email",
+    "guestEmail": "guest@example.com",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "totalIssues": "Total Issues",
+    "filesScanned": "Files Scanned",
+    "withIssues": "With Issues"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "settings": "Settings",
+    "collapse": "Collapse",
+    "devTools": {
+      "title": "Dev Tools",
+      "i18n": "i18n Intelligence"
+    },
+    "breadcrumb": "Breadcrumb"
+  },
+  "breadcrumbs": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "settings": "Settings",
+    "profile": "Profile",
+    "account": "Account",
+    "appearance": "Appearance",
+    "preferences": "Preferences",
+    "themes": "Themes",
+    "devTools": "Dev Tools",
+    "dev-tools": "Dev Tools",
+    "i18n": "i18n Intelligence",
+    "test-detection": "Test Detection",
+    "en": "English",
+    "ar": "Arabic"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "description": "Enter your credentials to access your account",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "noAccount": "Don't have an account?",
+      "register": "Create account",
+      "error": "Please enter both email and password",
+      "failed": "Login failed. Please try again."
+    },
+    "register": {
+      "title": "Create an account",
+      "description": "Enter your details to get started",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "description": "Enter your email and we'll send you a reset link",
+      "email": "Email",
+      "submit": "Send reset link",
+      "backToLogin": "Back to login",
+      "checkEmail": "Check your email",
+      "checkEmailDescription": "We've sent a password reset link to your email address."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back! Here's an overview of your workspace.",
+    "customize": "Customize",
+    "customizeDescription": "Arrange and configure your dashboard widgets",
+    "editMode": "Edit Mode",
+    "saveLayout": "Save Layout",
+    "cancelEdit": "Cancel",
+    "resetLayout": "Reset Layout",
+    "addWidget": "Add Widget",
+    "removeWidget": "Remove Widget",
+    "widgetSettings": "Widget Settings",
+    "resetConfirm": {
+      "title": "Reset Layout",
+      "description": "This will restore the default dashboard layout. Any custom arrangements will be lost."
+    },
+    "discardChanges": {
+      "title": "Discard changes?",
+      "description": "You have unsaved changes. Are you sure you want to discard them?"
+    },
+    "widgetNotFound": "Widget not found",
+    "placeholders": {
+      "lineChart": "Line Chart Placeholder",
+      "barChart": "Bar Chart Placeholder",
+      "pieChart": "Pie Chart Placeholder",
+      "table": "Table Placeholder",
+      "list": "List Placeholder",
+      "feed": "Feed Placeholder",
+      "quickActions": "Quick Actions Placeholder",
+      "widgetContent": "Widget Content"
+    },
+    "views": {
+      "title": "Views",
+      "saveAs": "Save as View",
+      "loadView": "Load View",
+      "deleteView": "Delete View",
+      "default": "Default",
+      "setDefault": "Set as Default"
+    },
+    "empty": {
+      "title": "No widgets yet",
+      "description": "Add widgets to customize your dashboard"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeNow": "Active Now",
+      "revenue": "Revenue",
+      "growth": "Growth",
+      "fromLastMonth": "from last month",
+      "currentlyOnline": "currently online",
+      "comparedToLastQuarter": "compared to last quarter"
+    },
+    "recentUsers": "Recent Users",
+    "widgets": {
+      "totalRevenue": {
+        "title": "Total Revenue",
+        "description": "Track your total revenue with trend comparison"
+      },
+      "totalUsers": {
+        "title": "Total Users",
+        "description": "Monitor your user base growth"
+      },
+      "activeSessions": {
+        "title": "Active Sessions",
+        "description": "Real-time active session count"
+      },
+      "conversionRate": {
+        "title": "Conversion Rate",
+        "description": "Track your conversion performance"
+      },
+      "revenueChart": {
+        "title": "Revenue Over Time",
+        "description": "Visualize revenue trends with line chart"
+      },
+      "salesByCategory": {
+        "title": "Sales by Category",
+        "description": "Compare sales across product categories"
+      },
+      "trafficSources": {
+        "title": "Traffic Sources",
+        "description": "See where your visitors come from"
+      },
+      "recentOrders": {
+        "title": "Recent Orders",
+        "description": "Latest orders with status tracking"
+      },
+      "topProducts": {
+        "title": "Top Products",
+        "description": "Best performing products list"
+      },
+      "activityFeed": {
+        "title": "Activity Feed",
+        "description": "Recent system activity and events"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "description": "Shortcuts to common tasks"
+      }
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage your users and their permissions.",
+    "addUser": "Add User",
+    "searchPlaceholder": "Search users...",
+    "noUsers": "No users found.",
+    "columns": {
+      "user": "User",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "joined": "Joined"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account settings and preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "appearance": "Appearance",
+      "preferences": "Preferences",
+      "themes": "Themes"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your public profile information.",
+      "avatar": "Avatar",
+      "name": "Name",
+      "namePlaceholder": "Enter your name",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself",
+      "saveChanges": "Save changes"
+    },
+    "account": {
+      "title": "Account",
+      "description": "Manage your account security and settings.",
+      "changePassword": "Change Password",
+      "changePasswordDescription": "Update your password to keep your account secure.",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "updatePassword": "Update Password",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDescription": "Irreversible and destructive actions.",
+      "deleteAccount": "Delete Account",
+      "deleteAccountDescription": "Permanently delete your account and all associated data."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize how the dashboard looks and feels.",
+      "theme": "Theme",
+      "themeDescription": "Select your preferred color scheme for the interface.",
+      "light": "Light",
+      "lightDescription": "Light mode with bright backgrounds",
+      "dark": "Dark",
+      "darkDescription": "Dark mode for reduced eye strain",
+      "system": "System",
+      "systemDescription": "Follow your system preferences"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Customize your dashboard experience.",
+      "language": "Language",
+      "languageDescription": "Select your preferred language for the interface.",
+      "selectLanguage": "Select language"
+    },
+    "themes": {
+      "title": "Theme Manager",
+      "description": "Create, import, and manage custom color themes for your dashboard.",
+      "import": "Import",
+      "importTitle": "Import Theme",
+      "importDescription": "Paste theme JSON or upload a .json file to import a custom theme.",
+      "jsonInput": "Theme JSON",
+      "orUpload": "Or upload a file:",
+      "cancel": "Cancel",
+      "active": "Active",
+      "deleteTitle": "Delete Theme",
+      "deleteDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "delete": "Delete",
+      "addTheme": "Add Theme",
+      "importFromJson": "Import from JSON",
+      "exportTitle": "Export Theme",
+      "exportDescription": "Download or copy the theme in JSON or CSS format.",
+      "close": "Close"
+    }
+  },
+  "devTools": {
+    "title": "Developer Tools",
+    "i18n": {
+      "title": "i18n Intelligence",
+      "description": "Real-time translation issue detection and monitoring",
+      "badge": "Dev Tools",
+      "tabs": {
+        "overview": "Overview",
+        "issues": "Issues",
+        "locales": "Locales",
+        "routes": "Routes",
+        "settings": "Settings"
+      },
+      "health": {
+        "title": "Translation Health Score",
+        "score": "Score",
+        "trend": "Trend",
+        "improving": "Improving",
+        "stable": "Stable",
+        "declining": "Declining",
+        "issues": "issues",
+        "critical": "critical"
+      },
+      "issues": {
+        "title": "Translation Issues",
+        "description": "{count} issue(s) found",
+        "noIssues": "No issues found!",
+        "noIssuesHint": "Navigate the app to detect translation issues",
+        "selectAll": "Select all",
+        "selected": "{count} selected",
+        "resolve": "Resolve",
+        "delete": "Delete",
+        "acknowledge": "Acknowledge",
+        "markResolved": "Mark Resolved",
+        "wontFix": "Won't Fix"
+      },
+      "issueTypes": {
+        "missing": "Missing Keys",
+        "missingDesc": "Translation keys not found",
+        "fallback": "Fallback Usage",
+        "fallbackDesc": "Using wrong locale",
+        "hardcoded": "Hardcoded Strings",
+        "hardcodedDesc": "Text not using i18n",
+        "overflow": "Text Overflow",
+        "overflowDesc": "Content truncation",
+        "rtlAlignment": "RTL Alignment",
+        "rtlAlignmentDesc": "Layout direction issues",
+        "rtlDirection": "RTL Direction",
+        "rtlDirectionDesc": "Text direction issues"
+      },
+      "controls": {
+        "title": "Detection Controls",
+        "active": "Active",
+        "paused": "Paused",
+        "detectionActive": "Detection Active",
+        "detectionHint": "Track translation issues in real-time",
+        "start": "Start",
+        "pause": "Pause",
+        "missingKeys": "Missing Keys",
+        "fallbackUsage": "Fallback Usage",
+        "rtlIssues": "RTL Issues",
+        "refresh": "Refresh",
+        "export": "Export",
+        "import": "Import",
+        "clearResolved": "Clear Resolved",
+        "clearAll": "Clear All Issues",
+        "reset": "Reset",
+        "resetConfirm": "Reset all data? This cannot be undone."
+      },
+      "locales": {
+        "en": "English",
+        "ar": "Arabic",
+        "healthScore": "Health Score",
+        "keysUsed": "Keys Used",
+        "missing": "Missing",
+        "fallbacks": "Fallbacks"
+      },
+      "hardcoded": {
+        "title": "Hardcoded Strings",
+        "refresh": "Refresh",
+        "filesScanned": "Files Scanned",
+        "withIssues": "With Issues",
+        "totalIssues": "Total Issues",
+        "lastScan": "Last scan",
+        "noIssues": "No hardcoded strings detected!",
+        "noResults": "No analysis results found. Run \"pnpm analyze:i18n\" to scan your codebase.",
+        "runCommand": "Run",
+        "inTerminal": "in the terminal",
+        "copyKey": "Copy key"
+      },
+      "export": {
+        "title": "Export",
+        "download": "Download",
+        "asJson": "Export as JSON",
+        "asCsv": "Export as CSV",
+        "asMarkdown": "Export as Markdown"
+      },
+      "summary": {
+        "issuesFound": "{count} issues found",
+        "noIssues": "No issues",
+        "total": "total"
+      }
+    }
+  },
+  "test": {
+    "nonExistent": {
+      "welcomeMessage": "Welcome to the test page"
+    }
+  },
+  "features": {
+    "undefinedFeature": {
+      "title": "Undefined Feature"
+    }
+  },
+  "errors": {
+    "unknownCode": {
+      "description": "An unknown error occurred"
+    }
+  }
+}
