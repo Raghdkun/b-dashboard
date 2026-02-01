@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter, useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,9 @@ import type { User } from "@/types/user.types";
 
 export default function UsersPage() {
   const t = useTranslations("users");
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,9 +47,19 @@ export default function UsersPage() {
       key: "role",
       header: t("columns.role"),
       cell: (user: User) => (
-        <Badge variant="outline" className="capitalize">
-          {user.role}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {user.roles && user.roles.length > 0 ? (
+            user.roles.map((role) => (
+              <Badge key={role.id} variant="outline" className="capitalize">
+                {role.name}
+              </Badge>
+            ))
+          ) : (
+            <Badge variant="secondary" className="capitalize">
+              No roles
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
@@ -110,7 +124,7 @@ export default function UsersPage() {
         title={t("title")}
         description={t("description")}
       >
-        <Button>
+        <Button onClick={() => router.push(`/${locale}/dashboard/users/create`)}>
           <Plus className="me-2 h-4 w-4" />
           {t("addUser")}
         </Button>

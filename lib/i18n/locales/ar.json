@@ -9,6 +9,7 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
+    "deleting": "جاري الحذف...",
     "edit": "تعديل",
     "add": "إضافة",
     "reset": "إعادة تعيين",
@@ -42,6 +43,13 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "users": "المستخدمون",
+    "stores": "الفروع",
+    "roles": "الأدوار",
+    "permissions": "الصلاحيات",
+    "authRules": "قواعد التصريح",
+    "assignments": "التعيينات",
+    "hierarchy": "الهيكل",
+    "serviceClients": "عملاء الخدمة",
     "settings": "الإعدادات",
     "collapse": "طي",
     "breadcrumb": "التنقل",
@@ -54,6 +62,14 @@
   "breadcrumbs": {
     "dashboard": "لوحة التحكم",
     "users": "المستخدمون",
+    "stores": "الفروع",
+    "roles": "الأدوار",
+    "auth-rules": "قواعد التصريح",
+    "assignments": "التعيينات",
+    "hierarchy": "الهيكل",
+    "by-user": "حسب المستخدم",
+    "by-store": "حسب الفرع",
+    "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
     "account": "الحساب",
@@ -66,7 +82,9 @@
     "security": "مراقب الأمان",
     "test-detection": "اختبار الكشف",
     "en": "الإنجليزية",
-    "ar": "العربية"
+    "ar": "العربية",
+    "create": "إنشاء",
+    "edit": "تعديل"
   },
   "auth": {
     "login": {
@@ -446,6 +464,291 @@
   "errors": {
     "unknownCode": {
       "description": "حدث خطأ غير معروف"
+    }
+  },
+  "stores": {
+    "title": "الفروع",
+    "description": "إدارة مواقع الفروع وتفاصيلها.",
+    "addStore": "إضافة فرع",
+    "searchPlaceholder": "البحث في الفروع...",
+    "noStores": "لا توجد فروع.",
+    "columns": {
+      "name": "اسم الفرع",
+      "address": "العنوان",
+      "phone": "الهاتف",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "actions": {
+      "view": "عرض التفاصيل",
+      "edit": "تعديل الفرع",
+      "delete": "حذف الفرع"
+    },
+    "create": {
+      "title": "إنشاء فرع",
+      "description": "إضافة موقع فرع جديد لمنظمتك."
+    },
+    "edit": {
+      "title": "تعديل الفرع",
+      "description": "تحديث تفاصيل وإعدادات الفرع."
+    },
+    "deleteConfirm": {
+      "title": "حذف الفرع",
+      "description": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء."
+    },
+    "form": {
+      "basicInfo": "المعلومات الأساسية",
+      "basicInfoDescription": "أدخل التفاصيل الأساسية للفرع.",
+      "storeId": "معرف الفرع",
+      "storeIdPlaceholder": "مثال: STORE-001",
+      "storeIdDescription": "معرف فريد لهذا الفرع. لا يمكن تغييره لاحقاً.",
+      "name": "اسم الفرع",
+      "namePlaceholder": "مثال: فرع وسط المدينة",
+      "status": "نشط",
+      "statusDescription": "تفعيل أو تعطيل هذا الفرع.",
+      "contactInfo": "معلومات الاتصال",
+      "contactInfoDescription": "أدخل تفاصيل الاتصال للفرع.",
+      "address": "العنوان",
+      "addressPlaceholder": "123 الشارع الرئيسي، المدينة، الدولة",
+      "phone": "رقم الهاتف",
+      "phonePlaceholder": "+966 50 123 4567",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "store@example.com",
+      "create": "إنشاء الفرع"
+    }
+  },
+  "roles": {
+    "title": "الأدوار",
+    "description": "إدارة أدوار المستخدمين والصلاحيات.",
+    "addRole": "إضافة دور",
+    "searchPlaceholder": "البحث في الأدوار...",
+    "noRoles": "لا توجد أدوار.",
+    "columns": {
+      "name": "اسم الدور",
+      "guardName": "الحارس",
+      "users": "المستخدمون",
+      "permissions": "الصلاحيات",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "actions": {
+      "view": "عرض التفاصيل",
+      "edit": "تعديل الدور",
+      "delete": "حذف الدور"
+    },
+    "create": {
+      "title": "إنشاء دور",
+      "description": "إضافة دور جديد بصلاحيات محددة."
+    },
+    "edit": {
+      "title": "تعديل الدور",
+      "description": "تحديث تفاصيل الدور والصلاحيات."
+    },
+    "deleteConfirm": {
+      "title": "حذف الدور",
+      "description": "هل أنت متأكد من حذف {name}؟ سيفقد المستخدمون الذين لديهم هذا الدور صلاحياتهم."
+    },
+    "form": {
+      "basicInfo": "المعلومات الأساسية",
+      "basicInfoDescription": "أدخل التفاصيل الأساسية للدور.",
+      "name": "اسم الدور",
+      "namePlaceholder": "مثال: مدير الفرع",
+      "guardName": "اسم الحارس",
+      "guardNamePlaceholder": "مثال: web",
+      "guardNameHint": "حارس المصادقة لهذا الدور.",
+      "permissions": "الصلاحيات",
+      "permissionsDescription": "اختر الصلاحيات لهذا الدور.",
+      "selectAll": "تحديد الكل",
+      "deselectAll": "إلغاء تحديد الكل",
+      "create": "إنشاء الدور"
+    }
+  },
+  "authRules": {
+    "title": "قواعد التصريح",
+    "description": "تكوين قواعد تصريح نقاط API.",
+    "addRule": "إضافة قاعدة",
+    "searchPlaceholder": "البحث في القواعد...",
+    "noRules": "لا توجد قواعد تصريح.",
+    "filterByService": "تصفية حسب الخدمة",
+    "allServices": "جميع الخدمات",
+    "columns": {
+      "service": "الخدمة",
+      "method": "الطريقة",
+      "path": "المسار",
+      "authorization": "التصريح",
+      "priority": "الأولوية",
+      "status": "الحالة"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "rolesAny": "{count} أدوار",
+    "permissionsAny": "{count} صلاحيات (أي)",
+    "permissionsAll": "{count} صلاحيات (كل)",
+    "actions": {
+      "view": "عرض التفاصيل",
+      "test": "اختبار القاعدة",
+      "edit": "تعديل القاعدة",
+      "delete": "حذف القاعدة"
+    },
+    "create": {
+      "title": "إنشاء قاعدة تصريح",
+      "description": "إضافة قاعدة تصريح جديدة لنقطة API."
+    },
+    "form": {
+      "routeInfo": "معلومات المسار",
+      "routeInfoDescription": "حدد مسار API المراد حمايته.",
+      "service": "الخدمة",
+      "servicePlaceholder": "مثال: user-service",
+      "method": "طريقة HTTP",
+      "routeName": "اسم المسار",
+      "routeNamePlaceholder": "مثال: users.list",
+      "httpMethod": "طريقة HTTP",
+      "selectMethod": "اختر طريقة HTTP",
+      "pathDsl": "مسار DSL",
+      "pathDslPlaceholder": "مثال: /api/users/{id}",
+      "pathDslHint": "نمط المسار باستخدام صيغة DSL.",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "statusDescription": "تفعيل أو تعطيل هذه القاعدة.",
+      "authorization": "التصريح",
+      "authorizationDescription": "حدد من يمكنه الوصول لهذا المسار.",
+      "rolesAny": "الأدوار (أي)",
+      "rolesAnyPlaceholder": "admin, manager",
+      "rolesAnyHint": "يجب أن يكون للمستخدم واحد على الأقل من هذه الأدوار.",
+      "addRole": "إضافة دور",
+      "permissionsAny": "الصلاحيات (أي)",
+      "permissionsAnyPlaceholder": "users.read, users.list",
+      "permissionsAnyHint": "يجب أن يكون للمستخدم واحدة على الأقل من هذه الصلاحيات.",
+      "permissionsAll": "الصلاحيات (كل)",
+      "permissionsAllPlaceholder": "users.read, users.write",
+      "permissionsAllHint": "يجب أن يكون للمستخدم كل هذه الصلاحيات.",
+      "permissionPlaceholder": "مثال: users.read",
+      "active": "نشط",
+      "activeDescription": "تفعيل أو تعطيل هذه القاعدة.",
+      "create": "إنشاء القاعدة"
+    }
+  },
+  "assignments": {
+    "title": "تعيينات المستخدمين",
+    "description": "تعيين المستخدمين للفروع بأدوار محددة.",
+    "createAssignment": "إنشاء تعيين",
+    "byUser": {
+      "title": "عرض حسب المستخدم",
+      "description": "عرض جميع تعيينات الفروع والأدوار لكل مستخدم.",
+      "hint": "اختر مستخدماً لعرض تعييناته",
+      "pageTitle": "التعيينات حسب المستخدم",
+      "pageDescription": "عرض جميع تعيينات المستخدمين مجمعة حسب المستخدم."
+    },
+    "byStore": {
+      "title": "عرض حسب الفرع",
+      "description": "عرض جميع المستخدمين وأدوارهم المعينة لكل فرع.",
+      "hint": "اختر فرعاً لعرض المستخدمين المعينين",
+      "pageTitle": "التعيينات حسب الفرع",
+      "pageDescription": "عرض جميع التعيينات لفرع محدد."
+    },
+    "bulkAssignment": {
+      "title": "التعيين الجماعي",
+      "description": "تعيين عدة مستخدمين للفروع دفعة واحدة.",
+      "start": "بدء التعيين الجماعي"
+    },
+    "selectStore": "اختر فرعاً",
+    "selectUser": "اختر مستخدماً",
+    "searchByUser": "البحث حسب المستخدم...",
+    "noAssignments": "لا توجد تعيينات.",
+    "noAssignmentsForStore": "لا يوجد مستخدمون معينون لهذا الفرع.",
+    "noAssignmentsForUser": "لا توجد تعيينات لهذا المستخدم.",
+    "columns": {
+      "user": "المستخدم",
+      "store": "الفرع",
+      "role": "الدور",
+      "assignedAt": "تاريخ التعيين"
+    },
+    "actions": {
+      "viewUser": "عرض المستخدم",
+      "viewStore": "عرض الفرع",
+      "remove": "إزالة التعيين"
+    },
+    "create": {
+      "title": "إنشاء تعيين",
+      "description": "تعيين مستخدم لفرع بدور محدد."
+    },
+    "form": {
+      "details": "تفاصيل التعيين",
+      "detailsDescription": "اختر المستخدم والفرع والدور لهذا التعيين.",
+      "user": "المستخدم",
+      "selectUser": "اختر مستخدماً",
+      "store": "الفرع",
+      "selectStore": "اختر فرعاً",
+      "role": "الدور",
+      "selectRole": "اختر دوراً",
+      "create": "إنشاء التعيين"
+    }
+  },
+  "hierarchy": {
+    "title": "هيكل الأدوار",
+    "description": "تكوين هيكل الأدوار والوراثة للفروع.",
+    "createHierarchy": "إنشاء هيكل",
+    "selectStore": "اختر فرعاً",
+    "selectStorePrompt": "اختر فرعاً لعرض هيكل أدواره.",
+    "expandAll": "توسيع الكل",
+    "collapseAll": "طي الكل",
+    "noHierarchy": "لم يتم تكوين هيكل أدوار لهذا الفرع.",
+    "createFirst": "إنشاء الهيكل الأول",
+    "tree": {
+      "title": "شجرة الأدوار",
+      "description": "تمثيل مرئي لوراثة الأدوار."
+    },
+    "details": {
+      "title": "تفاصيل العقدة",
+      "description": "معلومات حول الدور المحدد.",
+      "selectNode": "اختر دوراً لعرض التفاصيل.",
+      "roleName": "اسم الدور",
+      "guardName": "اسم الحارس",
+      "depth": "مستوى العمق",
+      "hasChildren": "له أبناء"
+    },
+    "yes": "نعم",
+    "no": "لا",
+    "create": {
+      "title": "إنشاء هيكل",
+      "description": "تحديد علاقة أب-ابن بين الأدوار لفرع."
+    },
+    "edit": {
+      "title": "تعديل الهيكل",
+      "description": "تحديث علاقة الهيكل الهرمي."
+    },
+    "form": {
+      "details": "تفاصيل الهيكل",
+      "detailsDescription": "حدد علاقة هيكل الأدوار.",
+      "hierarchyDetails": "تفاصيل الهيكل",
+      "hierarchyDescription": "اختر الفرع وحدد علاقة الأدوار.",
+      "store": "الفرع",
+      "selectStore": "اختر فرعاً",
+      "storeHint": "الفرع الذي سيطبق عليه هذا الهيكل.",
+      "roleRelationship": "علاقة الأدوار",
+      "roleRelationshipDescription": "حدد أي دور يرث من أي.",
+      "parentRole": "الدور الأب",
+      "selectParentRole": "اختر الدور الأب",
+      "parentRoleHint": "الدور الأعلى في الهيكل.",
+      "parentRoleDescription": "الدور الذي سيكون الأب في الهيكل.",
+      "childRole": "الدور الابن",
+      "selectChildRole": "اختر الدور الابن",
+      "childRoleHint": "الدور الذي سيرث من الأب.",
+      "childRoleDescription": "الدور الذي سيرث من الأب.",
+      "previewRelationship": "{parent} → {child}",
+      "create": "إنشاء الهيكل",
+      "metadata": "البيانات الوصفية",
+      "metadataDescription": "معلومات اختيارية حول هذا الهيكل.",
+      "createdBy": "أنشأه",
+      "createdByPlaceholder": "البريد الإلكتروني أو اسم الشخص الذي أنشأ هذا الهيكل",
+      "reason": "السبب",
+      "reasonPlaceholder": "لماذا يتم إنشاء هذا الهيكل؟",
+      "reasonHint": "قدم سياقاً لعلاقة الهيكل هذه."
     }
   }
 }

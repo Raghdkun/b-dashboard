@@ -9,6 +9,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "deleting": "Deleting...",
     "edit": "Edit",
     "add": "Add",
     "reset": "Reset",
@@ -42,6 +43,13 @@
   "nav": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "stores": "Stores",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "authRules": "Auth Rules",
+    "assignments": "Assignments",
+    "hierarchy": "Hierarchy",
+    "serviceClients": "Service Clients",
     "settings": "Settings",
     "collapse": "Collapse",
     "devTools": {
@@ -54,6 +62,14 @@
   "breadcrumbs": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "stores": "Stores",
+    "roles": "Roles",
+    "auth-rules": "Auth Rules",
+    "assignments": "Assignments",
+    "hierarchy": "Hierarchy",
+    "by-user": "By User",
+    "by-store": "By Store",
+    "bulk": "Bulk Assignment",
     "settings": "Settings",
     "profile": "Profile",
     "account": "Account",
@@ -66,7 +82,9 @@
     "security": "Security Monitor",
     "test-detection": "Test Detection",
     "en": "English",
-    "ar": "Arabic"
+    "ar": "Arabic",
+    "create": "Create",
+    "edit": "Edit"
   },
   "auth": {
     "login": {
@@ -213,6 +231,7 @@
     "title": "Users",
     "description": "Manage your users and their permissions.",
     "addUser": "Add User",
+    "createUser": "Create User",
     "searchPlaceholder": "Search users...",
     "noUsers": "No users found.",
     "columns": {
@@ -222,6 +241,32 @@
       "role": "Role",
       "status": "Status",
       "joined": "Joined"
+    },
+    "create": {
+      "title": "Create User",
+      "description": "Add a new user to your organization."
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "basicInfoDescription": "Enter the user's name and email address.",
+      "security": "Security",
+      "securityDescription": "Set the user's password for account access.",
+      "name": "Full Name",
+      "namePlaceholder": "Enter full name",
+      "email": "Email Address",
+      "emailPlaceholder": "Enter email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm password",
+      "validation": {
+        "nameRequired": "Name is required",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordMismatch": "Passwords do not match"
+      }
     }
   },
   "settings": {
@@ -446,6 +491,291 @@
   "errors": {
     "unknownCode": {
       "description": "An unknown error occurred"
+    }
+  },
+  "stores": {
+    "title": "Stores",
+    "description": "Manage your store locations and their details.",
+    "addStore": "Add Store",
+    "searchPlaceholder": "Search stores...",
+    "noStores": "No stores found.",
+    "columns": {
+      "name": "Store Name",
+      "address": "Address",
+      "phone": "Phone",
+      "status": "Status",
+      "createdAt": "Created"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit Store",
+      "delete": "Delete Store"
+    },
+    "create": {
+      "title": "Create Store",
+      "description": "Add a new store location to your organization."
+    },
+    "edit": {
+      "title": "Edit Store",
+      "description": "Update store details and settings."
+    },
+    "deleteConfirm": {
+      "title": "Delete Store",
+      "description": "Are you sure you want to delete {name}? This action cannot be undone."
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "basicInfoDescription": "Enter the store's basic details.",
+      "storeId": "Store ID",
+      "storeIdPlaceholder": "e.g., STORE-001",
+      "storeIdDescription": "A unique identifier for this store. This cannot be changed later.",
+      "name": "Store Name",
+      "namePlaceholder": "e.g., Downtown Branch",
+      "status": "Active",
+      "statusDescription": "Enable or disable this store.",
+      "contactInfo": "Contact Information",
+      "contactInfoDescription": "Enter the store's contact details.",
+      "address": "Address",
+      "addressPlaceholder": "123 Main Street, City, Country",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+1 234 567 8900",
+      "email": "Email",
+      "emailPlaceholder": "store@example.com",
+      "create": "Create Store"
+    }
+  },
+  "roles": {
+    "title": "Roles",
+    "description": "Manage user roles and permissions.",
+    "addRole": "Add Role",
+    "searchPlaceholder": "Search roles...",
+    "noRoles": "No roles found.",
+    "columns": {
+      "name": "Role Name",
+      "guardName": "Guard",
+      "users": "Users",
+      "permissions": "Permissions",
+      "createdAt": "Created"
+    },
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit Role",
+      "delete": "Delete Role"
+    },
+    "create": {
+      "title": "Create Role",
+      "description": "Add a new role with specific permissions."
+    },
+    "edit": {
+      "title": "Edit Role",
+      "description": "Update role details and permissions."
+    },
+    "deleteConfirm": {
+      "title": "Delete Role",
+      "description": "Are you sure you want to delete {name}? Users with this role will lose their permissions."
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "basicInfoDescription": "Enter the role's basic details.",
+      "name": "Role Name",
+      "namePlaceholder": "e.g., Store Manager",
+      "guardName": "Guard Name",
+      "guardNamePlaceholder": "e.g., web",
+      "guardNameHint": "The authentication guard for this role.",
+      "permissions": "Permissions",
+      "permissionsDescription": "Select the permissions for this role.",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "create": "Create Role"
+    }
+  },
+  "authRules": {
+    "title": "Authorization Rules",
+    "description": "Configure API endpoint authorization rules.",
+    "addRule": "Add Rule",
+    "searchPlaceholder": "Search rules...",
+    "noRules": "No authorization rules found.",
+    "filterByService": "Filter by service",
+    "allServices": "All Services",
+    "columns": {
+      "service": "Service",
+      "method": "Method",
+      "path": "Path",
+      "authorization": "Authorization",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "rolesAny": "{count} roles",
+    "permissionsAny": "{count} perms (any)",
+    "permissionsAll": "{count} perms (all)",
+    "actions": {
+      "view": "View Details",
+      "test": "Test Rule",
+      "edit": "Edit Rule",
+      "delete": "Delete Rule"
+    },
+    "create": {
+      "title": "Create Authorization Rule",
+      "description": "Add a new API endpoint authorization rule."
+    },
+    "form": {
+      "routeInfo": "Route Information",
+      "routeInfoDescription": "Define the API route to protect.",
+      "service": "Service",
+      "servicePlaceholder": "e.g., user-service",
+      "method": "HTTP Method",
+      "routeName": "Route Name",
+      "routeNamePlaceholder": "e.g., users.list",
+      "httpMethod": "HTTP Method",
+      "selectMethod": "Select HTTP method",
+      "pathDsl": "Path DSL",
+      "pathDslPlaceholder": "e.g., /api/users/{id}",
+      "pathDslHint": "The path pattern using DSL syntax.",
+      "priority": "Priority",
+      "status": "Status",
+      "statusDescription": "Enable or disable this rule.",
+      "authorization": "Authorization",
+      "authorizationDescription": "Define who can access this route.",
+      "rolesAny": "Roles (Any)",
+      "rolesAnyPlaceholder": "admin, manager",
+      "rolesAnyHint": "User must have at least one of these roles.",
+      "addRole": "Add role",
+      "permissionsAny": "Permissions (Any)",
+      "permissionsAnyPlaceholder": "users.read, users.list",
+      "permissionsAnyHint": "User must have at least one of these permissions.",
+      "permissionsAll": "Permissions (All)",
+      "permissionsAllPlaceholder": "users.read, users.write",
+      "permissionsAllHint": "User must have all of these permissions.",
+      "permissionPlaceholder": "e.g., users.read",
+      "active": "Active",
+      "activeDescription": "Enable or disable this rule.",
+      "create": "Create Rule"
+    }
+  },
+  "assignments": {
+    "title": "User Assignments",
+    "description": "Assign users to stores with specific roles.",
+    "createAssignment": "Create Assignment",
+    "byUser": {
+      "title": "View by User",
+      "description": "See all store and role assignments for each user.",
+      "hint": "Select a user to view their assignments",
+      "pageTitle": "Assignments by User",
+      "pageDescription": "View all user assignments grouped by user."
+    },
+    "byStore": {
+      "title": "View by Store",
+      "description": "See all users and their roles assigned to each store.",
+      "hint": "Select a store to view assigned users",
+      "pageTitle": "Assignments by Store",
+      "pageDescription": "View all assignments for a specific store."
+    },
+    "bulkAssignment": {
+      "title": "Bulk Assignment",
+      "description": "Assign multiple users to stores at once.",
+      "start": "Start Bulk Assignment"
+    },
+    "selectStore": "Select a store",
+    "selectUser": "Select a user",
+    "searchByUser": "Search by user...",
+    "noAssignments": "No assignments found.",
+    "noAssignmentsForStore": "No users assigned to this store.",
+    "noAssignmentsForUser": "No assignments for this user.",
+    "columns": {
+      "user": "User",
+      "store": "Store",
+      "role": "Role",
+      "assignedAt": "Assigned"
+    },
+    "actions": {
+      "viewUser": "View User",
+      "viewStore": "View Store",
+      "remove": "Remove Assignment"
+    },
+    "create": {
+      "title": "Create Assignment",
+      "description": "Assign a user to a store with a specific role."
+    },
+    "form": {
+      "details": "Assignment Details",
+      "detailsDescription": "Select the user, store, and role for this assignment.",
+      "user": "User",
+      "selectUser": "Select a user",
+      "store": "Store",
+      "selectStore": "Select a store",
+      "role": "Role",
+      "selectRole": "Select a role",
+      "create": "Create Assignment"
+    }
+  },
+  "hierarchy": {
+    "title": "Role Hierarchy",
+    "description": "Configure role hierarchy and inheritance for stores.",
+    "createHierarchy": "Create Hierarchy",
+    "selectStore": "Select a store",
+    "selectStorePrompt": "Select a store to view its role hierarchy.",
+    "expandAll": "Expand All",
+    "collapseAll": "Collapse All",
+    "noHierarchy": "No role hierarchy configured for this store.",
+    "createFirst": "Create First Hierarchy",
+    "tree": {
+      "title": "Role Tree",
+      "description": "Visual representation of role inheritance."
+    },
+    "details": {
+      "title": "Node Details",
+      "description": "Information about the selected role.",
+      "selectNode": "Select a role to view details.",
+      "roleName": "Role Name",
+      "guardName": "Guard Name",
+      "depth": "Depth Level",
+      "hasChildren": "Has Children"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "create": {
+      "title": "Create Hierarchy",
+      "description": "Define a parent-child role relationship for a store."
+    },
+    "edit": {
+      "title": "Edit Hierarchy",
+      "description": "Update the role hierarchy relationship."
+    },
+    "form": {
+      "details": "Hierarchy Details",
+      "detailsDescription": "Define the role hierarchy relationship.",
+      "hierarchyDetails": "Hierarchy Details",
+      "hierarchyDescription": "Select the store and define the role relationship.",
+      "store": "Store",
+      "selectStore": "Select a store",
+      "storeHint": "The store this hierarchy will apply to.",
+      "roleRelationship": "Role Relationship",
+      "roleRelationshipDescription": "Define which role inherits from which.",
+      "parentRole": "Parent Role",
+      "selectParentRole": "Select parent role",
+      "parentRoleHint": "The higher-level role in the hierarchy.",
+      "parentRoleDescription": "The role that will be the parent in the hierarchy.",
+      "childRole": "Child Role",
+      "selectChildRole": "Select child role",
+      "childRoleHint": "The role that will inherit from the parent.",
+      "childRoleDescription": "The role that will inherit from the parent.",
+      "previewRelationship": "{parent} → {child}",
+      "create": "Create Hierarchy",
+      "metadata": "Metadata",
+      "metadataDescription": "Optional information about this hierarchy.",
+      "createdBy": "Created By",
+      "createdByPlaceholder": "Email or name of the person creating this hierarchy",
+      "reason": "Reason",
+      "reasonPlaceholder": "Why is this hierarchy being created?",
+      "reasonHint": "Provide context for this hierarchy relationship."
     }
   }
 }

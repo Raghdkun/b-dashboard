@@ -4,6 +4,19 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const isDev = process.env.NODE_ENV === "development";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+// Extract the base domain from API URL for CSP
+const getApiDomain = (url: string): string => {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return "";
+  }
+};
+
+const apiDomain = getApiDomain(apiUrl);
 
 const nextConfig: NextConfig = {
   // Security headers
@@ -50,7 +63,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              `connect-src 'self'${isDev ? " ws://localhost:3000 wss://localhost:3000" : ""}`,
+              `connect-src 'self'${apiDomain ? ` ${apiDomain}` : ""}${isDev ? " ws://localhost:3000 wss://localhost:3000" : ""}`,
               "frame-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",

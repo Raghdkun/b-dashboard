@@ -12,6 +12,13 @@ import {
   Languages,
   Wrench,
   Shield,
+  Building2,
+  UserCog,
+  Lock,
+  UserPlus,
+  GitBranch,
+  Key,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -48,6 +55,41 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       title: t("users"),
       href: `/${locale}/dashboard/users`,
       icon: Users,
+    },
+    {
+      title: t("stores"),
+      href: `/${locale}/dashboard/stores`,
+      icon: Building2,
+    },
+    {
+      title: t("roles"),
+      href: `/${locale}/dashboard/roles`,
+      icon: UserCog,
+    },
+    {
+      title: t("permissions"),
+      href: `/${locale}/dashboard/permissions`,
+      icon: ShieldCheck,
+    },
+    {
+      title: t("authRules"),
+      href: `/${locale}/dashboard/auth-rules`,
+      icon: Lock,
+    },
+    {
+      title: t("assignments"),
+      href: `/${locale}/dashboard/assignments`,
+      icon: UserPlus,
+    },
+    {
+      title: t("hierarchy"),
+      href: `/${locale}/dashboard/hierarchy`,
+      icon: GitBranch,
+    },
+    {
+      title: t("serviceClients"),
+      href: `/${locale}/dashboard/service-clients`,
+      icon: Key,
     },
     {
       title: t("settings"),

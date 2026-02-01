@@ -13,9 +13,10 @@ export const axiosClient = axios.create({
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
-  // Send cookies with requests (for httpOnly cookie auth in production)
-  withCredentials: true,
+  // Don't send cookies - we use Bearer token auth
+  withCredentials: false,
 });
 
 // Request interceptor - attach token and CSRF
