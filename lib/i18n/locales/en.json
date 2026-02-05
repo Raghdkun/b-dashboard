@@ -43,6 +43,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "employees": "Employees",
     "stores": "Stores",
     "roles": "Roles",
     "permissions": "Permissions",
@@ -52,6 +53,9 @@
     "serviceClients": "Service Clients",
     "settings": "Settings",
     "collapse": "Collapse",
+    "selectStore": "Select Store",
+    "selectStoreDescription": "Choose a store to manage",
+    "noStoresAvailable": "No stores available",
     "devTools": {
       "title": "Dev Tools",
       "i18n": "i18n Intelligence",
@@ -62,6 +66,7 @@
   "breadcrumbs": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "employees": "Employees",
     "stores": "Stores",
     "roles": "Roles",
     "auth-rules": "Auth Rules",
@@ -249,6 +254,12 @@
     "form": {
       "basicInfo": "Basic Information",
       "basicInfoDescription": "Enter the user's name and email address.",
+      "assignRoles": "Assign Roles",
+      "assignRolesDescription": "Select one or more roles for this user. Each role comes with its own set of permissions.",
+      "noRolesAvailable": "No roles available",
+      "additionalPermissions": "Additional Permissions",
+      "additionalPermissionsDescription": "Grant additional permissions beyond those provided by roles. Permissions from roles are automatically included.",
+      "noPermissionsAvailable": "No permissions available",
       "security": "Security",
       "securityDescription": "Set the user's password for account access.",
       "name": "Full Name",
@@ -267,6 +278,68 @@
         "passwordMinLength": "Password must be at least 8 characters",
         "passwordMismatch": "Passwords do not match"
       }
+    },
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit User",
+      "delete": "Delete User"
+    },
+    "details": {
+      "title": "User Details",
+      "description": "View and manage details for",
+      "personalInfo": "Personal information",
+      "accountInfo": "Account Information",
+      "accountInfoDescription": "Key dates and identifiers",
+      "globalRoles": "Global Roles",
+      "rolesAssigned": "Roles assigned to this user",
+      "permissions": "Permissions",
+      "permissionsAssigned": "Permissions assigned to this user",
+      "storeAccess": "Store Access",
+      "storeAccessDescription": "Stores and roles assigned to this user",
+      "noRoles": "No roles assigned",
+      "noPermissions": "No permissions assigned",
+      "noStoreAccess": "No store access assigned",
+      "rolesInThisStore": "Roles in this store:",
+      "noRolesInStore": "No roles in this store",
+      "emailAddress": "Email Address",
+      "emailVerified": "Email Verified",
+      "userId": "User ID",
+      "created": "Created",
+      "lastUpdated": "Last Updated",
+      "unknownUser": "Unknown User",
+      "errorLoading": "Error loading user details",
+      "notFound": "User not found"
+    },
+    "edit": {
+      "title": "Edit User",
+      "description": "Update information for",
+      "userInfo": "User Information",
+      "userInfoDescription": "Update the user's basic information and password",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter full name",
+      "fullNameDescription": "User's full name",
+      "emailAddress": "Email Address",
+      "emailAddressPlaceholder": "Enter email address",
+      "emailAddressDescription": "User's email address",
+      "password": "Password",
+      "passwordPlaceholder": "Leave blank to keep current password",
+      "passwordDescription": "Optional - Leave blank to keep current password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "confirmPasswordDescription": "Must match the password above",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "goBack": "Go Back",
+      "loading": "Loading user information...",
+      "errorLoading": "Error loading user information",
+      "notFound": "User not found",
+      "fullNameRequired": "Full name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordsMismatch": "Passwords do not match",
+      "updateSuccess": "User updated successfully",
+      "updateError": "Failed to update user"
     }
   },
   "settings": {
@@ -500,11 +573,13 @@
     "searchPlaceholder": "Search stores...",
     "noStores": "No stores found.",
     "columns": {
+      "id": "Store ID",
       "name": "Store Name",
       "address": "Address",
       "phone": "Phone",
       "status": "Status",
-      "createdAt": "Created"
+      "createdAt": "Created",
+      "updatedAt": "Last Updated"
     },
     "status": {
       "active": "Active",
@@ -545,8 +620,33 @@
       "phonePlaceholder": "+1 234 567 8900",
       "email": "Email",
       "emailPlaceholder": "store@example.com",
+      "metadata": "Metadata",
+      "metadataDescription": "Add custom key-value pairs for store metadata",
+      "addMetadata": "Add Metadata",
+      "noMetadata": "No metadata items yet. Click 'Add Metadata' to create one.",
       "create": "Create Store"
     }
+  },
+  "employees": {
+    "title": "Employees",
+    "description": "View employees for the selected store.",
+    "storeLabel": "Selected Store",
+    "noStoreSelected": "No store selected",
+    "columns": {
+      "employee": "Employee",
+      "store": "Store",
+      "dateOfBirth": "Date of Birth",
+      "status": "Status",
+      "attributes": "Attributes",
+      "details": "Details",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": "No employees found"
   },
   "roles": {
     "title": "Roles",
@@ -683,6 +783,13 @@
       "description": "Assign multiple users to stores at once.",
       "start": "Start Bulk Assignment"
     },
+    "storeAssignments": {
+      "title": "Store User Assignments"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
     "selectStore": "Select a store",
     "selectUser": "Select a user",
     "searchByUser": "Search by user...",
@@ -691,8 +798,11 @@
     "noAssignmentsForUser": "No assignments for this user.",
     "columns": {
       "user": "User",
+      "email": "Email",
       "store": "Store",
       "role": "Role",
+      "status": "Status",
+      "assigned": "Assigned",
       "assignedAt": "Assigned"
     },
     "actions": {

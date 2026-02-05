@@ -10,20 +10,17 @@ import type { GetAuthRulesParams, AuthRuleFilters } from "@/types/auth-rule.type
 export function useAuthRules(initialParams?: GetAuthRulesParams) {
   const {
     rules,
-    services,
     pagination,
     isLoading,
     error,
     filters,
     fetchRules,
-    fetchServices,
     setFilters,
   } = useAuthRulesStore();
 
   useEffect(() => {
     fetchRules(initialParams);
-    fetchServices();
-  }, [fetchRules, fetchServices, initialParams]);
+  }, [fetchRules, initialParams]);
 
   const refetch = useCallback(
     (params?: GetAuthRulesParams) => {
@@ -69,7 +66,6 @@ export function useAuthRules(initialParams?: GetAuthRulesParams) {
 
   return {
     rules,
-    services,
     pagination,
     isLoading,
     error,

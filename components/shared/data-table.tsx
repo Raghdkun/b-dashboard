@@ -50,9 +50,21 @@ export function DataTable<T extends object>({
     return (
       <div className="space-y-4">
         {searchable && (
+          // <div className="relative max-w-sm">
+          //   <Skeleton className="h-10 w-full" />
+          // </div>
+
+          //fixed ui bug
           <div className="relative max-w-sm">
-            <Skeleton className="h-10 w-full" />
-          </div>
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-8"
+          />
+        </div>
         )}
         <div className="rounded-md border">
           <Table>

@@ -43,6 +43,7 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "users": "المستخدمون",
+    "employees": "الموظفون",
     "stores": "الفروع",
     "roles": "الأدوار",
     "permissions": "الصلاحيات",
@@ -52,6 +53,9 @@
     "serviceClients": "عملاء الخدمة",
     "settings": "الإعدادات",
     "collapse": "طي",
+    "selectStore": "اختيار الفرع",
+    "selectStoreDescription": "اختر فرعاً لإدارته",
+    "noStoresAvailable": "لا توجد فروع متاحة",
     "breadcrumb": "التنقل",
     "devTools": {
       "title": "أدوات المطور",
@@ -62,6 +66,7 @@
   "breadcrumbs": {
     "dashboard": "لوحة التحكم",
     "users": "المستخدمون",
+    "employees": "الموظفون",
     "stores": "الفروع",
     "roles": "الأدوار",
     "auth-rules": "قواعد التصريح",
@@ -85,6 +90,27 @@
     "ar": "العربية",
     "create": "إنشاء",
     "edit": "تعديل"
+  },
+  "employees": {
+    "title": "الموظفون",
+    "description": "عرض الموظفين للفرع المحدد.",
+    "storeLabel": "الفرع المحدد",
+    "noStoreSelected": "لم يتم اختيار فرع",
+    "columns": {
+      "employee": "الموظف",
+      "store": "الفرع",
+      "dateOfBirth": "تاريخ الميلاد",
+      "status": "الحالة",
+      "attributes": "السمات",
+      "details": "التفاصيل",
+      "created": "تاريخ الإنشاء",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "empty": "لا يوجد موظفون"
   },
   "auth": {
     "login": {
@@ -240,6 +266,100 @@
       "role": "الدور",
       "status": "الحالة",
       "joined": "تاريخ الانضمام"
+    },
+    "actions": {
+      "view": "عرض التفاصيل",
+      "edit": "تعديل المستخدم",
+      "delete": "حذف المستخدم"
+    },
+    "create": {
+      "title": "إنشاء مستخدم",
+      "description": "إضافة مستخدم جديد لمؤسستك."
+    },
+    "form": {
+      "basicInfo": "المعلومات الأساسية",
+      "basicInfoDescription": "أدخل اسم المستخدم وعنوان بريده الإلكتروني.",
+      "assignRoles": "تعيين الأدوار",
+      "assignRolesDescription": "حدد دوراً أو أكثر لهذا المستخدم. كل دور يأتي مع مجموعته الخاصة من الصلاحيات.",
+      "noRolesAvailable": "لا توجد أدوار متاحة",
+      "additionalPermissions": "صلاحيات إضافية",
+      "additionalPermissionsDescription": "منح صلاحيات إضافية بالإضافة إلى تلك الموفرة من الأدوار. الصلاحيات من الأدوار يتم تضمينها تلقائياً.",
+      "noPermissionsAvailable": "لا توجد صلاحيات متاحة",
+      "security": "الأمان",
+      "securityDescription": "عيّن كلمة مرور المستخدم للوصول إلى الحساب.",
+      "name": "الاسم الكامل",
+      "namePlaceholder": "أدخل الاسم الكامل",
+      "email": "عنوان البريد الإلكتروني",
+      "emailPlaceholder": "أدخل عنوان البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور",
+      "validation": {
+        "nameRequired": "الاسم مطلوب",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "passwordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+        "passwordMismatch": "كلمات المرور غير متطابقة"
+      }
+    },
+    "details": {
+      "title": "تفاصيل المستخدم",
+      "description": "عرض وإدارة التفاصيل ل",
+      "personalInfo": "المعلومات الشخصية",
+      "accountInfo": "معلومات الحساب",
+      "accountInfoDescription": "التواريخ الرئيسية والمعرفات",
+      "globalRoles": "الأدوار العامة",
+      "rolesAssigned": "الأدوار المعينة لهذا المستخدم",
+      "permissions": "الصلاحيات",
+      "permissionsAssigned": "الصلاحيات المعينة لهذا المستخدم",
+      "storeAccess": "الوصول إلى الفروع",
+      "storeAccessDescription": "الفروع والأدوار المعينة لهذا المستخدم",
+      "noRoles": "لم يتم تعيين أدوار",
+      "noPermissions": "لم يتم تعيين صلاحيات",
+      "noStoreAccess": "لم يتم تعيين وصول إلى أي فرع",
+      "rolesInThisStore": "الأدوار في هذا الفرع:",
+      "noRolesInStore": "لا توجد أدوار في هذا الفرع",
+      "emailAddress": "عنوان البريد الإلكتروني",
+      "emailVerified": "تم التحقق من البريد الإلكتروني",
+      "userId": "معرف المستخدم",
+      "created": "تم الإنشاء",
+      "lastUpdated": "آخر تحديث",
+      "unknownUser": "مستخدم غير معروف",
+      "errorLoading": "خطأ في تحميل تفاصيل المستخدم",
+      "notFound": "لم يتم العثور على المستخدم"
+    },
+    "edit": {
+      "title": "تعديل المستخدم",
+      "description": "تحديث المعلومات ل",
+      "userInfo": "معلومات المستخدم",
+      "userInfoDescription": "تحديث المعلومات الأساسية وكلمة المرور للمستخدم",
+      "fullName": "الاسم الكامل",
+      "fullNamePlaceholder": "أدخل الاسم الكامل",
+      "fullNameDescription": "الاسم الكامل للمستخدم",
+      "emailAddress": "عنوان البريد الإلكتروني",
+      "emailAddressPlaceholder": "أدخل عنوان البريد الإلكتروني",
+      "emailAddressDescription": "بريد المستخدم الإلكتروني",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "اترك الحقل فارغاً للاحتفاظ بكلمة المرور الحالية",
+      "passwordDescription": "اختياري - اترك الحقل فارغاً للاحتفاظ بكلمة المرور الحالية",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+      "confirmPasswordDescription": "يجب أن تطابق كلمة المرور أعلاه",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "cancel": "إلغاء",
+      "goBack": "العودة",
+      "loading": "جاري تحميل معلومات المستخدم...",
+      "errorLoading": "خطأ في تحميل معلومات المستخدم",
+      "notFound": "لم يتم العثور على المستخدم",
+      "fullNameRequired": "الاسم الكامل مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
+      "passwordsMismatch": "كلمات المرور غير متطابقة",
+      "updateSuccess": "تم تحديث المستخدم بنجاح",
+      "updateError": "فشل في تحديث المستخدم"
     }
   },
   "settings": {
@@ -473,11 +593,13 @@
     "searchPlaceholder": "البحث في الفروع...",
     "noStores": "لا توجد فروع.",
     "columns": {
+      "id": "معرف الفرع",
       "name": "اسم الفرع",
       "address": "العنوان",
       "phone": "الهاتف",
       "status": "الحالة",
-      "createdAt": "تاريخ الإنشاء"
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "آخر تحديث"
     },
     "status": {
       "active": "نشط",
@@ -518,6 +640,10 @@
       "phonePlaceholder": "+966 50 123 4567",
       "email": "البريد الإلكتروني",
       "emailPlaceholder": "store@example.com",
+      "metadata": "البيانات الوصفية",
+      "metadataDescription": "إضافة أزواج مفتاح-قيمة مخصصة لبيانات الفرع الوصفية",
+      "addMetadata": "إضافة بيانات وصفية",
+      "noMetadata": "لا توجد عناصر بيانات وصفية حتى الآن. انقر على 'إضافة بيانات وصفية' لإنشاء واحد.",
       "create": "إنشاء الفرع"
     }
   },
@@ -656,6 +782,13 @@
       "description": "تعيين عدة مستخدمين للفروع دفعة واحدة.",
       "start": "بدء التعيين الجماعي"
     },
+    "storeAssignments": {
+      "title": "تعيينات مستخدمي الفرع"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
     "selectStore": "اختر فرعاً",
     "selectUser": "اختر مستخدماً",
     "searchByUser": "البحث حسب المستخدم...",
@@ -664,8 +797,11 @@
     "noAssignmentsForUser": "لا توجد تعيينات لهذا المستخدم.",
     "columns": {
       "user": "المستخدم",
+      "email": "البريد الإلكتروني",
       "store": "الفرع",
       "role": "الدور",
+      "status": "الحالة",
+      "assigned": "معين",
       "assignedAt": "تاريخ التعيين"
     },
     "actions": {

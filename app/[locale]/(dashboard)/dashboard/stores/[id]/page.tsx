@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStoreDetails } from "@/lib/hooks/use-stores";
+import { StoreUserAssignments } from "@/components/dashboard/store-user-assignments";
 import {
   Building2,
   MapPin,
@@ -18,6 +19,7 @@ import {
   Pencil,
   ArrowLeft,
   User,
+  Clock,
 } from "lucide-react";
 
 export default function StoreDetailsPage() {
@@ -134,52 +136,86 @@ export default function StoreDetailsPage() {
               {t("form.contactInfo")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("form.address")}
-                </p>
-                <p className="font-medium">
-                  {store.metadata?.address || "-"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("form.phone")}
-                </p>
-                <p className="font-medium">
-                  {store.metadata?.phone || "-"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("form.email")}
-                </p>
-                <p className="font-medium">
-                  {store.metadata?.email || "-"}
-                </p>
-              </div>
-            </div>
-            {store.metadata?.managerId && (
-              <div className="flex items-center gap-3">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Manager ID</p>
-                  <p className="font-medium">{store.metadata.managerId}</p>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <MapPin className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("form.address")}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 break-words">
+                    {store.metadata?.address || "-"}
+                  </p>
                 </div>
               </div>
-            )}
+
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Phone className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("form.phone")}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 break-words">
+                    {store.metadata?.phone || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Mail className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("form.email")}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 break-words">
+                    {store.metadata?.email || "-"}
+                  </p>
+                </div>
+              </div>
+
+              {store.metadata?.managerId && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                  <User className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Manager ID</p>
+                    <p className="text-sm text-muted-foreground mt-1 break-words">
+                      {store.metadata.managerId}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Calendar className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">{t("columns.createdAt")}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {store.createdAt
+                      ? new Date(store.createdAt).toLocaleDateString()
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <Clock className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">{t("columns.updatedAt")}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {store.updatedAt
+                      ? new Date(store.updatedAt).toLocaleDateString()
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Store User Assignments Section */}
+      <StoreUserAssignments storeId={storeId} />
     </div>
   );
 }

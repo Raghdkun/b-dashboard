@@ -49,13 +49,13 @@ export default function AuthRulesPage() {
 
   const {
     rules,
-    services,
     isLoading,
     filters,
     handleSearch,
-    handleServiceFilter,
     refetch,
   } = useAuthRules();
+
+  console.log("Auth rules:", rules);
 
   const columns = [
     {
@@ -81,34 +81,47 @@ export default function AuthRulesPage() {
     {
       key: "path",
       header: t("columns.path"),
-      cell: (rule: AuthRule) => (
-        <code className="rounded bg-muted px-2 py-1 text-sm">
-          {rule.pathDsl || rule.routeName || "-"}
-        </code>
-      ),
+      cell: (rule: AuthRule) => {
+        const ruleSnake = rule as AuthRule & {
+          path_dsl?: string | null;
+          route_name?: string | null;
+        };
+        return (
+          <code className="rounded bg-muted px-2 py-1 text-sm">
+            {ruleSnake.path_dsl || ruleSnake.route_name || "-"}
+          </code>
+        );
+      },
     },
     {
       key: "authorization",
       header: t("columns.authorization"),
-      cell: (rule: AuthRule) => (
-        <div className="flex flex-wrap gap-1">
-          {rule.rolesAny && rule.rolesAny.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {t("rolesAny", { count: rule.rolesAny.length })}
-            </Badge>
-          )}
-          {rule.permissionsAny && rule.permissionsAny.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {t("permissionsAny", { count: rule.permissionsAny.length })}
-            </Badge>
-          )}
-          {rule.permissionsAll && rule.permissionsAll.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {t("permissionsAll", { count: rule.permissionsAll.length })}
-            </Badge>
-          )}
-        </div>
-      ),
+      cell: (rule: AuthRule) => {
+        const ruleSnake = rule as AuthRule & {
+          roles_any?: string[] | null;
+          permissions_any?: string[] | null;
+          permissions_all?: string[] | null;
+        };
+        return (
+          <div className="flex flex-wrap gap-1">
+            {ruleSnake.roles_any && ruleSnake.roles_any.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {t("rolesAny", { count: ruleSnake.roles_any.length })}
+              </Badge>
+            )}
+            {ruleSnake.permissions_any && ruleSnake.permissions_any.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {t("permissionsAny", { count: ruleSnake.permissions_any.length })}
+              </Badge>
+            )}
+            {ruleSnake.permissions_all && ruleSnake.permissions_all.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {t("permissionsAll", { count: ruleSnake.permissions_all.length })}
+              </Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "priority",
@@ -121,8 +134,8 @@ export default function AuthRulesPage() {
       key: "status",
       header: t("columns.status"),
       cell: (rule: AuthRule) => (
-        <Badge variant={rule.isActive ? "default" : "secondary"}>
-          {rule.isActive ? t("status.active") : t("status.inactive")}
+        <Badge variant={rule.is_active ? "default" : "secondary"}>
+          {rule.is_active ? t("status.active") : t("status.inactive")}
         </Badge>
       ),
     },
@@ -187,24 +200,6 @@ export default function AuthRulesPage() {
         <div className="flex-1">
           {/* Search is handled by DataTable */}
         </div>
-        <Select
-          value={filters.service || "all"}
-          onValueChange={(value) =>
-            handleServiceFilter(value === "all" ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-50">
-            <SelectValue placeholder={t("filterByService")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allServices")}</SelectItem>
-            {services.map((service) => (
-              <SelectItem key={service} value={service}>
-                {service}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <DataTable

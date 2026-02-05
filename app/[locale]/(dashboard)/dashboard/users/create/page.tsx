@@ -8,9 +8,11 @@ export default function CreateUserPage() {
   const t = useTranslations("users");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-2">
       <PageHeader title={t("create.title")} description={t("create.description")} />
-      <UserForm />
+      <div className="max-w-4xl">
+        <UserForm />
+      </div>
     </div>
   );
 }

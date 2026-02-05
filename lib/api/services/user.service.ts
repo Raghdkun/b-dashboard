@@ -91,10 +91,11 @@ export const userService = {
   },
 
   getUser: async (id: string): Promise<ApiResponse<User>> => {
-    const { data } = await axiosClient.get<ApiResponse<ApiUser>>(`/users/${id}`);
+    const { data } = await axiosClient.get<ApiResponse<{ user: ApiUser }>>(`/users/${id}`);
+    console.log("Fetched user data from API:", data);
     return {
       ...data,
-      data: transformUser(data.data),
+      data: transformUser(data.data.user),
     };
   },
 

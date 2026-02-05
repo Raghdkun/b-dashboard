@@ -14,8 +14,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, AlertCircle, Eye, EyeOff, Shield, Lock } from "lucide-react";
 import { useCreateUser } from "@/lib/hooks/use-users";
+import { useRoles } from "@/lib/hooks/use-roles";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import type { User, CreateUserPayload } from "@/types/user.types";
 
 interface UserFormProps {
@@ -31,6 +34,8 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
   const locale = (params?.locale as string) || "en";
 
   const { createUser, isCreating, error } = useCreateUser();
+  const { roles, isLoading: isLoadingRoles } = useRoles();
+  const { permissions, isLoading: isLoadingPermissions } = usePermissions();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -84,6 +89,36 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
         delete updated[field];
         return updated;
       });
+    }
+  };
+
+  const handleRoleChange = (checked: boolean, roleId: string) => {
+    let newRoles: string[];
+    const currentRoles = formData.roles ?? [];
+    
+    if (checked) {
+      newRoles = [...currentRoles, roleId];
+    } else {
+      newRoles = currentRoles.filter(id => id !== roleId);
+    }
+
+    // Find the role to check if it's super-admin
+    const selectedRole = roles?.find(r => r.id === roleId);
+    const isSuperAdmin = selectedRole?.name?.toLowerCase() === "super-admin" || selectedRole?.name?.toLowerCase() === "super admin";
+
+    let newPermissions = formData.permissions ?? [];
+
+    if (checked && isSuperAdmin && permissions) {
+      // If super-admin is being added, check all permissions
+      newPermissions = permissions.map(p => p.id);
+    } else if (!checked && isSuperAdmin && permissions) {
+      // If super-admin is being removed, uncheck all permissions
+      newPermissions = [];
+    }
+
+    handleChange("roles", newRoles);
+    if (newPermissions !== formData.permissions) {
+      handleChange("permissions", newPermissions);
     }
   };
 
@@ -231,6 +266,106 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            {t("form.assignRoles")}
+          </CardTitle>
+          <CardDescription>
+            {t("form.assignRolesDescription")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingRoles ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : roles && roles.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {roles.map((role) => (
+                <div key={role.id} className="flex items-start space-x-3 p-3 rounded-lg border border-input hover:bg-muted/50 transition-colors cursor-pointer">
+                  <Checkbox
+                    id={`role-${role.id}`}
+                    checked={(formData.roles ?? []).includes(role.id)}
+                    onCheckedChange={(checked) => {
+                      handleRoleChange(checked as boolean, role.id);
+                    }}
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor={`role-${role.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <p className="font-medium text-sm">{role.name}</p>
+                    {role.permissions && role.permissions.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {role.permissions.length} permission{role.permissions.length !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </label>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              {t("form.noRolesAvailable") || "No roles available"}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            {t("form.additionalPermissions")}
+          </CardTitle>
+          <CardDescription>
+            {t("form.additionalPermissionsDescription")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingPermissions ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : permissions && permissions.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {permissions.map((permission) => (
+                <div 
+                  key={permission.id} 
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-input hover:bg-muted/50 transition-colors cursor-pointer"
+                >
+                  <Checkbox
+                    id={`permission-${permission.id}`}
+                    checked={(formData.permissions ?? []).includes(permission.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        handleChange("permissions", [...(formData.permissions ?? []), permission.id]);
+                      } else {
+                        handleChange("permissions", (formData.permissions ?? []).filter(id => id !== permission.id));
+                      }
+                    }}
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor={`permission-${permission.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <p className="text-sm font-medium leading-tight">{permission.name}</p>
+                  </label>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              {t("form.noPermissionsAvailable") || "No permissions available"}
+            </p>
+          )}
         </CardContent>
       </Card>
 

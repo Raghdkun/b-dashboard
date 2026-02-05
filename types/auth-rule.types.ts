@@ -38,6 +38,16 @@ export interface AuthRule {
   priority: number;
   createdAt: string;
   updatedAt: string;
+  // Snake_case aliases for API compatibility
+  path_dsl?: string | null;
+  path_regex?: string | null;
+  route_name?: string | null;
+  roles_any?: string[] | null;
+  permissions_any?: string[] | null;
+  permissions_all?: string[] | null;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // ============================================================================

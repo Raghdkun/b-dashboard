@@ -31,7 +31,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto px-4 py-4 md:px-6 md:py-6 pb-2">
           <div className="mx-auto w-full max-w-7xl">
             {children}
           </div>

@@ -50,6 +50,10 @@ export interface Assignment {
   user?: AssignmentUser;
   role?: Role;
   store?: Store;
+  // Snake_case aliases for API compatibility
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // ============================================================================
