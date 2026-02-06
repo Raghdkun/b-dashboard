@@ -53,7 +53,7 @@ function getYesterday(): string {
 
 /**
  * DSPR Service — fetches Daily Store Performance Report
- * Routes through the local /api/dspr proxy to avoid CORS / CSP issues.
+ * Routes through the local /api/dspr/{storeId}/{date} proxy to avoid CORS / CSP issues.
  */
 export const dsprService = {
   /**
@@ -76,8 +76,8 @@ export const dsprService = {
       throw new Error("Not authenticated. Please log in again.");
     }
 
-    // Use the local proxy instead of calling the external API directly
-    const url = `/api/dspr?storeId=${encodeURIComponent(resolvedStore)}&date=${encodeURIComponent(resolvedDate)}`;
+    // Use the local proxy with path parameters to match the external API format
+    const url = `/api/dspr/${encodeURIComponent(resolvedStore)}/${encodeURIComponent(resolvedDate)}`;
 
     console.log("📊 DSPR: Fetching report", { storeId: resolvedStore, date: resolvedDate });
 
