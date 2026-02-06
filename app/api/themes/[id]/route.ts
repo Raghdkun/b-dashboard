@@ -1,11 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuthorization } from "../../_lib/auth";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
 // GET /api/themes/[id] - Get a single theme
-export async function GET(request: Request, { params }: Params) {
+export async function GET(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
   
   // TODO: Query database for theme by ID
@@ -22,7 +26,10 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 // PATCH /api/themes/[id] - Update a theme
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
   
   try {
@@ -53,7 +60,10 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 // DELETE /api/themes/[id] - Delete a theme
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
   
   // TODO: Check if user owns this theme

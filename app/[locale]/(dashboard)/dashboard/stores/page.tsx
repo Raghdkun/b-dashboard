@@ -53,31 +53,17 @@ export default function StoresPage() {
 
   const columns = [
     {
+      key: "id",
+      header: t("columns.id") || "Store ID",
+      cell: (store: Store) => (
+        <span className="font-medium">{store.id}</span>
+      ),
+    },
+    {
       key: "name",
       header: t("columns.name"),
       cell: (store: Store) => (
-        <div>
-          <div className="font-medium">{store.name}</div>
-          <div className="text-sm text-muted-foreground">{store.id}</div>
-        </div>
-      ),
-    },
-    {
-      key: "address",
-      header: t("columns.address"),
-      cell: (store: Store) => (
-        <span className="text-muted-foreground">
-          {store.metadata?.address || "-"}
-        </span>
-      ),
-    },
-    {
-      key: "phone",
-      header: t("columns.phone"),
-      cell: (store: Store) => (
-        <span className="text-muted-foreground">
-          {store.metadata?.phone || "-"}
-        </span>
+        <div className="font-medium">{store.name}</div>
       ),
     },
     {

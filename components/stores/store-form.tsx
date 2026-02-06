@@ -16,13 +16,18 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Plus, X } from "lucide-react";
 import { useCreateStore, useUpdateStore, useStoreDetails } from "@/lib/hooks/use-stores";
 import type { Store, CreateStorePayload, UpdateStorePayload } from "@/types/store.types";
 
 interface StoreFormProps {
   storeId?: string;
   onSuccess?: (store: Store) => void;
+}
+
+interface MetadataItem {
+  key: string;
+  value: string;
 }
 
 export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
@@ -43,13 +48,11 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
     id: "",
     name: "",
     isActive: true,
-    metadata: {
-      address: "",
-      phone: "",
-      email: "",
-      managerId: "",
-    },
+    metadata: {},
   });
+
+  const [metadataItems, setMetadataItems] = useState<MetadataItem[]>([]);
+  const [metadataError, setMetadataError] = useState<string>("");
 
   // Load store data when in edit mode
   useEffect(() => {
@@ -61,17 +64,19 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
   // Populate form when store data is loaded
   useEffect(() => {
     if (existingStore && isEditMode) {
+      const existingMetadata = existingStore.metadata || {};
+      const metadataArray = Object.entries(existingMetadata).map(([key, value]) => ({
+        key,
+        value: typeof value === "string" ? value : JSON.stringify(value),
+      }));
+
       setFormData({
         id: existingStore.id,
         name: existingStore.name,
         isActive: existingStore.isActive,
-        metadata: {
-          address: existingStore.metadata?.address || "",
-          phone: existingStore.metadata?.phone || "",
-          email: existingStore.metadata?.email || "",
-          managerId: existingStore.metadata?.managerId || "",
-        },
+        metadata: existingMetadata,
       });
+      setMetadataItems(metadataArray);
     }
   }, [existingStore, isEditMode]);
 
@@ -82,18 +87,61 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
     setFormData((prev: CreateStorePayload) => ({ ...prev, [field]: value }));
   };
 
-  const handleMetadataChange = (
-    field: keyof NonNullable<CreateStorePayload["metadata"]>,
+  const addMetadataItem = () => {
+    setMetadataError("");
+    setMetadataItems((prev) => [...prev, { key: "", value: "" }]);
+  };
+
+  const updateMetadataItem = (
+    index: number,
+    field: "key" | "value",
     value: string
   ) => {
-    setFormData((prev: CreateStorePayload) => ({
-      ...prev,
-      metadata: { ...prev.metadata, [field]: value },
-    }));
+    const updatedItems = [...metadataItems];
+    updatedItems[index][field] = value;
+    
+    // Check for duplicate keys
+    const keys = updatedItems.map((item) => item.key).filter((k) => k);
+    const hasDuplicates = keys.length !== new Set(keys).size;
+    
+    if (hasDuplicates && field === "key") {
+      setMetadataError("Duplicate keys are not allowed");
+    } else {
+      setMetadataError("");
+    }
+    
+    setMetadataItems(updatedItems);
+  };
+
+  const removeMetadataItem = (index: number) => {
+    setMetadataItems((prev) => prev.filter((_, i) => i !== index));
+    setMetadataError("");
+  };
+
+  const buildMetadataObject = () => {
+    const metadata: Record<string, string> = {};
+    for (const item of metadataItems) {
+      if (item.key && item.value) {
+        metadata[item.key] = item.value;
+      }
+    }
+    return metadata;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for duplicate keys before submitting
+    const keys = metadataItems.map((item) => item.key).filter((k) => k);
+    const hasDuplicates = keys.length !== new Set(keys).size;
+    
+    if (hasDuplicates) {
+      setMetadataError("Duplicate keys are not allowed");
+      return;
+    }
+
+    const metadataObject = buildMetadataObject();
+    
     try {
       let result: Store;
       
@@ -102,12 +150,15 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
         const updatePayload: UpdateStorePayload = {
           name: formData.name,
           isActive: formData.isActive,
-          metadata: formData.metadata,
+          metadata: metadataObject,
         };
         result = await updateStore(storeId, updatePayload);
       } else {
         // Create new store
-        result = await createStore(formData);
+        result = await createStore({
+          ...formData,
+          metadata: metadataObject,
+        });
       }
       
       if (onSuccess) {
@@ -207,58 +258,110 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
           </div>
         </CardContent>
       </Card>
-
+      {/* Metadata Section */}
       <Card>
-        <CardHeader>
-          <CardTitle>{t("form.contactInfo")}</CardTitle>
-          <CardDescription>{t("form.contactInfoDescription")}</CardDescription>
+        <CardHeader className="space-y-4">
+          <div>
+            <CardTitle>{t("form.metadata") || "Metadata"}</CardTitle>
+            <CardDescription>{t("form.metadataDescription") || "Add custom key-value pairs for store metadata"}</CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addMetadataItem}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="me-2 h-4 w-4" />
+            {t("form.addMetadata") || "Add Metadata"}
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="address">{t("form.address")}</Label>
-            <Input
-              id="address"
-              value={formData.metadata?.address || ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange("address", e.target.value)}
-              placeholder={t("form.addressPlaceholder")}
-            />
-          </div>
+          {metadataError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{metadataError}</AlertDescription>
+            </Alert>
+          )}
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="phone">{t("form.phone")}</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.metadata?.phone || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange("phone", e.target.value)}
-                placeholder={t("form.phonePlaceholder")}
-              />
+          {metadataItems.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-muted-foreground p-4 sm:p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                {t("form.noMetadata") || "No metadata items yet. Click 'Add Metadata' to create one."}
+              </p>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("form.email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.metadata?.email || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange("email", e.target.value)}
-                placeholder={t("form.emailPlaceholder")}
-              />
+          ) : (
+            <div className="space-y-4">
+              {metadataItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col gap-3 rounded-lg border p-3 sm:p-4"
+                >
+                  <div className="grid gap-3 sm:grid-cols-2 items-start">
+                    <div className="space-y-2">
+                      <Label htmlFor={`metadata-key-${index}`} className="text-xs sm:text-sm">
+                        Key
+                      </Label>
+                      <Input
+                        id={`metadata-key-${index}`}
+                        value={item.key}
+                        onChange={(e) =>
+                          updateMetadataItem(index, "key", e.target.value)
+                        }
+                        placeholder="e.g., timezone"
+                        className="text-xs sm:text-sm"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`metadata-value-${index}`} className="text-xs sm:text-sm">
+                        Value
+                      </Label>
+                      <Input
+                        id={`metadata-value-${index}`}
+                        value={item.value}
+                        onChange={(e) =>
+                          updateMetadataItem(index, "value", e.target.value)
+                        }
+                        placeholder="e.g., UTC+3"
+                        className="text-xs sm:text-sm"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeMetadataItem(index)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="me-2 h-4 w-4" />
+                      <span className="text-xs sm:text-sm">Remove</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-4">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push(`/${locale}/dashboard/stores`)}
+          className="w-full sm:w-auto"
         >
           {tCommon("cancel")}
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting || metadataError.length > 0}
+          className="w-full sm:w-auto"
+        >
           {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           {isEditMode ? tCommon("save") : t("form.create")}
         </Button>

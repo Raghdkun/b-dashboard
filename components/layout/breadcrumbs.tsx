@@ -9,7 +9,7 @@ interface BreadcrumbsProps {
   pathname: string;
   className?: string;
 }
-
+//ji
 interface BreadcrumbItem {
   label: string;
   href: string;
@@ -49,11 +49,33 @@ export function Breadcrumbs({ pathname, className }: BreadcrumbsProps) {
   const breadcrumbs = generateBreadcrumbs(pathname);
 
   // Get translated label for a breadcrumb key
+
+  // const getLabel = (key: string) => {
+  //   try {
+  //     return t(key);
+  //   } catch {
+  //     return key.charAt(0).toUpperCase() + key.slice(1);
+  //   }
+  // };
+  
+    // Get translated label for a breadcrumb key
+
   const getLabel = (key: string) => {
+    // Don't try to translate if it looks like an ID (contains hyphens, numbers, or uppercase)
+    if (/[A-Z0-9-]/.test(key)) {
+      return key;
+    }
+    
     try {
-      return t(key);
+      const translated = t(key);
+      // If the translation key doesn't exist, i18n returns the key itself
+      // Check if it's actually a valid translation by comparing
+      if (translated === key || translated.includes(`breadcrumbs.${key}`)) {
+        return key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ");
+      }
+      return translated;
     } catch {
-      return key.charAt(0).toUpperCase() + key.slice(1);
+      return key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ");
     }
   };
 

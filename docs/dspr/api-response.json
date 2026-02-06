@@ -1,0 +1,293 @@
+{
+  "filtering": {
+    "store": "03795-00001",
+    "date": "2026-01-30",
+    "iso_week": 5,
+    "week_start": "2026-01-27",
+    "week_end": "2026-02-02"
+  },
+  "sales": {
+    "this_week_by_day": {
+      "2026-01-27": 4235.91,
+      "2026-01-28": 4888.82,
+      "2026-01-29": 5725.69,
+      "2026-01-30": 6919.14,
+      "2026-01-31": 6994.18,
+      "2026-02-01": 4717.52,
+      "2026-02-02": 4162.58
+    },
+    "previous_week_by_day": {
+      "2026-01-20": 4372.85,
+      "2026-01-21": 3902.42,
+      "2026-01-22": 4149.29,
+      "2026-01-23": 6668.23,
+      "2026-01-24": 5268.94,
+      "2026-01-25": 63.56,
+      "2026-01-26": 6044.92
+    },
+    "same_week_last_year_by_day": {
+      "2025-01-28": 4466.06,
+      "2025-01-29": 4677.91,
+      "2025-01-30": 4908.6,
+      "2025-01-31": 7205.45,
+      "2025-02-01": 5736.05,
+      "2025-02-02": 4459.56,
+      "2025-02-03": 4113.7
+    }
+  },
+  "top": {
+    "top_5_items_sales_for_day": [
+      {
+        "franchise_store": "03795-00001",
+        "item_id": "101001",
+        "menu_item_name": "Classic Pepperoni",
+        "gross_sales": 1460.3,
+        "quantity_sold": 218
+      },
+      {
+        "franchise_store": "03795-00001",
+        "item_id": "101002",
+        "menu_item_name": "Classic Cheese",
+        "gross_sales": 1048.76,
+        "quantity_sold": 154
+      },
+      {
+        "franchise_store": "03795-00001",
+        "item_id": "105001",
+        "menu_item_name": "Caesar Wings",
+        "gross_sales": 400.58,
+        "quantity_sold": 44
+      },
+      {
+        "franchise_store": "03795-00001",
+        "item_id": "201106",
+        "menu_item_name": "EMB Pepperoni",
+        "gross_sales": 342.92,
+        "quantity_sold": 39
+      },
+      {
+        "franchise_store": "03795-00001",
+        "item_id": "103001",
+        "menu_item_name": "Crazy Bread",
+        "gross_sales": 255.35,
+        "quantity_sold": 65
+      }
+    ],
+    "top_3_ingredients_used": [
+      {
+        "ingredient_id": "4660/4621",
+        "ingredient_description": "WHITE 14 PIZZA BOX",
+        "actual_usage": 404
+      },
+      {
+        "ingredient_id": "4659",
+        "ingredient_description": "9X7 BOX GENERIC (ICB/LUNCH COMBO)",
+        "actual_usage": 88
+      },
+      {
+        "ingredient_id": "03",
+        "ingredient_description": "20 OUNCE",
+        "actual_usage": 59
+      }
+    ]
+  },
+  "day": {
+    "hourly_sales_and_channels": [
+      {
+        "hour": 10,
+        "royalty_obligation": "60.38",
+        "phone_sales": "0.00",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "24.14",
+        "mobile_sales": "0.00",
+        "doordash_sales": "14.20",
+        "ubereats_sales": "15.59",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 11,
+        "royalty_obligation": "279.54",
+        "phone_sales": "122.22",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "0.00",
+        "mobile_sales": "23.47",
+        "doordash_sales": "51.04",
+        "ubereats_sales": "19.00",
+        "grubhub_sales": "9.31"
+      },
+      {
+        "hour": 12,
+        "royalty_obligation": "312.72",
+        "phone_sales": "39.96",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "0.00",
+        "mobile_sales": "26.47",
+        "doordash_sales": "38.38",
+        "ubereats_sales": "0.00",
+        "grubhub_sales": "10.50"
+      },
+      {
+        "hour": 13,
+        "royalty_obligation": "507.20",
+        "phone_sales": "0.00",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "11.48",
+        "mobile_sales": "60.18",
+        "doordash_sales": "107.91",
+        "ubereats_sales": "64.80",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 14,
+        "royalty_obligation": "397.36",
+        "phone_sales": "44.73",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "19.98",
+        "mobile_sales": "16.28",
+        "doordash_sales": "88.22",
+        "ubereats_sales": "15.85",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 15,
+        "royalty_obligation": "633.08",
+        "phone_sales": "96.36",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "76.08",
+        "mobile_sales": "85.30",
+        "doordash_sales": "153.77",
+        "ubereats_sales": "0.00",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 16,
+        "royalty_obligation": "561.44",
+        "phone_sales": "27.57",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "105.37",
+        "mobile_sales": "103.42",
+        "doordash_sales": "71.27",
+        "ubereats_sales": "0.00",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 17,
+        "royalty_obligation": "848.05",
+        "phone_sales": "68.11",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "105.73",
+        "mobile_sales": "90.60",
+        "doordash_sales": "139.47",
+        "ubereats_sales": "20.34",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 18,
+        "royalty_obligation": "1011.88",
+        "phone_sales": "119.65",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "93.77",
+        "mobile_sales": "198.97",
+        "doordash_sales": "145.94",
+        "ubereats_sales": "99.65",
+        "grubhub_sales": "21.01"
+      },
+      {
+        "hour": 19,
+        "royalty_obligation": "945.29",
+        "phone_sales": "20.37",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "216.68",
+        "mobile_sales": "157.59",
+        "doordash_sales": "121.61",
+        "ubereats_sales": "47.55",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 20,
+        "royalty_obligation": "698.34",
+        "phone_sales": "59.03",
+        "call_center_sales": "19.20",
+        "drive_thru_sales": "0.00",
+        "website_sales": "10.78",
+        "mobile_sales": "124.15",
+        "doordash_sales": "92.11",
+        "ubereats_sales": "84.47",
+        "grubhub_sales": "0.00"
+      },
+      {
+        "hour": 21,
+        "royalty_obligation": "472.11",
+        "phone_sales": "0.00",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "72.93",
+        "mobile_sales": "60.28",
+        "doordash_sales": "71.31",
+        "ubereats_sales": "33.87",
+        "grubhub_sales": "41.51"
+      },
+      {
+        "hour": 22,
+        "royalty_obligation": "129.74",
+        "phone_sales": "6.79",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "0.00",
+        "mobile_sales": "22.95",
+        "doordash_sales": "36.10",
+        "ubereats_sales": "0.00",
+        "grubhub_sales": "11.09"
+      },
+      {
+        "hour": 23,
+        "royalty_obligation": "62.01",
+        "phone_sales": "11.08",
+        "call_center_sales": "0.00",
+        "drive_thru_sales": "0.00",
+        "website_sales": "0.00",
+        "mobile_sales": "4.99",
+        "doordash_sales": "18.78",
+        "ubereats_sales": "0.00",
+        "grubhub_sales": "0.00"
+      }
+    ],
+    "total_cash_sales": 936.11,
+    "total_deposit": 938,
+    "over_short": 2.16,
+    "refunded_orders": {
+      "count": 0,
+      "sales": 0
+    },
+    "customer_count": 430,
+    "waste": {
+      "alta_inventory": 23.27,
+      "normal": 183.45
+    },
+    "total_tips": 107.91,
+    "hnr": {
+      "hnr_transactions": 188,
+      "hnr_broken_promises": 6,
+      "hnr_promise_met": 182,
+      "hnr_promise_met_percent": 96.81
+    },
+    "labor": 0,
+    "portal": {
+      "portal_eligible_orders": 156,
+      "portal_used_orders": 156,
+      "portal_on_time_orders": 153,
+      "put_into_portal_percent": 100,
+      "in_portal_on_time_percent": 98.08
+    }
+  }
+}

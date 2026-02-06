@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuthorization } from "../../_lib/auth";
 
 // POST /api/themes/sync - Sync local themes with server
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   try {
     const { themes } = await request.json();
     

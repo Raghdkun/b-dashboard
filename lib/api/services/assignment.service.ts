@@ -30,16 +30,26 @@ export const assignmentService = {
   getStoreAssignments: async (
     params: GetStoreAssignmentsParams
   ): Promise<PaginatedResponse<Assignment>> => {
-    const { data } = await axiosClient.get<LaravelPaginatedResponse<Assignment>>(
-      `/stores/${params.storeId}/assignments`,
+    const { data } = await axiosClient.get<ApiResponse<{ assignments: Assignment[] }>>(
+      "/user-role-store/store-assignments",
       {
         params: {
+          store_id: params.storeId,
           page: params.page,
           per_page: params.perPage,
         },
       }
     );
-    return transformPaginatedResponse(data);
+    const assignments = data.data?.assignments || [];
+    return {
+      data: assignments,
+      meta: {
+        total: assignments.length,
+        page: params.page || 1,
+        pageSize: params.perPage || 10,
+        totalPages: 1,
+      },
+    };
   },
 
   /**

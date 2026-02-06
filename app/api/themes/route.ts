@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuthorization } from "../_lib/auth";
 
 // GET /api/themes - List all themes
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   // TODO: Implement database query for user's themes
   // For now, return empty array (built-in themes are stored client-side)
   return NextResponse.json({
@@ -11,7 +15,10 @@ export async function GET() {
 }
 
 // POST /api/themes - Create a new theme
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     

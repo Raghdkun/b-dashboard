@@ -228,9 +228,9 @@ function checkLocalStorageSecurity(): SecurityCheck {
     sensitivePatterns.some((pattern) => key.toLowerCase().includes(pattern))
   );
 
-  // Check auth-storage specifically
-  const authStorage = localStorage.getItem("auth-storage");
-  const hasTokenInStorage = authStorage && authStorage.includes('"token"');
+  // Check auth-token specifically
+  const authTokenStorage = localStorage.getItem("auth-token");
+  const hasTokenInStorage = authTokenStorage && authTokenStorage.includes('"token"');
 
   return {
     id: "localstorage",

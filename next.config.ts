@@ -17,6 +17,8 @@ const getApiDomain = (url: string): string => {
 };
 
 const apiDomain = getApiDomain(apiUrl);
+const dsprApiUrl = process.env.NEXT_PUBLIC_DSPR_API_URL || "";
+const dsprDomain = getApiDomain(dsprApiUrl);
 
 const nextConfig: NextConfig = {
   // Security headers
@@ -63,7 +65,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              `connect-src 'self'${apiDomain ? ` ${apiDomain}` : ""}${isDev ? " ws://localhost:3000 wss://localhost:3000" : ""}`,
+              `connect-src 'self'${apiDomain ? ` ${apiDomain}` : ""}${dsprDomain ? ` ${dsprDomain}` : ""}${isDev ? " ws://localhost:3000 wss://localhost:3000" : ""}`,
               "frame-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
