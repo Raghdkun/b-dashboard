@@ -13,20 +13,21 @@ export default function DashboardLayout({
   const router = useRouter();
   const params = useParams();
   const locale = params?.locale as string || "en";
-  const { isAuthenticated, isInitialized, initialize } = useAuthStore();
+  const { isAuthenticated, isInitialized, isLoading, initialize, checkAuth } = useAuthStore();
 
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    checkAuth();
+  }, [initialize, checkAuth]);
 
   useEffect(() => {
-    if (isInitialized && !isAuthenticated) {
+    if (isInitialized && !isLoading && !isAuthenticated) {
       router.push(`/${locale}/auth/login`);
     }
-  }, [isInitialized, isAuthenticated, router, locale]);
+  }, [isInitialized, isLoading, isAuthenticated, router, locale]);
 
   // Show nothing while checking auth
-  if (!isInitialized || !isAuthenticated) {
+  if (!isInitialized || isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { AxiosError } from "axios";
 import { authService } from "@/lib/api/services/auth.service";
 import type { AuthUser, LoginCredentials, AuthUserStore } from "@/types/auth.types";
 
@@ -69,6 +70,35 @@ function extractRoles(user: AuthUser | null): string[] {
   return Array.from(roleNames);
 }
 
+function getLoginErrorMessage(error: unknown): string {
+  const axiosError = error as AxiosError<{ message?: string; error?: string }>;
+  const responseMessage = axiosError?.response?.data?.message;
+  const responseError = axiosError?.response?.data?.error;
+
+  if (responseMessage) return responseMessage;
+  if (responseError) return responseError;
+  if (axiosError?.code === "ECONNABORTED") {
+    return "Login request timed out. Please try again.";
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Login failed. Please check your credentials and try again.";
+}
+
+function persistUserData(user: AuthUser | null) {
+  if (typeof window === "undefined") return;
+
+  if (!user) {
+    localStorage.removeItem("auth-user");
+    return;
+  }
+
+  localStorage.setItem("auth-user", JSON.stringify(user));
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -94,13 +124,14 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
             });
+            persistUserData(user);
           } else {
             set({ isLoading: false });
             throw new Error(response.message || "Login failed");
           }
         } catch (error) {
           set({ isLoading: false });
-          throw error;
+          throw new Error(getLoginErrorMessage(error));
         }
       },
 
@@ -113,6 +144,7 @@ export const useAuthStore = create<AuthState>()(
           roles: [],
           isAuthenticated: false,
         });
+        persistUserData(null);
       },
 
       setUser: (user: AuthUser) => {
@@ -121,6 +153,7 @@ export const useAuthStore = create<AuthState>()(
           permissions: extractPermissions(user),
           roles: extractRoles(user),
         });
+        persistUserData(user);
       },
 
       setToken: (token: string) => {
@@ -146,6 +179,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
             });
+            persistUserData(user);
           } else {
             set({
               user: null,
@@ -155,6 +189,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: false,
               isLoading: false,
             });
+            persistUserData(null);
           }
         } catch {
           set({
@@ -165,6 +200,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
           });
+          persistUserData(null);
         }
       },
 
@@ -256,17 +292,17 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "auth-storage",
+      name: "auth-token",
       partialize: (state) => ({
         token: state.token,
-        user: state.user,
-        permissions: state.permissions,
-        roles: state.roles,
-        isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("auth-storage");
+        }
         if (state) {
           state.initialize();
+          state.checkAuth();
         }
       },
     }

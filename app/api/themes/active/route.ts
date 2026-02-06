@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuthorization } from "../../_lib/auth";
 
 // GET /api/themes/active - Get user's active theme ID
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   // TODO: Get authenticated user
   // TODO: Query user's theme preference from database
   
@@ -13,7 +17,10 @@ export async function GET() {
 }
 
 // PUT /api/themes/active - Set user's active theme ID
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   try {
     const { themeId } = await request.json();
     

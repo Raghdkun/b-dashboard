@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
 import { PageHeader } from "@/components/layout/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -27,20 +30,37 @@ interface Employee {
 
 export default function EmployeesPage() {
   const t = useTranslations("employees");
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [employees] = useState<Employee[]>([]);
+  const { selectedStore } = useSelectedStoreStore();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch employees when store changes
   useEffect(() => {
-    const savedStore = localStorage.getItem("selectedStore");
-    if (savedStore) {
-      try {
-        const storeData = JSON.parse(savedStore) as Store;
-        setSelectedStore(storeData);
-      } catch {
-        localStorage.removeItem("selectedStore");
+    const fetchEmployees = async () => {
+      if (!selectedStore?.id) {
+        console.log("⚠️ Employees: No store selected");
+        setEmployees([]);
+        return;
       }
-    }
-  }, []);
+
+      console.log("📥 Employees: Fetching employees for store:", selectedStore.name);
+      setIsLoading(true);
+      try {
+        // TODO: Fetch employees from API for the selected store
+        // Example: const response = await employeeService.getEmployees(selectedStore.id);
+        // For now, set empty array as placeholder
+        setEmployees([]);
+        console.log("✅ Employees: Fetch completed for store:", selectedStore.name);
+      } catch (error) {
+        console.error("❌ Employees: Failed to fetch employees:", error);
+        setEmployees([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, [selectedStore?.id]);
 
   const storeName = selectedStore?.name || t("noStoreSelected");
 
@@ -57,6 +77,13 @@ export default function EmployeesPage() {
           <CardTitle>{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (
           <div className="w-full overflow-x-auto">
             <Table>
               <TableHeader>
@@ -75,7 +102,7 @@ export default function EmployeesPage() {
                 {employees.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
-                      {t("empty")}
+                      {!selectedStore ? t("noStoreSelected") : t("empty")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -97,6 +124,7 @@ export default function EmployeesPage() {
               </TableBody>
             </Table>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

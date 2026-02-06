@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -44,6 +45,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "./user-menu";
 import { useUIStore } from "@/lib/store/ui.store";
+import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
 import { useFeature, Feature } from "@/lib/config";
 import { authService } from "@/lib/api/services/auth.service";
 import type { Store } from "@/types/store.types";
@@ -158,27 +160,21 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     : isRtl ? ChevronRight : ChevronLeft;
 
   // Store selection state
+  const { selectedStore: zustandSelectedStore, setSelectedStore } = useSelectedStoreStore();
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [selectedStore, setLocalSelectedStore] = useState<Store | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [userStores, setUserStores] = useState<Store[]>([]);
 
-  // Initialize from localStorage
+  // Initialize from Zustand store
   useEffect(() => {
-    // Load selected store from localStorage
-    const savedStore = localStorage.getItem("selectedStore");
-    if (savedStore) {
-      try {
-        const storeData = JSON.parse(savedStore) as Store;
-        setSelectedStore(storeData);
-      } catch {
-        // If parsing fails, clear the corrupted data
-        localStorage.removeItem("selectedStore");
-      }
+    if (zustandSelectedStore) {
+      setLocalSelectedStore(zustandSelectedStore);
+      console.log("🔄 Sidebar: Synced with Zustand store:", zustandSelectedStore.name);
     }
     setIsMounted(true);
-  }, []);
+  }, [zustandSelectedStore]);
 
   useEffect(() => {
     let isActive = true;
@@ -234,18 +230,26 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       >
         {!collapsed && (
           <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">B</span>
-            </div>
+            <Image 
+              src="/logo.svg" 
+              alt="Pizza Dashboard Logo" 
+              width={32} 
+              height={32}
+              className="h-8 w-8"
+            />
             <span className="font-semibold text-sidebar-foreground">
-              {t("dashboard")}
+              Pizza Dashboard
             </span>
           </Link>
         )}
         {collapsed && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">B</span>
-          </div>
+          <Image 
+            src="/logo.svg" 
+            alt="Pizza Dashboard Logo" 
+            width={32} 
+            height={32}
+            className="h-8 w-8"
+          />
         )}
       </div>
       {/* Store selection */}
@@ -278,8 +282,9 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                     variant={selectedStore?.id === store.id ? "default" : "outline"}
                     className="w-full justify-start"
                     onClick={() => {
-                      setSelectedStore(store);
-                      localStorage.setItem("selectedStore", JSON.stringify(store));
+                      setLocalSelectedStore(store);
+                      setSelectedStore(store); // Update Zustand store
+                      console.log("✅ Store selected from sidebar:", store.name);
                       setIsStoreModalOpen(false);
                     }}
                   >

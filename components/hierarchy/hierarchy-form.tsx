@@ -111,9 +111,6 @@ export function HierarchyForm({
       if (isEditMode && hierarchyId) {
         // Update existing hierarchy
         const updatePayload: UpdateHierarchyPayload = {
-          storeId: formData.storeId,
-          parentRoleId: formData.parentRoleId,
-          childRoleId: formData.childRoleId,
           metadata: formData.metadata,
         };
         result = await updateHierarchy(hierarchyId, updatePayload);

@@ -105,7 +105,6 @@ export function RoleForm({ roleId, onSuccess }: RoleFormProps) {
         // Update existing role
         const updatePayload: UpdateRolePayload = {
           name: formData.name,
-          guardName: formData.guardName,
         };
         result = await updateRole(roleId, updatePayload);
         
