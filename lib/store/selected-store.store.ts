@@ -1,6 +1,13 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { Store } from "@/types/store.types";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 
 interface SelectedStoreState {
   selectedStore: Store | null;
@@ -29,7 +36,10 @@ export const useSelectedStoreStore = create<SelectedStoreState>()(
       },
     }),
     {
-      name: "selected-store-storage", // localStorage key
+      name: "selected-store-storage",
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
     }
   )
 );

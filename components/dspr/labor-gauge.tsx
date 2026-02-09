@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ApexOptions } from "apexcharts";
+import { cn } from "@/lib/utils";
 import { Gauge } from "lucide-react";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -112,10 +113,12 @@ export function LaborGauge({
   );
 
   return (
-    <Card className={className}>
+    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
       <CardHeader className="pb-0">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Gauge className="h-4 w-4 text-violet-500" />
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <div className="rounded-lg p-1.5 bg-violet-500/15 dark:bg-violet-500/20">
+            <Gauge className="h-4 w-4 text-violet-500" />
+          </div>
           {title}
           {target !== undefined && (
             <span className="text-xs font-normal text-muted-foreground ml-auto">

@@ -174,3 +174,9 @@
     @apply border-border outline-ring/50;
   }
 }
+
+/* DSPR dashboard shimmer animation for refresh indicator */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}

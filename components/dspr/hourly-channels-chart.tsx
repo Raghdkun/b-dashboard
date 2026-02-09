@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HourlySalesChannel } from "@/types/dspr.types";
 import type { ApexOptions } from "apexcharts";
+import { cn } from "@/lib/utils";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -170,9 +171,14 @@ export function HourlyChannelsChart({
   );
 
   return (
-    <Card className={className}>
+    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <div className="rounded-lg p-1.5 bg-violet-500/15 dark:bg-violet-500/20">
+            <svg className="h-4 w-4 text-violet-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 16V8l4 4 4-4v8"/></svg>
+          </div>
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ReactApexChart

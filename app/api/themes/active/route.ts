@@ -1,53 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAuthorization } from "../../_lib/auth";
+import { NextRequest } from "next/server";
+import { requireAuthorization, errorResponse } from "../../_lib/auth";
 
-// GET /api/themes/active - Get user's active theme ID
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  /api/themes/active  — Active theme preference                           */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Active theme preference is not yet backed by an upstream API.
+ * The preference is currently stored in localStorage via the theme store.
+ *
+ * Returns 501 so consumers can fall back to local storage.
+ */
+
 export async function GET(request: NextRequest) {
   const authError = requireAuthorization(request);
   if (authError) return authError;
 
-  // TODO: Get authenticated user
-  // TODO: Query user's theme preference from database
-  
-  // Mock: return default
-  return NextResponse.json({
-    success: true,
-    themeId: "default",
-  });
+  return errorResponse(
+    "UPSTREAM_ERROR",
+    "Server-side theme preferences are not yet available. The active theme is stored locally.",
+    501,
+  );
 }
 
-// PUT /api/themes/active - Set user's active theme ID
 export async function PUT(request: NextRequest) {
   const authError = requireAuthorization(request);
   if (authError) return authError;
 
-  try {
-    const { themeId } = await request.json();
-    
-    if (!themeId || typeof themeId !== "string") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "themeId is required",
-        },
-        { status: 400 }
-      );
-    }
-    
-    // TODO: Get authenticated user
-    // TODO: Validate that theme exists (either built-in or user's custom theme)
-    // TODO: Update user's preference in database
-    
-    return NextResponse.json({
-      success: true,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to set active theme",
-      },
-      { status: 400 }
-    );
-  }
+  return errorResponse(
+    "UPSTREAM_ERROR",
+    "Server-side theme preferences are not yet available. The active theme is stored locally.",
+    501,
+  );
 }

@@ -8,8 +8,15 @@
  */
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { featuresConfig } from "./features.config";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 import type {
   FeatureId,
   FeatureDetails,
@@ -209,6 +216,9 @@ export const useFeaturesStore = create<FeaturesRuntimeState>()(
     }),
     {
       name: "feature-flags-storage",
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
     }
   )
 );

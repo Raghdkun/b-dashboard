@@ -1,43 +1,231 @@
 import { create } from "zustand";
-import { dsprService } from "@/lib/api/services/dspr.service";
+import { dsprService, DsprError, type DsprErrorCode } from "@/lib/api/services/dspr.service";
 import type { DsprResponse } from "@/types/dspr.types";
 
-interface DsprState {
-  data: DsprResponse | null;
-  isLoading: boolean;
-  error: string | null;
-  lastFetchedAt: string | null;
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Constants                                                               */
+/* ────────────────────────────────────────────────────────────────────────── */
 
-  fetchReport: (storeId?: string, date?: string) => Promise<void>;
-  clearError: () => void;
-  reset: () => void;
+/** Data is considered fresh for 5 minutes */
+const STALE_AFTER_MS = 5 * 60 * 1000;
+
+/** Auto-refresh interval (5 min) */
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+
+/** Max retries for retryable errors (client-level) */
+const MAX_AUTO_RETRIES = 2;
+
+/** Delay between auto-retries */
+const RETRY_DELAY_MS = 3_000;
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Types                                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+interface DsprErrorState {
+  message: string;
+  code: DsprErrorCode;
+  retryable: boolean;
+  retryAfter?: number;
 }
 
-export const useDsprStore = create<DsprState>()((set) => ({
+interface DsprState {
+  // Data
+  data: DsprResponse | null;
+  isLoading: boolean;
+  isRefreshing: boolean; // background refresh (data already loaded)
+  error: DsprErrorState | null;
+
+  // Metadata
+  lastFetchedAt: number | null; // timestamp
+  lastStoreId: string | null;
+  lastDate: string | null;
+  fetchCount: number;
+
+  // Actions
+  fetchReport: (storeId?: string, date?: string) => Promise<void>;
+  refreshReport: () => Promise<void>;
+  clearError: () => void;
+  reset: () => void;
+
+  // Smart refresh
+  startAutoRefresh: () => void;
+  stopAutoRefresh: () => void;
+  isStale: () => boolean;
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Internal state (not in Zustand — avoids serialization issues)           */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+let _autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
+let _abortController: AbortController | null = null;
+let _retryTimer: ReturnType<typeof setTimeout> | null = null;
+let _retryCount = 0;
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Store                                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export const useDsprStore = create<DsprState>()((set, get) => ({
   data: null,
   isLoading: false,
+  isRefreshing: false,
   error: null,
   lastFetchedAt: null,
+  lastStoreId: null,
+  lastDate: null,
+  fetchCount: 0,
 
   fetchReport: async (storeId?: string, date?: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const data = await dsprService.getReport(storeId, date);
-      set({
-        data,
-        isLoading: false,
-        lastFetchedAt: new Date().toISOString(),
-      });
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load report data.";
-      console.error("❌ DSPR Store:", message);
-      set({ isLoading: false, error: message });
+    const state = get();
+
+    // Cancel any in-flight request
+    if (_abortController) {
+      _abortController.abort();
+    }
+    _abortController = new AbortController();
+
+    // If we already have data, show "refreshing" instead of full loading
+    const hasExistingData = state.data !== null;
+    set({
+      isLoading: !hasExistingData,
+      isRefreshing: hasExistingData,
+      error: null,
+    });
+
+    _retryCount = 0;
+
+    const performFetch = async (): Promise<void> => {
+      try {
+        const data = await dsprService.getReport(
+          storeId,
+          date,
+          _abortController?.signal
+        );
+
+        set({
+          data,
+          isLoading: false,
+          isRefreshing: false,
+          error: null,
+          lastFetchedAt: Date.now(),
+          lastStoreId: storeId ?? data.filtering?.store ?? null,
+          lastDate: date ?? data.filtering?.date ?? null,
+          fetchCount: get().fetchCount + 1,
+        });
+      } catch (err: unknown) {
+        // Cancelled — ignore silently
+        if (
+          err instanceof Error &&
+          (err.name === "CanceledError" || err.name === "AbortError")
+        ) {
+          return;
+        }
+
+        const dsprErr =
+          err instanceof DsprError
+            ? err
+            : new DsprError(
+                err instanceof Error ? err.message : "Failed to load report data.",
+                "UNKNOWN"
+              );
+
+        // Auto-retry for retryable errors (exclude auth errors — those need manual intervention)
+        const isAuthError = dsprErr.code === "UNAUTHORIZED" || dsprErr.code === "NOT_AUTHENTICATED" || dsprErr.code === "FORBIDDEN";
+        if (dsprErr.retryable && !isAuthError && _retryCount < MAX_AUTO_RETRIES) {
+          _retryCount++;
+          console.warn(
+            `🔄 DSPR: Auto-retry ${_retryCount}/${MAX_AUTO_RETRIES} in ${RETRY_DELAY_MS}ms`
+          );
+          await new Promise<void>((resolve) => {
+            _retryTimer = setTimeout(resolve, RETRY_DELAY_MS);
+            // Cancel the retry if the request was aborted while waiting
+            _abortController?.signal.addEventListener("abort", () => {
+              if (_retryTimer) {
+                clearTimeout(_retryTimer);
+                _retryTimer = null;
+              }
+              resolve();
+            }, { once: true });
+          });
+          // If aborted during the wait, bail out
+          if (_abortController?.signal.aborted) return;
+          _retryTimer = null;
+          return performFetch();
+        }
+
+        console.error(`❌ DSPR Store: [${dsprErr.code}] ${dsprErr.message}`);
+
+        set({
+          isLoading: false,
+          isRefreshing: false,
+          error: {
+            message: dsprErr.message,
+            code: dsprErr.code,
+            retryable: dsprErr.retryable,
+            retryAfter: dsprErr.retryAfter,
+          },
+          // Keep stale data on refresh failures
+          ...(hasExistingData ? {} : { data: null }),
+        });
+      }
+    };
+
+    await performFetch();
+  },
+
+  refreshReport: async () => {
+    const { lastStoreId, lastDate, fetchReport } = get();
+    if (lastStoreId && lastDate) {
+      await fetchReport(lastStoreId, lastDate);
     }
   },
 
   clearError: () => set({ error: null }),
 
-  reset: () =>
-    set({ data: null, isLoading: false, error: null, lastFetchedAt: null }),
+  reset: () => {
+    if (_abortController) _abortController.abort();
+    if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+    if (_retryTimer) clearTimeout(_retryTimer);
+    _autoRefreshTimer = null;
+    _retryTimer = null;
+    _retryCount = 0;
+
+    set({
+      data: null,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      lastFetchedAt: null,
+      lastStoreId: null,
+      lastDate: null,
+      fetchCount: 0,
+    });
+  },
+
+  isStale: () => {
+    const { lastFetchedAt } = get();
+    if (!lastFetchedAt) return true;
+    return Date.now() - lastFetchedAt > STALE_AFTER_MS;
+  },
+
+  startAutoRefresh: () => {
+    if (_autoRefreshTimer) return; // already running
+
+    _autoRefreshTimer = setInterval(() => {
+      const { isLoading, isRefreshing, refreshReport } = get();
+      // Only refresh if not already fetching
+      if (!isLoading && !isRefreshing) {
+        refreshReport();
+      }
+    }, AUTO_REFRESH_MS);
+  },
+
+  stopAutoRefresh: () => {
+    if (_autoRefreshTimer) {
+      clearInterval(_autoRefreshTimer);
+      _autoRefreshTimer = null;
+    }
+  },
 }));

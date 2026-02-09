@@ -9,6 +9,13 @@ import { validateTheme } from "./schema";
 
 const STORAGE_KEY = "theme-storage";
 
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
+
 interface ThemeStore extends ThemeState {
   // Actions
   setActiveTheme: (themeId: string) => void;
@@ -222,7 +229,9 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
       partialize: (state) => ({
         themes: state.themes,
         activeThemeId: state.activeThemeId,

@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 import type { AxiosError } from "axios";
 import { authService } from "@/lib/api/services/auth.service";
 import type { AuthUser, LoginCredentials, AuthUserStore } from "@/types/auth.types";
@@ -293,6 +300,9 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-token",
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
       partialize: (state) => ({
         token: state.token,
       }),

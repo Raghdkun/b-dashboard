@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 
 type Theme = "light" | "dark" | "system";
 
@@ -27,6 +34,9 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: "ui-storage",
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
     }
   )
 );

@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuthorization, getAuthorizationHeader } from "@/app/api/_lib/auth";
-import { promises as fs } from "fs";
-import path from "path";
+import {
+  requireAuthorization,
+  getAuthorizationHeader,
+} from "@/app/api/_lib/auth";
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Configuration                                                           */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 const DSPR_BASE_URL =
   process.env.DSPR_API_URL ||
@@ -11,293 +16,354 @@ const DSPR_BASE_URL =
 /**
  * Server-side only DSPR API token.
  * When set, this token is used instead of forwarding the client's auth token.
- * This is needed because data.lcportal.cloud uses a separate auth system.
+ * Required because data.lcportal.cloud uses a separate auth system.
  */
 const DSPR_API_TOKEN = process.env.DSPR_API_TOKEN;
+
+/** Upstream request timeout in ms (default 15 s) */
+const UPSTREAM_TIMEOUT_MS = Number(process.env.DSPR_TIMEOUT_MS) || 15_000;
+
+/** Max retries on 5xx / network errors */
+const MAX_RETRIES = 2;
+
+/** Base delay between retries (exponential back-off) */
+const RETRY_BASE_MS = 500;
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Validation helpers                                                      */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const STORE_ID_RE = /^[a-zA-Z0-9_-]{1,32}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidStoreId(id: string): boolean {
+  return STORE_ID_RE.test(id);
+}
+
+function isValidDate(d: string): boolean {
+  if (!DATE_RE.test(d)) return false;
+  const parsed = new Date(`${d}T00:00:00Z`);
+  if (isNaN(parsed.getTime())) return false;
+  // Verify roundtrip — catches rolled-over dates like Feb 30 → Mar 1
+  return parsed.toISOString().startsWith(d);
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Structured error response                                               */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+type ErrorCode =
+  | "MISSING_PARAM"
+  | "INVALID_PARAM"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "UPSTREAM_ERROR"
+  | "TIMEOUT"
+  | "NETWORK_ERROR"
+  | "RATE_LIMITED"
+  | "INTERNAL_ERROR";
+
+function errorResponse(
+  code: ErrorCode,
+  message: string,
+  status: number,
+  details?: Record<string, unknown>
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: { code, message, ...(details && { details }) },
+    },
+    {
+      status,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    }
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Fetch with timeout + retry                                              */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+  retries: number
+): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetchWithTimeout(url, init, timeoutMs);
+
+      // Don't retry on client errors (4xx) — only on 5xx
+      if (res.ok || (res.status >= 400 && res.status < 500)) {
+        return res;
+      }
+
+      // 5xx → retry
+      lastError = new Error(`Upstream ${res.status}`);
+      console.warn(
+        `⚠️  DSPR Proxy: attempt ${attempt + 1}/${retries + 1} failed (${res.status})`
+      );
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+
+      if (lastError.name === "AbortError") {
+        lastError = new Error("Upstream request timed out");
+      }
+
+      console.warn(
+        `⚠️  DSPR Proxy: attempt ${attempt + 1}/${retries + 1} error:`,
+        lastError.message
+      );
+    }
+
+    // Exponential back-off before next retry
+    if (attempt < retries) {
+      await new Promise((r) =>
+        setTimeout(r, RETRY_BASE_MS * Math.pow(2, attempt))
+      );
+    }
+  }
+
+  throw lastError ?? new Error("All retries exhausted");
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  GET handler                                                             */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 /**
  * GET /api/dspr/{storeId}/{date}
  *
- * Proxies the request to the DSPR API server-side to avoid CORS / CSP issues.
- * Falls back to the local sample data file when the upstream returns 401
- * (the DSPR backend auth may not be configured yet).
+ * Production proxy to the upstream DSPR API at data.lcportal.cloud.
+ * Features:
+ *  - Input validation & sanitisation
+ *  - Structured error responses with error codes
+ *  - Automatic retries with exponential back-off on 5xx / network errors
+ *  - Configurable timeout (DSPR_TIMEOUT_MS env)
+ *  - Cache headers for successful responses
+ *  - Dedicated server-side DSPR_API_TOKEN support
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ storeId: string; date: string }> }
 ) {
-  // Ensure the caller is authenticated
+  const startTime = Date.now();
+
+  // ── Auth check ───────────────────────────────────────────────────────
   const authError = requireAuthorization(request);
   if (authError) return authError;
 
-  const authorization = getAuthorizationHeader(request);
-
+  // ── Extract & validate params ────────────────────────────────────────
   const { storeId, date } = await params;
 
   if (!storeId) {
-    return NextResponse.json(
-      { success: false, message: "Missing storeId parameter" },
-      { status: 400 }
-    );
+    return errorResponse("MISSING_PARAM", "Store ID is required", 400);
   }
-
   if (!date) {
-    return NextResponse.json(
-      { success: false, message: "Missing date parameter" },
-      { status: 400 }
+    return errorResponse("MISSING_PARAM", "Date is required", 400);
+  }
+  if (!isValidStoreId(storeId)) {
+    return errorResponse(
+      "INVALID_PARAM",
+      "Store ID must be 1-32 alphanumeric characters, hyphens, or underscores",
+      400,
+      { param: "storeId", ...(process.env.NODE_ENV === "development" && { received: storeId }) }
+    );
+  }
+  if (!isValidDate(date)) {
+    return errorResponse(
+      "INVALID_PARAM",
+      "Date must be a valid YYYY-MM-DD format",
+      400,
+      { param: "date", ...(process.env.NODE_ENV === "development" && { received: date }) }
     );
   }
 
-  const targetUrl = `${DSPR_BASE_URL}/${storeId}/${date}`;
-
-  // Use the dedicated DSPR token if configured, otherwise forward the client's token
+  // ── Build upstream request ───────────────────────────────────────────
+  const authorization = getAuthorizationHeader(request);
   const upstreamAuth = DSPR_API_TOKEN
     ? `Bearer ${DSPR_API_TOKEN}`
-    : (authorization ?? "");
+    : authorization ?? "";
 
+  const targetUrl = `${DSPR_BASE_URL}/${encodeURIComponent(storeId)}/${encodeURIComponent(date)}`;
+
+  console.log(
+    `📊 DSPR Proxy → ${targetUrl}`,
+    DSPR_API_TOKEN ? "(server token)" : "(client token)"
+  );
+
+  // ── Fetch upstream ───────────────────────────────────────────────────
   try {
-    console.log("📊 DSPR Proxy →", targetUrl, DSPR_API_TOKEN ? "(using DSPR_API_TOKEN)" : "(forwarding client token)");
-
-    const response = await fetch(targetUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: upstreamAuth,
+    const response = await fetchWithRetry(
+      targetUrl,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: upstreamAuth,
+        },
       },
-    });
+      UPSTREAM_TIMEOUT_MS,
+      MAX_RETRIES
+    );
 
-    console.log("📊 DSPR Proxy ←", response.status);
+    const elapsed = Date.now() - startTime;
+    console.log(`📊 DSPR Proxy ← ${response.status} (${elapsed}ms)`);
 
-    // If upstream works, forward the response
+    // ── Success ──────────────────────────────────────────────────────
     if (response.ok) {
       const body = await response.text();
+
+      // Validate upstream returned valid JSON
+      let parsedBody: Record<string, unknown>;
+      try {
+        parsedBody = JSON.parse(body);
+      } catch {
+        return errorResponse(
+          "UPSTREAM_ERROR",
+          "Upstream returned invalid JSON",
+          502,
+          { upstreamStatus: response.status }
+        );
+      }
+
+      // Debug log: show key metrics from upstream response
+      if (process.env.NODE_ENV === "development") {
+        const d = parsedBody.day as Record<string, unknown> | undefined;
+        console.log(
+          `📊 DSPR Data: cash=$${d?.total_cash_sales ?? "?"}, customers=${d?.customer_count ?? "?"}, labor=${d?.labor ?? "?"}, tips=$${d?.total_tips ?? "?"}`
+        );
+      }
+
       return new NextResponse(body, {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Cache 5 min browser, 10 min CDN, stale-while-revalidate 30 min
+          "Cache-Control":
+            "public, s-maxage=600, max-age=300, stale-while-revalidate=1800",
+          "X-Response-Time": `${elapsed}ms`,
+        },
       });
     }
 
-    // If 401/403 — upstream auth not configured yet, fall back to sample data
-    if (response.status === 401 || response.status === 403) {
-      console.log(
-        "⚠️  DSPR Proxy: upstream auth rejected, falling back to sample data"
+    // ── 401 — auth issue ───────────────────────────────────────────
+    if (response.status === 401) {
+      return errorResponse(
+        "UNAUTHORIZED",
+        DSPR_API_TOKEN
+          ? "The DSPR API token is invalid or expired. Please contact your administrator to update the server configuration."
+          : "The DSPR report service requires a dedicated API token that has not been configured. Please contact your administrator.",
+        401,
+        { upstream: true, tokenConfigured: !!DSPR_API_TOKEN }
       );
-      return serveSampleData(storeId, date);
     }
 
-    // Other errors — forward as-is
-    const body = await response.text();
-    return new NextResponse(body, {
-      status: response.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    // ── 403 — forbidden ────────────────────────────────────────────
+    if (response.status === 403) {
+      return errorResponse(
+        "FORBIDDEN",
+        "You do not have permission to access this store's report.",
+        403,
+        { storeId }
+      );
+    }
+
+    // ── 404 — no data for this store/date ──────────────────────────
+    if (response.status === 404) {
+      return errorResponse(
+        "NOT_FOUND",
+        `No report data found for store ${storeId} on ${date}.`,
+        404,
+        { storeId, date }
+      );
+    }
+
+    // ── 429 — rate limited ─────────────────────────────────────────
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (retryAfter) headers["Retry-After"] = retryAfter;
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "RATE_LIMITED" as ErrorCode,
+            message: "Too many requests. Please wait before trying again.",
+            ...(retryAfter && {
+              retryAfter: Number(retryAfter) || retryAfter,
+            }),
+          },
+        },
+        { status: 429, headers }
+      );
+    }
+
+    // ── Other upstream errors ──────────────────────────────────────
+    let upstreamBody: string | null = null;
+    try {
+      upstreamBody = await response.text();
+    } catch {
+      /* ignore read errors */
+    }
+
+    return errorResponse(
+      "UPSTREAM_ERROR",
+      `DSPR server returned an error (${response.status}).`,
+      502,
+      {
+        upstreamStatus: response.status,
+        ...(process.env.NODE_ENV === "development" && upstreamBody && { upstreamMessage: upstreamBody.slice(0, 500) }),
+      }
+    );
   } catch (error) {
-    console.error("❌ DSPR Proxy error:", error);
+    const elapsed = Date.now() - startTime;
+    const message =
+      error instanceof Error ? error.message : "Unknown network error";
 
-    // Network failure — fall back to sample data so the dashboard still works
-    console.log("⚠️  DSPR Proxy: network error, falling back to sample data");
-    return serveSampleData(storeId, date);
-  }
-}
+    console.error(`❌ DSPR Proxy error (${elapsed}ms):`, message);
 
-/**
- * Simple deterministic hash from a string → number between 0 and 1.
- * Used to produce repeatable-but-varied sample data per date.
- */
-function seedFromString(s: string): number {
-  let hash = 0;
-  for (let i = 0; i < s.length; i++) {
-    hash = (hash << 5) - hash + s.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash % 10000) / 10000;
-}
-
-/**
- * Vary a numeric value ±30% based on a seed, keeping 2 decimal places.
- */
-function vary(base: number, seed: number, index: number): number {
-  const factor = 0.7 + ((seed * 1000 + index * 137) % 600) / 1000;
-  return Math.round(base * factor * 100) / 100;
-}
-
-/**
- * Compute ISO week info for a given date string (YYYY-MM-DD).
- */
-function getWeekInfo(dateStr: string) {
-  const d = new Date(dateStr + "T12:00:00Z");
-  // ISO week: Monday = start of week
-  const dayOfWeek = d.getUTCDay() || 7; // Mon=1 … Sun=7
-  // Find Monday of this week
-  const monday = new Date(d);
-  monday.setUTCDate(d.getUTCDate() - dayOfWeek + 1);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-
-  // ISO week number
-  const jan4 = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
-  const jan4Day = jan4.getUTCDay() || 7;
-  const isoWeekStart = new Date(jan4);
-  isoWeekStart.setUTCDate(jan4.getUTCDate() - jan4Day + 1);
-  const isoWeek = Math.ceil(((d.getTime() - isoWeekStart.getTime()) / 86400000 + 1) / 7);
-
-  const fmt = (dt: Date) => dt.toISOString().split("T")[0];
-  return { isoWeek, weekStart: fmt(monday), weekEnd: fmt(sunday) };
-}
-
-/**
- * Generate 7 daily sales entries for the week containing `dateStr`.
- */
-function generateWeeklySales(weekStart: string, seed: number, offset: number) {
-  const result: Record<string, number> = {};
-  const base = [4200, 4800, 5700, 6900, 7000, 4700, 4100];
-  const start = new Date(weekStart + "T12:00:00Z");
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start);
-    d.setUTCDate(start.getUTCDate() + i);
-    result[d.toISOString().split("T")[0]] = vary(base[i], seed, i + offset);
-  }
-  return result;
-}
-
-/**
- * Serve sample API data that is dynamically adjusted based on the requested
- * storeId and date. The underlying shape comes from the static sample file,
- * but numerical values are deterministically varied so that every date produces
- * unique (but repeatable) numbers.
- */
-async function serveSampleData(storeId: string, date: string) {
-  try {
-    const filePath = path.join(
-      process.cwd(),
-      "docs",
-      "dspr",
-      "api-response.json"
-    );
-    const raw = await fs.readFile(filePath, "utf-8");
-    const sample = JSON.parse(raw);
-
-    // Seed from storeId + date → every combination gives unique values
-    const seed = seedFromString(`${storeId}:${date}`);
-    const { isoWeek, weekStart, weekEnd } = getWeekInfo(date);
-
-    // ── Filtering ──────────────────────────────────────────────────
-    sample.filtering = {
-      store: storeId,
-      date,
-      iso_week: isoWeek,
-      week_start: weekStart,
-      week_end: weekEnd,
-    };
-
-    // ── Sales ──────────────────────────────────────────────────────
-    sample.sales.this_week_by_day = generateWeeklySales(weekStart, seed, 0);
-
-    // Previous week
-    const prevStart = new Date(weekStart + "T12:00:00Z");
-    prevStart.setUTCDate(prevStart.getUTCDate() - 7);
-    sample.sales.previous_week_by_day = generateWeeklySales(
-      prevStart.toISOString().split("T")[0],
-      seed,
-      10
-    );
-
-    // Same week last year
-    const lyStart = new Date(weekStart + "T12:00:00Z");
-    lyStart.setUTCFullYear(lyStart.getUTCFullYear() - 1);
-    sample.sales.same_week_last_year_by_day = generateWeeklySales(
-      lyStart.toISOString().split("T")[0],
-      seed,
-      20
-    );
-
-    // ── Day section ────────────────────────────────────────────────
-    const day = sample.day;
-    day.total_cash_sales = vary(936.11, seed, 30);
-    day.total_deposit = vary(938, seed, 31);
-    day.over_short = vary(2.16, seed, 32);
-    day.customer_count = Math.round(vary(430, seed, 33));
-    day.waste.alta_inventory = vary(23.27, seed, 34);
-    day.waste.normal = vary(183.45, seed, 35);
-    day.total_tips = vary(107.91, seed, 36);
-    day.refunded_orders.count = Math.round(vary(1, seed, 37));
-    day.refunded_orders.sales = vary(8.5, seed, 38);
-
-    // HNR
-    day.hnr.hnr_transactions = Math.round(vary(188, seed, 39));
-    day.hnr.hnr_broken_promises = Math.round(vary(6, seed, 40));
-    day.hnr.hnr_promise_met = day.hnr.hnr_transactions - day.hnr.hnr_broken_promises;
-    day.hnr.hnr_promise_met_percent =
-      day.hnr.hnr_transactions > 0
-        ? Math.round((day.hnr.hnr_promise_met / day.hnr.hnr_transactions) * 10000) / 100
-        : 0;
-
-    // Portal
-    day.portal.portal_eligible_orders = Math.round(vary(156, seed, 41));
-    day.portal.portal_used_orders = Math.round(
-      day.portal.portal_eligible_orders * (0.9 + seed * 0.1)
-    );
-    day.portal.portal_on_time_orders = Math.round(
-      day.portal.portal_used_orders * (0.92 + seed * 0.08)
-    );
-    day.portal.put_into_portal_percent =
-      day.portal.portal_eligible_orders > 0
-        ? Math.round((day.portal.portal_used_orders / day.portal.portal_eligible_orders) * 10000) / 100
-        : 0;
-    day.portal.in_portal_on_time_percent =
-      day.portal.portal_used_orders > 0
-        ? Math.round((day.portal.portal_on_time_orders / day.portal.portal_used_orders) * 10000) / 100
-        : 0;
-
-    // Labor
-    day.labor = vary(25, seed, 42);
-
-    // Hourly channels — vary each hour's values
-    if (day.hourly_sales_and_channels) {
-      day.hourly_sales_and_channels = day.hourly_sales_and_channels.map(
-        (hour: Record<string, string | number>, idx: number) => {
-          const varied: Record<string, string | number> = { hour: hour.hour };
-          for (const [key, val] of Object.entries(hour)) {
-            if (key === "hour") continue;
-            const num = typeof val === "string" ? parseFloat(val) : val;
-            varied[key] = vary(num, seed, 50 + idx * 10 + Object.keys(varied).length).toFixed(2);
-          }
-          return varied;
-        }
+    // Distinguish timeout vs general network errors
+    if (message.includes("timed out") || message.includes("abort")) {
+      return errorResponse(
+        "TIMEOUT",
+        `The DSPR server did not respond within ${UPSTREAM_TIMEOUT_MS / 1000}s. Please try again.`,
+        504,
+        { timeoutMs: UPSTREAM_TIMEOUT_MS, elapsed }
       );
     }
 
-    // Top items — vary sales and quantities
-    if (sample.top?.top_5_items_sales_for_day) {
-      sample.top.top_5_items_sales_for_day = sample.top.top_5_items_sales_for_day.map(
-        (item: Record<string, unknown>, idx: number) => ({
-          ...item,
-          franchise_store: storeId,
-          gross_sales: vary(item.gross_sales as number, seed, 70 + idx),
-          quantity_sold: Math.round(vary(item.quantity_sold as number, seed, 80 + idx)),
-        })
-      );
-    }
-
-    // Top ingredients — vary usage
-    if (sample.top?.top_3_ingredients_used) {
-      sample.top.top_3_ingredients_used = sample.top.top_3_ingredients_used.map(
-        (item: Record<string, unknown>, idx: number) => ({
-          ...item,
-          actual_usage: Math.round(vary(item.actual_usage as number, seed, 90 + idx)),
-        })
-      );
-    }
-
-    return new NextResponse(JSON.stringify(sample), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (readError) {
-    console.error("❌ Failed to read sample data:", readError);
-    return NextResponse.json(
-      { success: false, message: "Unable to load sample data" },
-      { status: 500 }
+    return errorResponse(
+      "NETWORK_ERROR",
+      "Unable to reach the DSPR server. Please check your connection and try again.",
+      503,
+      { elapsed }
     );
   }
 }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DsprSales } from "@/types/dspr.types";
 import type { ApexOptions } from "apexcharts";
+import { cn } from "@/lib/utils";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -198,9 +199,14 @@ export function SalesChart({
   if (series.length === 0) return null;
 
   return (
-    <Card className={className}>
+    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
+            <svg className="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          </div>
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ReactApexChart
