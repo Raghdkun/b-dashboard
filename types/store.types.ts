@@ -24,6 +24,8 @@ export interface StoreMetadata {
  */
 export interface Store {
   id: string;
+  /** User-facing store identifier (e.g. franchise store number) */
+  storeId: string;
   name: string;
   metadata: StoreMetadata;
   isActive: boolean;

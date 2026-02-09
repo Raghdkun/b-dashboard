@@ -12,6 +12,8 @@ import type {
 // API returns snake_case, frontend uses camelCase
 interface ApiStore {
   id: string;
+  /** User-facing store identifier set during creation */
+  store_id?: string;
   name: string;
   metadata: Record<string, string | undefined>;
   is_active: boolean;
@@ -23,6 +25,7 @@ interface ApiStore {
 function transformStore(apiStore: ApiStore): Store {
   return {
     id: apiStore.id,
+    storeId: apiStore.store_id || apiStore.id,
     name: apiStore.name,
     metadata: apiStore.metadata || {},
     isActive: apiStore.is_active,
@@ -89,9 +92,9 @@ export const storeService = {
     payload: CreateStorePayload
   ): Promise<ApiResponse<Store>> => {
     const { data } = await axiosClient.post<ApiResponse<Store>>("/stores", {
-      id: payload.id,
+      store_id: payload.id,
       name: payload.name,
-      metadata: payload.metadata,
+      metadata: payload.metadata || {},
       is_active: payload.isActive ?? true,
     });
     return data;

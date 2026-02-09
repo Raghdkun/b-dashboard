@@ -24,6 +24,7 @@ import {
   Check,
   ChevronDown,
   Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import {
   Dialog,
@@ -48,7 +49,7 @@ import { useUIStore } from "@/lib/store/ui.store";
 import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
 import { useFeature, Feature } from "@/lib/config";
 import { authService } from "@/lib/api/services/auth.service";
-import type { Store } from "@/types/store.types";
+import type { Store, StoreMetadata } from "@/types/store.types";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -103,6 +104,11 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       title: t("serviceClients"),
       href: `/${locale}/dashboard/service-clients`,
       icon: Key,
+    },
+    {
+      title: t("userStoreAssignment"),
+      href: `/${locale}/dashboard/user-store-assignment`,
+      icon: ClipboardList,
     },
     {
       title: t("settings"),
@@ -171,7 +177,6 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   useEffect(() => {
     if (zustandSelectedStore) {
       setLocalSelectedStore(zustandSelectedStore);
-      console.log("🔄 Sidebar: Synced with Zustand store:", zustandSelectedStore.name);
     }
     setIsMounted(true);
   }, [zustandSelectedStore]);
@@ -188,15 +193,17 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
 
         const stores: Store[] = response.data.stores?.map((userStore) => ({
           id: userStore.store.id,
+          storeId: (userStore.store as Record<string, unknown>).store_id as string || userStore.store.id,
           name: userStore.store.name,
-          metadata: (userStore.store.metadata || {}) as any,
+          metadata: (userStore.store.metadata ?? {}) as StoreMetadata,
           isActive: userStore.store.isActive ?? true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })) || [];
 
+        // console.log("[Sidebar] Loaded stores from /auth/me:", stores.map(s => ({ id: s.id, name: s.name })));
+        // console.log("[Sidebar] Raw auth stores:", response.data.stores?.map(s => ({ id: s.store.id, name: s.store.name })));
         setUserStores(stores);
-        // console.log(response)
       } catch {
         if (isActive) {
           setUserStores([]);
@@ -282,9 +289,9 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                     variant={selectedStore?.id === store.id ? "default" : "outline"}
                     className="w-full justify-start"
                     onClick={() => {
+                      // console.log("[Sidebar] Store selected:", { id: store.id, name: store.name, store });
                       setLocalSelectedStore(store);
-                      setSelectedStore(store); // Update Zustand store
-                      console.log("✅ Store selected from sidebar:", store.name);
+                      setSelectedStore(store);
                       setIsStoreModalOpen(false);
                     }}
                   >

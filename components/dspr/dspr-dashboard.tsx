@@ -12,6 +12,7 @@ import {
   DaySummaryStats,
   HnrCard,
   PortalCard,
+  OnTimeCard,
   LaborGauge,
   DsprDashboardSkeleton,
 } from "@/components/dspr";
@@ -237,6 +238,7 @@ export function DsprDashboard() {
 
   // Re-fetch when the selected store changes
   const storeId = selectedStore?.id ?? null;
+  // console.log("[DsprDashboard] render:", { storeId, selectedStore: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null, hasData: !!data, isLoading, error });
   const selectedDateRef = useRef(selectedDate);
 
   useEffect(() => {
@@ -464,24 +466,25 @@ export function DsprDashboard() {
         </div>
       </div>
 
-      {/* ── Day summary stat cards ───────────────────────────────────── */}
-      <DaySummaryStats day={day} />
-
-      {/* ── Charts row (Sales + Hourly Channels) ────────────────────── */}
+      {/* ── Day summary + Weekly Sales side by side ──────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
+        <DaySummaryStats day={day} />
         <SalesChart sales={sales} height={320} toolbar={false} />
-        <HourlyChannelsChart
-          hourlyData={day.hourly_sales_and_channels}
-          height={320}
-          toolbar={false}
-        />
       </div>
 
-      {/* ── HNR · Portal · Labor row ─────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* ── Hourly Channels (full width) ────────────────────────── */}
+      <HourlyChannelsChart
+        hourlyData={day.hourly_sales_and_channels}
+        height={320}
+        toolbar={false}
+      />
+
+      {/* ── HNR · Portal · On Time · Labor gauges row ────────────── */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <HnrCard hnr={day.hnr} />
         <PortalCard portal={day.portal} />
-        <LaborGauge value={day.labor} />
+        <OnTimeCard portal={day.portal} />
+        <LaborGauge value={day.labor || 21} />
       </div>
 
       {/* ── Top items + ingredients ───────────────────────────────────── */}
