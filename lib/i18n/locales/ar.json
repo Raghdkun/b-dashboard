@@ -51,6 +51,7 @@
     "assignments": "التعيينات",
     "hierarchy": "الهيكل",
     "serviceClients": "عملاء الخدمة",
+    "userStoreAssignment": "تعيين الفروع للمستخدمين",
     "settings": "الإعدادات",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
@@ -74,6 +75,8 @@
     "hierarchy": "الهيكل",
     "by-user": "حسب المستخدم",
     "by-store": "حسب الفرع",
+    "user-store-assignment": "تعيين الفروع للمستخدمين",
+    "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
@@ -885,6 +888,41 @@
       "reason": "السبب",
       "reasonPlaceholder": "لماذا يتم إنشاء هذا الهيكل؟",
       "reasonHint": "قدم سياقاً لعلاقة الهيكل هذه."
+    }
+  },
+  "userStoreAssignment": {
+    "title": "تعيين الفروع للمستخدمين",
+    "description": "عرض وإدارة تعيينات الفروع للمستخدمين.",
+    "assignStore": "تعيين فرع",
+    "searchPlaceholder": "بحث عن المستخدمين...",
+    "noUsers": "لا يوجد مستخدمون.",
+    "columns": {
+      "user": "المستخدم",
+      "roles": "الأدوار",
+      "storesAssigned": "الفروع المعينة"
+    },
+    "assign": {
+      "title": "تعيين فرع لمستخدم",
+      "description": "اختر مستخدماً ودوراً وفروعاً للتعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStores": "اختر الفروع",
+      "selectStoresPlaceholder": "ابحث واختر الفروع...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "selectedStores": "الفروع المختارة",
+      "submit": "تعيين الفرع",
+      "submitting": "جارٍ التعيين...",
+      "success": "تم تعيين الفرع بنجاح.",
+      "error": "فشل تعيين الفرع.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع واحد على الأقل."
+      }
     }
   }
 }

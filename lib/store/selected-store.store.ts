@@ -16,9 +16,29 @@ interface SelectedStoreState {
 }
 
 /**
+ * Validates that a persisted store object has a correct string `id`.
+ * Guards against stale data where `id` was a numeric PK instead of the
+ * actual store identifier (e.g., "03795-00001").
+ */
+function isValidPersistedStore(store: unknown): store is Store {
+  if (!store || typeof store !== "object") return false;
+  const s = store as Record<string, unknown>;
+  return (
+    typeof s.id === "string" && s.id.length > 0 &&
+    typeof s.name === "string" &&
+    typeof s.storeId === "string" && s.storeId.length > 0
+  );
+}
+
+/**
  * Global Zustand store for managing the currently selected store
  * This store is persisted to localStorage automatically via the persist middleware
  * All components that subscribe to this store will update reactively when the store changes
+ *
+ * Version history:
+ *  0 → id was incorrectly set to the numeric DB primary key
+ *  1 → id is now the actual store_id (e.g., "03795-00001")
+ *  2 → added storeId field alongside id
  */
 export const useSelectedStoreStore = create<SelectedStoreState>()(
   persist(
@@ -26,20 +46,28 @@ export const useSelectedStoreStore = create<SelectedStoreState>()(
       selectedStore: null,
 
       setSelectedStore: (store: Store | null) => {
-        console.log("📦 Selected Store Updated:", store?.name || "Cleared");
+        console.log("[Zustand selectedStore] Setting store:", store ? { id: store.id, name: store.name } : null);
         set({ selectedStore: store });
       },
 
       clearSelectedStore: () => {
-        console.log("🗑️ Selected Store Cleared");
         set({ selectedStore: null });
       },
     }),
     {
       name: "selected-store-storage",
+      version: 2,
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? localStorage : noopStorage
       ),
+      migrate: (persisted, version) => {
+        const state = persisted as { selectedStore: unknown };
+        // v0/v1 → v2: clear invalid store data (missing storeId or numeric id)
+        if (version < 2 || !isValidPersistedStore(state?.selectedStore)) {
+          return { selectedStore: null };
+        }
+        return state as { selectedStore: Store | null };
+      },
     }
   )
 );

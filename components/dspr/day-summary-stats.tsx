@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -14,8 +14,7 @@ import {
   Users,
   Trash2,
   HandCoins,
-  TrendingUp,
-  TrendingDown,
+  ClipboardList,
 } from "lucide-react";
 import type { DsprDay } from "@/types/dspr.types";
 import { cn } from "@/lib/utils";
@@ -34,10 +33,9 @@ type StatConfig = {
   rawValue: number;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
-  bg: string;
   iconBg: string;
   tooltip: string;
-  trend?: "positive" | "negative" | "neutral";
+  isNegative?: boolean;
 };
 
 export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
@@ -48,10 +46,8 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.total_cash_sales,
       icon: DollarSign,
       color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-500/10",
       iconBg: "bg-emerald-500/15 dark:bg-emerald-500/20",
       tooltip: "Total cash sales for the day",
-      trend: "positive",
     },
     {
       label: "Total Deposit",
@@ -59,10 +55,8 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.total_deposit,
       icon: Banknote,
       color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-500/10",
       iconBg: "bg-blue-500/15 dark:bg-blue-500/20",
       tooltip: "Total bank deposit for the day",
-      trend: "neutral",
     },
     {
       label: "Over/Short",
@@ -73,16 +67,12 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
         day.over_short >= 0
           ? "text-emerald-600 dark:text-emerald-400"
           : "text-red-600 dark:text-red-400",
-      bg:
-        day.over_short >= 0
-          ? "bg-emerald-500/10"
-          : "bg-red-500/10",
       iconBg:
         day.over_short >= 0
           ? "bg-emerald-500/15 dark:bg-emerald-500/20"
           : "bg-red-500/15 dark:bg-red-500/20",
       tooltip: day.over_short >= 0 ? "Cash register is over" : "Cash register is short",
-      trend: day.over_short >= 0 ? "positive" : "negative",
+      isNegative: day.over_short < 0,
     },
     {
       label: "Refunded Orders",
@@ -90,10 +80,9 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.refunded_orders.sales,
       icon: RotateCcw,
       color: "text-orange-600 dark:text-orange-400",
-      bg: "bg-orange-500/10",
       iconBg: "bg-orange-500/15 dark:bg-orange-500/20",
       tooltip: `${day.refunded_orders.count} order(s) refunded totaling ${fmt(day.refunded_orders.sales)}`,
-      trend: day.refunded_orders.count > 0 ? "negative" : "positive",
+      isNegative: day.refunded_orders.count > 0,
     },
     {
       label: "Customer Count",
@@ -101,10 +90,8 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.customer_count,
       icon: Users,
       color: "text-violet-600 dark:text-violet-400",
-      bg: "bg-violet-500/10",
       iconBg: "bg-violet-500/15 dark:bg-violet-500/20",
       tooltip: "Total number of customers served",
-      trend: "positive",
     },
     {
       label: "Waste (Alta)",
@@ -112,10 +99,9 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.waste.alta_inventory,
       icon: Trash2,
       color: "text-red-600 dark:text-red-400",
-      bg: "bg-red-500/10",
       iconBg: "bg-red-500/15 dark:bg-red-500/20",
       tooltip: "Alta inventory waste value",
-      trend: "negative",
+      isNegative: true,
     },
     {
       label: "Waste (Normal)",
@@ -123,10 +109,9 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.waste.normal,
       icon: Trash2,
       color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-500/10",
       iconBg: "bg-amber-500/15 dark:bg-amber-500/20",
       tooltip: "Normal waste value",
-      trend: "negative",
+      isNegative: true,
     },
     {
       label: "Total Tips",
@@ -134,71 +119,51 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       rawValue: day.total_tips,
       icon: HandCoins,
       color: "text-teal-600 dark:text-teal-400",
-      bg: "bg-teal-500/10",
       iconBg: "bg-teal-500/15 dark:bg-teal-500/20",
       tooltip: "Total tips collected for the day",
-      trend: "positive",
     },
   ];
 
   return (
-    <div className={cn("grid gap-3 grid-cols-2 lg:grid-cols-4", className)}>
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        const TrendIcon =
-          stat.trend === "positive"
-            ? TrendingUp
-            : stat.trend === "negative"
-              ? TrendingDown
-              : null;
-
-        return (
-          <Tooltip key={stat.label}>
-            <TooltipTrigger asChild>
-              <Card className="group relative overflow-hidden border-transparent hover:border-border/50 hover:shadow-md transition-all duration-200 cursor-default">
-                {/* Subtle gradient accent at the top */}
-                <div
-                  className={cn(
-                    "absolute inset-x-0 top-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity",
-                    stat.bg
-                  )}
-                />
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1.5 min-w-0">
+    <Card className={cn("hover:shadow-md transition-shadow h-full", className)}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <div className="rounded-lg p-1.5 bg-primary/10">
+            <ClipboardList className="h-4 w-4 text-primary" />
+          </div>
+          Day Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0 pb-4">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Tooltip key={stat.label}>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-3 group/stat cursor-default rounded-lg px-3 py-2.5 hover:bg-muted/50 transition-colors">
+                    <div className={cn("rounded-lg p-2 shrink-0", stat.iconBg)}>
+                      <Icon className={cn("h-4.5 w-4.5", stat.color)} />
+                    </div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-muted-foreground truncate">
                         {stat.label}
                       </p>
-                      <p className="text-xl font-bold tabular-nums tracking-tight truncate">
+                      <p className={cn(
+                        "text-base font-bold tabular-nums tracking-tight truncate",
+                        stat.isNegative && "text-red-600 dark:text-red-400"
+                      )}>
                         {stat.value}
                       </p>
                     </div>
-                    <div className={cn("rounded-lg p-2 shrink-0", stat.iconBg)}>
-                      <Icon className={cn("h-4 w-4", stat.color)} />
-                    </div>
                   </div>
-                  {TrendIcon && (
-                    <div className="mt-2 flex items-center gap-1">
-                      <TrendIcon
-                        className={cn(
-                          "h-3 w-3",
-                          stat.trend === "positive"
-                            ? "text-emerald-500"
-                            : "text-red-500"
-                        )}
-                      />
-                      <span className="text-[10px] text-muted-foreground">
-                        vs. previous
-                      </span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{stat.tooltip}</TooltipContent>
-          </Tooltip>
-        );
-      })}
-    </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{stat.tooltip}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

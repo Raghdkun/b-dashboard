@@ -51,6 +51,7 @@
     "assignments": "Assignments",
     "hierarchy": "Hierarchy",
     "serviceClients": "Service Clients",
+    "userStoreAssignment": "User Store Assignment",
     "settings": "Settings",
     "collapse": "Collapse",
     "selectStore": "Select Store",
@@ -74,6 +75,8 @@
     "hierarchy": "Hierarchy",
     "by-user": "By User",
     "by-store": "By Store",
+    "user-store-assignment": "User Store Assignment",
+    "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
     "profile": "Profile",
@@ -886,6 +889,41 @@
       "reason": "Reason",
       "reasonPlaceholder": "Why is this hierarchy being created?",
       "reasonHint": "Provide context for this hierarchy relationship."
+    }
+  },
+  "userStoreAssignment": {
+    "title": "User Store Assignment",
+    "description": "View and manage store assignments for users.",
+    "assignStore": "Assign Store",
+    "searchPlaceholder": "Search users...",
+    "noUsers": "No users found.",
+    "columns": {
+      "user": "User",
+      "roles": "Roles",
+      "storesAssigned": "Stores Assigned"
+    },
+    "assign": {
+      "title": "Assign Store to User",
+      "description": "Select a user, a role, and stores to assign.",
+      "selectUser": "Select User",
+      "selectUserPlaceholder": "Search and select a user...",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Search and select a role...",
+      "selectStores": "Select Stores",
+      "selectStoresPlaceholder": "Search and select stores...",
+      "noUsersFound": "No users found.",
+      "noRolesFound": "No roles found.",
+      "noStoresFound": "No stores found.",
+      "selectedStores": "Selected Stores",
+      "submit": "Assign Store",
+      "submitting": "Assigning...",
+      "success": "Store assigned successfully.",
+      "error": "Failed to assign store.",
+      "validation": {
+        "userRequired": "Please select a user.",
+        "roleRequired": "Please select a role.",
+        "storeRequired": "Please select at least one store."
+      }
     }
   }
 }
