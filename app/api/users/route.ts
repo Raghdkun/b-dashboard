@@ -1,131 +1,100 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import {
+  AUTH_API_URL,
+  AUTH_TIMEOUT_MS,
+  requireAuthorization,
+  getAuthorizationHeader,
+  errorResponse,
+  fetchWithTimeout,
+  mapUpstreamError,
+  mapFetchError,
+} from "@/app/api/_lib/auth";
 
-// Mock users data
-const mockUsers = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "admin",
-    status: "active",
-    avatar: null,
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-  },
-  {
-    id: "2",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "user",
-    status: "active",
-    avatar: null,
-    createdAt: "2024-02-15T00:00:00Z",
-    updatedAt: "2024-02-15T00:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "editor",
-    status: "active",
-    avatar: null,
-    createdAt: "2024-03-10T00:00:00Z",
-    updatedAt: "2024-03-10T00:00:00Z",
-  },
-  {
-    id: "4",
-    name: "Bob Wilson",
-    email: "bob@example.com",
-    role: "user",
-    status: "inactive",
-    avatar: null,
-    createdAt: "2024-04-05T00:00:00Z",
-    updatedAt: "2024-04-05T00:00:00Z",
-  },
-  {
-    id: "5",
-    name: "Alice Brown",
-    email: "alice@example.com",
-    role: "user",
-    status: "pending",
-    avatar: null,
-    createdAt: "2024-05-20T00:00:00Z",
-    updatedAt: "2024-05-20T00:00:00Z",
-  },
-  {
-    id: "6",
-    name: "Charlie Davis",
-    email: "charlie@example.com",
-    role: "editor",
-    status: "active",
-    avatar: null,
-    createdAt: "2024-06-12T00:00:00Z",
-    updatedAt: "2024-06-12T00:00:00Z",
-  },
-  {
-    id: "7",
-    name: "Diana Evans",
-    email: "diana@example.com",
-    role: "user",
-    status: "active",
-    avatar: null,
-    createdAt: "2024-07-08T00:00:00Z",
-    updatedAt: "2024-07-08T00:00:00Z",
-  },
-  {
-    id: "8",
-    name: "Edward Foster",
-    email: "edward@example.com",
-    role: "user",
-    status: "inactive",
-    avatar: null,
-    createdAt: "2024-08-25T00:00:00Z",
-    updatedAt: "2024-08-25T00:00:00Z",
-  },
-];
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  GET /api/users                                                          */
+/* ────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Production proxy — returns paginated list of users.
+ *
+ * Features:
+ *  - Forwards the client's Bearer token to the upstream auth API
+ *  - Forwards all query parameters (page, per_page, search, role, status)
+ *  - Structured error responses
+ *  - Timeout handling
+ *  - Short cache to reduce repeated list calls during navigation
+ */
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") || "1");
-  const pageSize = parseInt(searchParams.get("pageSize") || "10");
-  const search = searchParams.get("search") || "";
-  const role = searchParams.get("role") || "";
-  const status = searchParams.get("status") || "";
+  const startTime = Date.now();
 
-  // Filter users
-  let filteredUsers = [...mockUsers];
+  // ── Auth check ───────────────────────────────────────────────────────
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
 
-  if (search) {
-    const searchLower = search.toLowerCase();
-    filteredUsers = filteredUsers.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower)
-    );
-  }
+  const authorization = getAuthorizationHeader(request)!;
 
-  if (role) {
-    filteredUsers = filteredUsers.filter((user) => user.role === role);
-  }
-
-  if (status) {
-    filteredUsers = filteredUsers.filter((user) => user.status === status);
-  }
-
-  // Pagination
-  const total = filteredUsers.length;
-  const totalPages = Math.ceil(total / pageSize);
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-  return NextResponse.json({
-    data: paginatedUsers,
-    meta: {
-      total,
-      page,
-      pageSize,
-      totalPages,
-    },
+  // ── Build upstream URL with forwarded query params ───────────────────
+  const targetUrl = new URL(`${AUTH_API_URL}/users`);
+  request.nextUrl.searchParams.forEach((value, key) => {
+    targetUrl.searchParams.set(key, value);
   });
+
+  console.log(`👥 Users Proxy → GET ${targetUrl}`);
+
+  // ── Forward to upstream ──────────────────────────────────────────────
+  try {
+    const response = await fetchWithTimeout(
+      targetUrl.toString(),
+      {
+        method: "GET",
+        headers: {
+          Authorization: authorization,
+          Accept: "application/json",
+        },
+      },
+      AUTH_TIMEOUT_MS,
+      request.signal,
+    );
+
+    const elapsed = Date.now() - startTime;
+    console.log(`👥 Users Proxy ← ${response.status} (${elapsed}ms)`);
+
+    // ── Success ──────────────────────────────────────────────────────
+    if (response.ok) {
+      const data = await response.text();
+
+      try {
+        JSON.parse(data);
+      } catch {
+        return errorResponse(
+          "UPSTREAM_ERROR",
+          "Authentication server returned invalid data.",
+          502,
+        );
+      }
+
+      return new Response(data, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          // Short private cache — avoid hammering /users on rapid navigation
+          "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+          "X-Response-Time": `${elapsed}ms`,
+        },
+      });
+    }
+
+    // ── Upstream error ───────────────────────────────────────────────
+    return await mapUpstreamError(
+      response,
+      "Failed to fetch users.",
+    );
+  } catch (error) {
+    const elapsed = Date.now() - startTime;
+    console.error(
+      `❌ Users Proxy error (${elapsed}ms):`,
+      error instanceof Error ? error.message : error,
+    );
+    return mapFetchError(error);
+  }
 }

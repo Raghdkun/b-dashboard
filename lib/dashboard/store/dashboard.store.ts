@@ -1,5 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 import { immer } from "zustand/middleware/immer";
 import type {
   DashboardLayout,
@@ -353,7 +360,9 @@ export const useDashboardStore = create<DashboardStore>()(
     })),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
       partialize: (state) => ({
         currentLayout: state.currentLayout,
         views: state.views,

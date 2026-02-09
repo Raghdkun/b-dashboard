@@ -11,6 +11,46 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
+/**
+ * Laravel pagination link structure
+ */
+export interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
+/**
+ * Laravel pagination metadata
+ */
+export interface LaravelPaginationMeta {
+  current_page: number;
+  first_page_url: string;
+  from: number | null;
+  last_page: number;
+  last_page_url: string;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
+/**
+ * Laravel paginated response structure
+ */
+export interface LaravelPaginatedResponse<T> {
+  success: boolean;
+  data: LaravelPaginationMeta & {
+    data: T[];
+  };
+}
+
+/**
+ * Simplified paginated response (for frontend use)
+ */
 export interface PaginatedResponse<T> {
   data: T[];
   meta: {

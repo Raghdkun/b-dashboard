@@ -10,12 +10,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export const axiosClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
-  // Send cookies with requests (for httpOnly cookie auth in production)
-  withCredentials: true,
+  // Don't send cookies - we use Bearer token auth
+  withCredentials: false,
 });
 
 // Request interceptor - attach token and CSRF
@@ -35,7 +36,7 @@ axiosClient.interceptors.request.use(
 
       // Get auth token from localStorage
       // NOTE: In production, prefer httpOnly cookies set by the server
-      const authStorage = localStorage.getItem("auth-storage");
+      const authStorage = localStorage.getItem("auth-token");
       if (authStorage) {
         try {
           const parsed = JSON.parse(authStorage);
@@ -68,7 +69,8 @@ axiosClient.interceptors.response.use(
 
       // Clear auth state and redirect
       if (typeof window !== "undefined") {
-        localStorage.removeItem("auth-storage");
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("auth-user");
         // Only redirect if not already on auth pages
         if (!window.location.pathname.includes("/auth")) {
           // Extract locale from current path or use default

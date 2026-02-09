@@ -5,19 +5,52 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuthStore } from "./auth.store";
 import type { LoginCredentials } from "@/types/auth.types";
 
+/**
+ * Main authentication hook with permission checking capabilities
+ * 
+ * Usage:
+ * ```tsx
+ * const { hasPermission, canAccess, isSuperAdmin } = useAuth();
+ * 
+ * if (hasPermission('manage users')) {
+ *   // Show user management UI
+ * }
+ * 
+ * if (canAccess(['manage roles'], ['admin'])) {
+ *   // Show admin features
+ * }
+ * ```
+ */
 export function useAuth() {
   const router = useRouter();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  
   const {
     user,
     token,
     isAuthenticated,
     isLoading,
     isInitialized,
+    permissions,
+    roles,
     login: storeLogin,
     logout: storeLogout,
     checkAuth,
+    // Permission methods
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
+    isSuperAdmin,
+    canAccess,
+    // Store methods
+    getUserStores,
+    hasStoreAccess,
+    getStorePermissions,
+    getStoreRoles,
   } = useAuthStore();
 
   const login = useCallback(
@@ -34,13 +67,80 @@ export function useAuth() {
   }, [storeLogout, router, locale]);
 
   return {
+    // User data
     user,
     token,
+    
+    // Status
     isAuthenticated,
     isLoading,
     isInitialized,
+    
+    // Derived data
+    permissions,
+    roles,
+    
+    // Actions
     login,
     logout,
     checkAuth,
+    
+    // Permission checks
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
+    isSuperAdmin,
+    canAccess,
+    
+    // Store access
+    getUserStores,
+    hasStoreAccess,
+    getStorePermissions,
+    getStoreRoles,
   };
+}
+
+/**
+ * Hook for checking specific permission in components
+ * 
+ * Usage:
+ * ```tsx
+ * const canManageUsers = usePermission('manage users');
+ * ```
+ */
+export function usePermission(permission: string): boolean {
+  const { hasPermission } = useAuthStore();
+  return hasPermission(permission);
+}
+
+/**
+ * Hook for checking specific role in components
+ * 
+ * Usage:
+ * ```tsx
+ * const isAdmin = useRole('admin');
+ * ```
+ */
+export function useRole(role: string): boolean {
+  const { hasRole } = useAuthStore();
+  return hasRole(role);
+}
+
+/**
+ * Hook for checking access with both permissions and roles
+ * 
+ * Usage:
+ * ```tsx
+ * const hasAccess = useCanAccess(['manage users'], ['admin']);
+ * ```
+ */
+export function useCanAccess(
+  requiredPermissions?: string[],
+  requiredRoles?: string[]
+): boolean {
+  const { canAccess } = useAuthStore();
+  return canAccess(requiredPermissions, requiredRoles);
 }

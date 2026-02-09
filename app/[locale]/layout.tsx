@@ -71,6 +71,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoSansArabic.variable} ${effectiveIsRtl ? "font-(family-name:--font-noto-arabic)" : ""} antialiased`}
+        suppressHydrationWarning
       >
         <FeatureProviders messages={messages} locale={locale}>
           {children}

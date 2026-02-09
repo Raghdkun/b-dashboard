@@ -2,19 +2,56 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter, useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { userService } from "@/lib/api/services/user.service";
 import type { User } from "@/types/user.types";
 
 export default function UsersPage() {
   const t = useTranslations("users");
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await userService.deleteUser(userToDelete.id);
+      setUserToDelete(null);
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const columns = [
     {
@@ -43,9 +80,19 @@ export default function UsersPage() {
       key: "role",
       header: t("columns.role"),
       cell: (user: User) => (
-        <Badge variant="outline" className="capitalize">
-          {user.role}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {user.roles && user.roles.length > 0 ? (
+            user.roles.map((role) => (
+              <Badge key={role.id} variant="outline" className="capitalize">
+                {role.name}
+              </Badge>
+            ))
+          ) : (
+            <Badge variant="secondary" className="capitalize">
+              No roles
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
@@ -74,6 +121,45 @@ export default function UsersPage() {
           {new Date(user.createdAt).toLocaleDateString()}
         </span>
       ),
+    },
+    {
+      key: "actions",
+      header: "",
+      cell: (user: User) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/${locale}/dashboard/users/${user.id}`)
+              }
+            >
+              <Eye className="me-2 h-4 w-4" />
+              {t("actions.view")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/${locale}/dashboard/users/${user.id}/edit`)
+              }
+            >
+              <Pencil className="me-2 h-4 w-4" />
+              {t("actions.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => setUserToDelete(user)}
+            >
+              <Trash2 className="me-2 h-4 w-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      className: "w-[50px]",
     },
   ];
 
@@ -110,7 +196,7 @@ export default function UsersPage() {
         title={t("title")}
         description={t("description")}
       >
-        <Button>
+        <Button onClick={() => router.push(`/${locale}/dashboard/users/create`)}>
           <Plus className="me-2 h-4 w-4" />
           {t("addUser")}
         </Button>
@@ -125,6 +211,27 @@ export default function UsersPage() {
         onSearchChange={handleSearchChange}
         emptyMessage={t("noUsers")}
       />
+
+      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{userToDelete?.name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

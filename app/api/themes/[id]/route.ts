@@ -1,71 +1,55 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { requireAuthorization, errorResponse } from "../../_lib/auth";
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  /api/themes/[id]  — Single theme CRUD                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Theme CRUD is not yet backed by an upstream API.
+ * These endpoints return 501 so consumers know the feature isn't available
+ * on the server yet and can gracefully fall back to local storage.
+ */
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/themes/[id] - Get a single theme
-export async function GET(request: Request, { params }: Params) {
+export async function GET(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
-  // TODO: Query database for theme by ID
-  // TODO: Check if user has access to this theme
-  
-  // Mock: theme not found
-  return NextResponse.json(
-    {
-      success: false,
-      error: `Theme with id "${id}" not found`,
-    },
-    { status: 404 }
+
+  return errorResponse(
+    "UPSTREAM_ERROR",
+    `Server-side theme storage is not yet available. Theme "${id}" is managed locally.`,
+    501,
   );
 }
 
-// PATCH /api/themes/[id] - Update a theme
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const updates = await request.json();
-    
-    // TODO: Validate updates with partial themeSchema
-    // TODO: Check if user owns this theme
-    // TODO: Update in database
-    
-    // Mock: theme not found
-    return NextResponse.json(
-      {
-        success: false,
-        error: `Theme with id "${id}" not found`,
-      },
-      { status: 404 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to update theme",
-      },
-      { status: 400 }
-    );
-  }
+
+  return errorResponse(
+    "UPSTREAM_ERROR",
+    `Server-side theme updates are not yet available. Theme "${id}" is managed locally.`,
+    501,
+  );
 }
 
-// DELETE /api/themes/[id] - Delete a theme
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
   const { id } = await params;
-  
-  // TODO: Check if user owns this theme
-  // TODO: Prevent deletion of built-in themes
-  // TODO: Delete from database
-  
-  // Mock: theme not found
-  return NextResponse.json(
-    {
-      success: false,
-      error: `Theme with id "${id}" not found`,
-    },
-    { status: 404 }
+
+  return errorResponse(
+    "UPSTREAM_ERROR",
+    `Server-side theme deletion is not yet available. Theme "${id}" is managed locally.`,
+    501,
   );
 }

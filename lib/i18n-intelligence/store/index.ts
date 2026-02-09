@@ -6,6 +6,13 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+
+/** SSR-safe no-op storage — avoids Node.js `--localstorage-file` warning */
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 import { immer } from "zustand/middleware/immer";
 import type {
   I18nIntelligenceStore,
@@ -642,7 +649,9 @@ export const useI18nIntelligenceStore = create<I18nIntelligenceStore>()(
     })),
     {
       name: "i18n-intelligence-storage",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined" ? localStorage : noopStorage
+      ),
       partialize: (state) => ({
         config: state.config,
         issues: state.issues,
