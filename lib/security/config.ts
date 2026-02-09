@@ -16,7 +16,7 @@ export const securityConfig: SecurityConfig = {
   allowedOrigins: [
     "http://localhost:3000",
     "https://localhost:3000",
-    "https://b-dashboard-pizza.vercel.app",
+    "https://b-dashboard-five.vercel.app/",
     process.env.NEXT_PUBLIC_APP_URL || "",
   ].filter(Boolean),
   maxRequestSize: 1024 * 1024, // 1MB
