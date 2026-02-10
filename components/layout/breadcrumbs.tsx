@@ -32,10 +32,27 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     // Skip locale segment in breadcrumbs
     if (i < startIndex) continue;
 
+    // Check if this is an ID segment for known detail routes
+    const isStoreId = i > 0 && segments[i - 1] === "stores" && segment !== "stores";
+    const isUserId =
+      i > 0 && segments[i - 1] === "users" && segment !== "users" && segment !== "create";
+    const isRoleId =
+      i > 0 && segments[i - 1] === "roles" && segment !== "roles" && segment !== "create";
+
+    const label = isStoreId
+      ? "Store Details"
+      : isUserId
+      ? "User Details"
+      : isRoleId
+      ? "Role Details"
+      : segment.charAt(0).toUpperCase() + segment.slice(1);
+
+    const key = isStoreId ? "store-details" : isUserId ? "user-details" : isRoleId ? "role-details" : segment;
+
     breadcrumbs.push({
-      label: segment.charAt(0).toUpperCase() + segment.slice(1),
+      label,
       href: currentPath,
-      key: segment,
+      key,
     });
   }
 
@@ -61,11 +78,6 @@ export function Breadcrumbs({ pathname, className }: BreadcrumbsProps) {
     // Get translated label for a breadcrumb key
 
   const getLabel = (key: string) => {
-    // Don't try to translate if it looks like an ID (contains hyphens, numbers, or uppercase)
-    if (/[A-Z0-9-]/.test(key)) {
-      return key;
-    }
-    
     try {
       const translated = t(key);
       // If the translation key doesn't exist, i18n returns the key itself

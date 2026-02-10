@@ -484,7 +484,7 @@ export function DsprDashboard() {
         <HnrCard hnr={day.hnr} />
         <PortalCard portal={day.portal} />
         <OnTimeCard portal={day.portal} />
-        <LaborGauge value={day.labor || 21} />
+        <LaborGauge value={day.labor} />
       </div>
 
       {/* ── Top items + ingredients ───────────────────────────────────── */}

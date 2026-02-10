@@ -147,6 +147,25 @@ export function useCreateAuthRule() {
 }
 
 /**
+ * Hook for updating an auth rule by ID (no auto-fetch, safe for forms)
+ */
+export function useUpdateAuthRule(ruleId: string | null) {
+  const { isUpdating, updateError, updateRule, clearErrors } =
+    useAuthRulesStore();
+
+  return {
+    isUpdating,
+    updateError,
+    updateRule: useCallback(
+      (data: Parameters<typeof updateRule>[1]) =>
+        ruleId ? updateRule(ruleId, data) : Promise.reject("No rule selected"),
+      [ruleId, updateRule]
+    ),
+    clearErrors,
+  };
+}
+
+/**
  * Hook for fetching auth rule details
  */
 export function useAuthRuleDetails(ruleId: string) {

@@ -52,6 +52,7 @@
     "hierarchy": "الهيكل",
     "serviceClients": "عملاء الخدمة",
     "userStoreAssignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
     "settings": "الإعدادات",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
@@ -76,6 +77,7 @@
     "by-user": "حسب المستخدم",
     "by-store": "حسب الفرع",
     "user-store-assignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
     "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
@@ -92,7 +94,9 @@
     "en": "الإنجليزية",
     "ar": "العربية",
     "create": "إنشاء",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "store-details": "تفاصيل الفرع",
+    "user-details": "تفاصيل المستخدم"
   },
   "employees": {
     "title": "الموظفون",
@@ -693,6 +697,10 @@
       "selectAll": "تحديد الكل",
       "deselectAll": "إلغاء تحديد الكل",
       "create": "إنشاء الدور"
+    },
+    "details": {
+      "title": "تفاصيل الدور",
+      "description": "عرض وإدارة التفاصيل لـ"
     }
   },
   "authRules": {
@@ -709,7 +717,8 @@
       "path": "المسار",
       "authorization": "التصريح",
       "priority": "الأولوية",
-      "status": "الحالة"
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
     },
     "status": {
       "active": "نشط",
@@ -727,6 +736,10 @@
     "create": {
       "title": "إنشاء قاعدة تصريح",
       "description": "إضافة قاعدة تصريح جديدة لنقطة API."
+    },
+    "edit": {
+      "title": "تعديل قاعدة التصريح",
+      "description": "تحديث قاعدة تصريح موجودة لنقطة API."
     },
     "form": {
       "routeInfo": "معلومات المسار",
@@ -923,6 +936,42 @@
         "roleRequired": "يرجى اختيار دور.",
         "storeRequired": "يرجى اختيار فرع واحد على الأقل."
       }
+    }
+  },
+  "maintenance": {
+    "title": "طلبات الصيانة",
+    "description": "عرض وتتبع طلبات الصيانة لفرعك.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "rows": "صفوف",
+    "storeNumber": "فرع #",
+    "showing": "عرض {count} طلب(ات)",
+    "columns": {
+      "id": "المعرف",
+      "entryNumber": "رقم الإدخال",
+      "brokenItem": "العنصر المكسور",
+      "status": "الحالة",
+      "submittedAt": "تاريخ التقديم"
+    },
+    "status": {
+      "done": "مكتمل",
+      "in_progress": "قيد التنفيذ",
+      "pending": "قيد الانتظار",
+      "cancelled": "ملغي"
+    },
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض طلبات الصيانة الخاصة به."
+    },
+    "noData": {
+      "title": "لا توجد طلبات صيانة",
+      "description": "لا توجد طلبات صيانة لهذا الفرع.",
+      "hint": "ستظهر طلبات الصيانة الجديدة هنا عند تقديمها."
+    },
+    "error": {
+      "title": "خطأ في تحميل طلبات الصيانة",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
     }
   }
 }

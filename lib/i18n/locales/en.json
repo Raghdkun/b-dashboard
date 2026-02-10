@@ -52,6 +52,7 @@
     "hierarchy": "Hierarchy",
     "serviceClients": "Service Clients",
     "userStoreAssignment": "User Store Assignment",
+    "maintenance": "Maintenance",
     "settings": "Settings",
     "collapse": "Collapse",
     "selectStore": "Select Store",
@@ -76,6 +77,7 @@
     "by-user": "By User",
     "by-store": "By Store",
     "user-store-assignment": "User Store Assignment",
+    "maintenance": "Maintenance",
     "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
@@ -92,7 +94,9 @@
     "en": "English",
     "ar": "Arabic",
     "create": "Create",
-    "edit": "Edit"
+    "edit": "Edit",
+    "store-details": "Store Details",
+    "user-details": "User Details"
   },
   "auth": {
     "login": {
@@ -694,6 +698,10 @@
       "selectAll": "Select All",
       "deselectAll": "Deselect All",
       "create": "Create Role"
+    },
+    "details": {
+      "title": "Role Details",
+      "description": "View and manage details for"
     }
   },
   "authRules": {
@@ -710,7 +718,8 @@
       "path": "Path",
       "authorization": "Authorization",
       "priority": "Priority",
-      "status": "Status"
+      "status": "Status",
+      "createdAt": "Created At"
     },
     "status": {
       "active": "Active",
@@ -728,6 +737,10 @@
     "create": {
       "title": "Create Authorization Rule",
       "description": "Add a new API endpoint authorization rule."
+    },
+    "edit": {
+      "title": "Edit Authorization Rule",
+      "description": "Update an existing API endpoint authorization rule."
     },
     "form": {
       "routeInfo": "Route Information",
@@ -924,6 +937,42 @@
         "roleRequired": "Please select a role.",
         "storeRequired": "Please select at least one store."
       }
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance Requests",
+    "description": "View and track maintenance requests for your store.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "rows": "rows",
+    "storeNumber": "Store #",
+    "showing": "Showing {count} request(s)",
+    "columns": {
+      "id": "ID",
+      "entryNumber": "Entry #",
+      "brokenItem": "Broken Item",
+      "status": "Status",
+      "submittedAt": "Submitted At"
+    },
+    "status": {
+      "done": "Done",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
+    "noStore": {
+      "title": "No Store Selected",
+      "description": "Please select a store from the sidebar to view its maintenance requests."
+    },
+    "noData": {
+      "title": "No Maintenance Requests",
+      "description": "There are no maintenance requests for this store.",
+      "hint": "New maintenance requests will appear here when submitted."
+    },
+    "error": {
+      "title": "Error Loading Maintenance Requests",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
     }
   }
 }

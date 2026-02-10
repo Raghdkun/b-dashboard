@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Briefcase,
   ClipboardList,
+  HardHat,
 } from "lucide-react";
 import {
   Dialog,
@@ -90,11 +91,11 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       href: `/${locale}/dashboard/auth-rules`,
       icon: Lock,
     },
-    {
-      title: t("assignments"),
-      href: `/${locale}/dashboard/assignments`,
-      icon: UserPlus,
-    },
+    // {
+    //   title: t("assignments"),
+    //   href: `/${locale}/dashboard/assignments`,
+    //   icon: UserPlus,
+    // },
     {
       title: t("hierarchy"),
       href: `/${locale}/dashboard/hierarchy`,
@@ -109,6 +110,11 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       title: t("userStoreAssignment"),
       href: `/${locale}/dashboard/user-store-assignment`,
       icon: ClipboardList,
+    },
+    {
+      title: t("maintenance"),
+      href: `/${locale}/dashboard/maintenance`,
+      icon: HardHat,
     },
     {
       title: t("settings"),

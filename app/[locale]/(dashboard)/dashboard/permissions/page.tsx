@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MoreHorizontal, Trash2, Edit, Search } from "lucide-react";
+import { Plus, MoreHorizontal, Trash2, Edit, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export default function PermissionsPage() {
   const [permissionToDelete, setPermissionToDelete] = useState<Permission | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { permissions, isLoading, error, search } = usePermissions();
+  const { permissions, isLoading, error, search, pagination, goToPage } = usePermissions();
   const { isCreating, error: createError, createPermission } = useCreatePermission();
   const { isDeleting, deletePermission } = useDeletePermission();
 
@@ -173,25 +173,23 @@ export default function PermissionsPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Guard</TableHead>
-                  <TableHead>Description</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {permissions.map((permission) => (
-                  <TableRow key={permission.id}>
+                {permissions.map((permission, index) => (
+                  <TableRow key={permission.id || `permission-${index}`}>
                     <TableCell className="font-medium">
                       {permission.name}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{permission.guardName}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground max-w-[300px] truncate">
-                      {permission.description || "-"}
-                    </TableCell>
                     <TableCell>
-                      {format(new Date(permission.createdAt), "MMM d, yyyy")}
+                      {permission.createdAt && !isNaN(new Date(permission.createdAt).getTime())
+                        ? format(new Date(permission.createdAt), "MMM d, yyyy")
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -223,6 +221,50 @@ export default function PermissionsPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {/* Pagination Controls */}
+          {permissions.length > 0 && pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-6 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {(pagination.page - 1) * pagination.pageSize + 1} to{" "}
+                {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{" "}
+                {pagination.total} permissions
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => goToPage(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
+                    (pageNum) => (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === pagination.page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className="min-w-[40px]"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => goToPage(pagination.page + 1)}
+                  disabled={pagination.page === pagination.totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

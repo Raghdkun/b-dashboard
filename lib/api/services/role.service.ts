@@ -152,7 +152,7 @@ export const roleService = {
     roleId: string
   ): Promise<ApiResponse<Permission[]>> => {
     const { data } = await axiosClient.get<ApiResponse<Permission[]>>(
-      `/roles/${roleId}/permissions`
+      `/roles/${roleId}`
     );
     return data;
   },
@@ -164,8 +164,8 @@ export const roleService = {
     roleId: string,
     permissions: string[]
   ): Promise<ApiResponse<Role>> => {
-    const { data } = await axiosClient.post<ApiResponse<Role>>(
-      `/roles/${roleId}/permissions`,
+    const { data } = await axiosClient.put<ApiResponse<Role>>(
+      `/roles/${roleId}`,
       { permissions }
     );
     return data;
@@ -205,10 +205,13 @@ export const permissionService = {
    * Get a single permission by ID
    */
   getPermission: async (id: string): Promise<ApiResponse<Permission>> => {
-    const { data } = await axiosClient.get<ApiResponse<Permission>>(
+    const { data } = await axiosClient.get<ApiResponse<ApiPermission>>(
       `/permissions/${id}`
     );
-    return data;
+    return {
+      ...data,
+      data: transformPermission(data.data),
+    };
   },
 
   /**
@@ -217,7 +220,7 @@ export const permissionService = {
   createPermission: async (
     payload: CreatePermissionPayload
   ): Promise<ApiResponse<Permission>> => {
-    const { data } = await axiosClient.post<ApiResponse<Permission>>(
+    const { data } = await axiosClient.post<ApiResponse<ApiPermission>>(
       "/permissions",
       {
         name: payload.name,
@@ -225,7 +228,10 @@ export const permissionService = {
         description: payload.description,
       }
     );
-    return data;
+    return {
+      ...data,
+      data: transformPermission(data.data),
+    };
   },
 
   /**
@@ -235,14 +241,17 @@ export const permissionService = {
     id: string,
     payload: UpdatePermissionPayload
   ): Promise<ApiResponse<Permission>> => {
-    const { data } = await axiosClient.put<ApiResponse<Permission>>(
+    const { data } = await axiosClient.put<ApiResponse<ApiPermission>>(
       `/permissions/${id}`,
       {
         name: payload.name,
         description: payload.description,
       }
     );
-    return data;
+    return {
+      ...data,
+      data: transformPermission(data.data),
+    };
   },
 
   /**

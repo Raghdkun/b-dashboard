@@ -42,6 +42,12 @@ import {
   useToggleServiceClientStatus,
 } from "@/lib/hooks/use-service-clients";
 
+function safeFormat(dateStr: string | null | undefined, fmt: string, fallback = "-"): string {
+  if (!dateStr) return fallback;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? fallback : format(d, fmt);
+}
+
 interface ServiceClientsTableProps {
   clients: ServiceClient[];
   isLoading?: boolean;
@@ -129,17 +135,17 @@ export function ServiceClientsTable({
                 </TableCell>
                 <TableCell>
                   {client.expiresAt
-                    ? format(new Date(client.expiresAt), "MMM d, yyyy")
+                    ? safeFormat(client.expiresAt, "MMM d, yyyy", "Never")
                     : "Never"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {client.lastUsedAt
-                    ? format(new Date(client.lastUsedAt), "MMM d, yyyy HH:mm")
+                    ? safeFormat(client.lastUsedAt, "MMM d, yyyy HH:mm", "Never")
                     : "Never"}
                 </TableCell>
-                <TableCell className="hidden lg:table-cell">{client.useCount}</TableCell>
+                <TableCell className="hidden lg:table-cell">{client.useCount ?? 0}</TableCell>
                 <TableCell className="hidden xl:table-cell">
-                  {format(new Date(client.createdAt), "MMM d, yyyy")}
+                  {safeFormat(client.createdAt, "MMM d, yyyy")}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -207,7 +213,7 @@ export function ServiceClientsTable({
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                Expires: {client.expiresAt ? format(new Date(client.expiresAt), "MMM d, yyyy") : "Never"}
+                Expires: {client.expiresAt ? safeFormat(client.expiresAt, "MMM d, yyyy", "Never") : "Never"}
               </p>
               {client.notes && (
                 <p className="text-xs text-muted-foreground truncate">

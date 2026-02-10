@@ -71,7 +71,7 @@ export function StoreForm({ storeId, onSuccess }: StoreFormProps) {
       }));
 
       setFormData({
-        id: existingStore.id,
+        id: existingStore.storeId,
         name: existingStore.name,
         isActive: existingStore.isActive,
         metadata: existingMetadata,
