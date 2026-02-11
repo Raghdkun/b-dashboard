@@ -52,6 +52,8 @@
     "hierarchy": "الهيكل",
     "serviceClients": "عملاء الخدمة",
     "userStoreAssignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "qualityAssurance": "ضمان الجودة",
     "settings": "الإعدادات",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
@@ -76,6 +78,8 @@
     "by-user": "حسب المستخدم",
     "by-store": "حسب الفرع",
     "user-store-assignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "quality-assurance": "ضمان الجودة",
     "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
@@ -92,7 +96,9 @@
     "en": "الإنجليزية",
     "ar": "العربية",
     "create": "إنشاء",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "store-details": "تفاصيل الفرع",
+    "user-details": "تفاصيل المستخدم"
   },
   "employees": {
     "title": "الموظفون",
@@ -693,6 +699,10 @@
       "selectAll": "تحديد الكل",
       "deselectAll": "إلغاء تحديد الكل",
       "create": "إنشاء الدور"
+    },
+    "details": {
+      "title": "تفاصيل الدور",
+      "description": "عرض وإدارة التفاصيل لـ"
     }
   },
   "authRules": {
@@ -709,7 +719,8 @@
       "path": "المسار",
       "authorization": "التصريح",
       "priority": "الأولوية",
-      "status": "الحالة"
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
     },
     "status": {
       "active": "نشط",
@@ -727,6 +738,10 @@
     "create": {
       "title": "إنشاء قاعدة تصريح",
       "description": "إضافة قاعدة تصريح جديدة لنقطة API."
+    },
+    "edit": {
+      "title": "تعديل قاعدة التصريح",
+      "description": "تحديث قاعدة تصريح موجودة لنقطة API."
     },
     "form": {
       "routeInfo": "معلومات المسار",
@@ -894,6 +909,7 @@
     "title": "تعيين الفروع للمستخدمين",
     "description": "عرض وإدارة تعيينات الفروع للمستخدمين.",
     "assignStore": "تعيين فرع",
+    "removeUser": "إزالة مستخدم",
     "searchPlaceholder": "بحث عن المستخدمين...",
     "noUsers": "لا يوجد مستخدمون.",
     "columns": {
@@ -913,6 +929,10 @@
       "noUsersFound": "لا يوجد مستخدمون.",
       "noRolesFound": "لا توجد أدوار.",
       "noStoresFound": "لا توجد فروع.",
+      "currentAssignments": "التعيينات الحالية",
+      "noCurrentAssignments": "لا توجد تعيينات فروع حالية لهذا المستخدم.",
+      "storeName": "اسم الفرع",
+      "assignedRoles": "الأدوار المعينة",
       "selectedStores": "الفروع المختارة",
       "submit": "تعيين الفرع",
       "submitting": "جارٍ التعيين...",
@@ -923,6 +943,106 @@
         "roleRequired": "يرجى اختيار دور.",
         "storeRequired": "يرجى اختيار فرع واحد على الأقل."
       }
+    },
+    "remove": {
+      "title": "إزالة تعيين المستخدم",
+      "description": "اختر المستخدم والدور والفرع لإزالة التعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStore": "اختر فرعاً",
+      "selectStorePlaceholder": "ابحث واختر فرعاً...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "submit": "إزالة التعيين",
+      "submitting": "جارٍ الإزالة...",
+      "success": "تم إزالة تعيين المستخدم بنجاح.",
+      "error": "فشل في إزالة تعيين المستخدم.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع."
+      }
+    }
+  },
+  "maintenance": {
+    "title": "طلبات الصيانة",
+    "description": "عرض وتتبع طلبات الصيانة لفرعك.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "rows": "صفوف",
+    "storeNumber": "فرع #",
+    "showing": "عرض {from}-{to} من {total} طلب(ات)",
+    "columns": {
+      "id": "المعرف",
+      "entryNumber": "رقم الإدخال",
+      "brokenItem": "العنصر المكسور",
+      "status": "الحالة",
+      "submittedAt": "تاريخ التقديم"
+    },
+    "status": {
+      "done": "مكتمل",
+      "in_progress": "قيد التنفيذ",
+      "pending": "قيد الانتظار",
+      "cancelled": "ملغي",
+      "canceled": "ملغي"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض طلبات الصيانة الخاصة به."
+    },
+    "noData": {
+      "title": "لا توجد طلبات صيانة",
+      "description": "لا توجد طلبات صيانة لهذا الفرع.",
+      "hint": "ستظهر طلبات الصيانة الجديدة هنا عند تقديمها."
+    },
+    "error": {
+      "title": "خطأ في تحميل طلبات الصيانة",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "qa": {
+    "title": "ضمان الجودة",
+    "description": "عرض وإدارة عمليات التدقيق عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tableTitle": "عمليات تدقيق الجودة",
+    "showing": "عرض {from}-{to} من {total} عملية تدقيق",
+    "totalAudits": "{total} عملية تدقيق إجمالية",
+    "columns": {
+      "id": "المعرف",
+      "store": "الفرع",
+      "auditor": "المدقق",
+      "email": "البريد الإلكتروني",
+      "date": "تاريخ التدقيق",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noData": {
+      "title": "لا توجد عمليات تدقيق",
+      "description": "لا توجد عمليات تدقيق للجودة مسجلة بعد.",
+      "hint": "ستظهر عمليات التدقيق الجديدة هنا عند إنشائها."
+    },
+    "error": {
+      "title": "خطأ في تحميل عمليات التدقيق",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
     }
   }
 }

@@ -13,6 +13,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   ArrowLeft,
   ArrowRight,
   Search,
@@ -29,7 +37,7 @@ import { storeService } from "@/lib/api/services/store.service";
 import { roleService } from "@/lib/api/services/role.service";
 import { assignmentService } from "@/lib/api/services/assignment.service";
 import { toast } from "sonner";
-import type { User } from "@/types/user.types";
+import type { User, UserStore } from "@/types/user.types";
 import type { Store } from "@/types/store.types";
 import type { RoleWithStats } from "@/types/role.types";
 
@@ -44,9 +52,11 @@ export default function AssignStorePage() {
   const [users, setUsers] = useState<User[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [roles, setRoles] = useState<RoleWithStats[]>([]);
+  const [userDetails, setUserDetails] = useState<User | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isLoadingStores, setIsLoadingStores] = useState(true);
   const [isLoadingRoles, setIsLoadingRoles] = useState(true);
+  const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
 
   // Selection state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -113,6 +123,29 @@ export default function AssignStorePage() {
     fetchStores();
     fetchRoles();
   }, [fetchUsers, fetchStores, fetchRoles]);
+
+  // Fetch user details when a user is selected
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!selectedUser) {
+        setUserDetails(null);
+        return;
+      }
+
+      setIsLoadingUserDetails(true);
+      try {
+        const response = await userService.getUser(selectedUser.id);
+        setUserDetails(response.data);
+      } catch (error) {
+        console.error("Failed to fetch user details:", error);
+        toast.error("Failed to load user assignments");
+      } finally {
+        setIsLoadingUserDetails(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [selectedUser]);
 
   // Filtered lists
   const filteredUsers = useMemo(() => {
@@ -463,6 +496,59 @@ export default function AssignStorePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Current User Assignments */}
+      {selectedUser && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">
+              {t("currentAssignments")} - {selectedUser.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingUserDetails ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : !userDetails?.stores || userDetails.stores.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t("noCurrentAssignments")}
+              </p>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("storeName")}</TableHead>
+                      <TableHead>{t("assignedRoles")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userDetails.stores.map((userStore: UserStore, index: number) => (
+                      <TableRow key={`${userStore.store.id}-${index}`}>
+                        <TableCell className="font-medium">
+                          {userStore.store.name}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {userStore.roles.map((role) => (
+                              <Badge key={role.id} variant="outline" className="capitalize">
+                                {role.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Selected Stores Summary */}
       {selectedStoreObjects.length > 0 && (

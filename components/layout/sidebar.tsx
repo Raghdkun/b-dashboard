@@ -25,6 +25,8 @@ import {
   ChevronDown,
   Briefcase,
   ClipboardList,
+  HardHat,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -90,11 +92,11 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       href: `/${locale}/dashboard/auth-rules`,
       icon: Lock,
     },
-    {
-      title: t("assignments"),
-      href: `/${locale}/dashboard/assignments`,
-      icon: UserPlus,
-    },
+    // {
+    //   title: t("assignments"),
+    //   href: `/${locale}/dashboard/assignments`,
+    //   icon: UserPlus,
+    // },
     {
       title: t("hierarchy"),
       href: `/${locale}/dashboard/hierarchy`,
@@ -109,6 +111,16 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       title: t("userStoreAssignment"),
       href: `/${locale}/dashboard/user-store-assignment`,
       icon: ClipboardList,
+    },
+    {
+      title: t("maintenance"),
+      href: `/${locale}/dashboard/maintenance`,
+      icon: HardHat,
+    },
+    {
+      title: t("qualityAssurance"),
+      href: `/${locale}/dashboard/quality-assurance`,
+      icon: ClipboardCheck,
     },
     {
       title: t("settings"),
@@ -200,10 +212,18 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })) || [];
+        // // Deduplicate by id to avoid React key warnings ---
+        // const seen = new Set<string>();
+        // const stores = allStores.filter((s) => {
+        //   if (seen.has(s.id)) return false;
+        //   seen.add(s.id);
+        //   return true;
+        // });
+        setUserStores(stores);
 
         // console.log("[Sidebar] Loaded stores from /auth/me:", stores.map(s => ({ id: s.id, name: s.name })));
         // console.log("[Sidebar] Raw auth stores:", response.data.stores?.map(s => ({ id: s.store.id, name: s.store.name })));
-        setUserStores(stores);
+     
       } catch {
         if (isActive) {
           setUserStores([]);

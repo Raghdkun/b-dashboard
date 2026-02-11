@@ -40,7 +40,7 @@ interface PermissionsState {
   selectedPermissionId: string | null;
 
   // Actions
-  fetchPermissions: (page?: number) => Promise<void>;
+  fetchPermissions: (page?: number, perPage?: number) => Promise<void>;
   fetchPermission: (id: string) => Promise<Permission | null>;
   createPermission: (data: CreatePermissionPayload) => Promise<Permission>;
   updatePermission: (id: string, data: UpdatePermissionPayload) => Promise<Permission>;
@@ -77,13 +77,13 @@ const initialState = {
 export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   ...initialState,
 
-  fetchPermissions: async (page = 1) => {
+  fetchPermissions: async (page = 1, perPage = 50) => {
     set({ isLoading: true, error: null });
     try {
       const { filters } = get();
       const response = await permissionService.getPermissions({
         page,
-        perPage: 10,
+        perPage,
         search: filters.search || undefined,
         guardName: filters.guardName,
       });

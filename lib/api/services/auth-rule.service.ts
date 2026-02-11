@@ -22,6 +22,37 @@ function transformPaginatedResponse<T>(response: LaravelPaginatedResponse<T>): P
   };
 }
 
+/**
+ * Normalize a snake_case auth rule from the API into our camelCase AuthRule type.
+ */
+function normalizeAuthRule(raw: Record<string, unknown>): AuthRule {
+  return {
+    id: String(raw.id ?? ""),
+    service: (raw.service as string) ?? "",
+    method: (raw.method as AuthRule["method"]) ?? "GET",
+    pathDsl: (raw.path_dsl as string | null) ?? null,
+    pathRegex: (raw.path_regex as string | null) ?? null,
+    routeName: (raw.route_name as string | null) ?? null,
+    rolesAny: (raw.roles_any as string[] | null) ?? null,
+    permissionsAny: (raw.permissions_any as string[] | null) ?? null,
+    permissionsAll: (raw.permissions_all as string[] | null) ?? null,
+    isActive: (raw.is_active as boolean) ?? true,
+    priority: (raw.priority as number) ?? 1,
+    createdAt: (raw.created_at as string) ?? "",
+    updatedAt: (raw.updated_at as string) ?? "",
+    // Keep snake_case aliases for backward compat
+    path_dsl: (raw.path_dsl as string | null) ?? null,
+    path_regex: (raw.path_regex as string | null) ?? null,
+    route_name: (raw.route_name as string | null) ?? null,
+    roles_any: (raw.roles_any as string[] | null) ?? null,
+    permissions_any: (raw.permissions_any as string[] | null) ?? null,
+    permissions_all: (raw.permissions_all as string[] | null) ?? null,
+    is_active: (raw.is_active as boolean) ?? true,
+    created_at: (raw.created_at as string) ?? "",
+    updated_at: (raw.updated_at as string) ?? "",
+  };
+}
+
 export const authRuleService = {
   /**
    * Get paginated list of auth rules
@@ -40,17 +71,25 @@ export const authRuleService = {
         },
       }
     );
-    return transformPaginatedResponse(data);
+    const transformed = transformPaginatedResponse(data);
+    return {
+      ...transformed,
+      data: transformed.data.map((item) => normalizeAuthRule(item as unknown as Record<string, unknown>)),
+    };
   },
 
   /**
    * Get a single auth rule by ID
    */
   getAuthRule: async (id: string): Promise<ApiResponse<AuthRule>> => {
-    const { data } = await axiosClient.get<ApiResponse<AuthRule>>(
+    const { data } = await axiosClient.get<{ success: boolean; message?: string; data: { rule: Record<string, unknown> } }>(
       `/auth-rules/${id}`
     );
-    return data;
+    return {
+      success: data.success,
+      message: data.message,
+      data: normalizeAuthRule(data.data.rule),
+    };
   },
 
   /**
@@ -62,26 +101,24 @@ export const authRuleService = {
     const requestBody: Record<string, unknown> = {
       service: payload.service,
       method: payload.method,
-      priority: payload.priority,
-      is_active: payload.isActive,
-      roles_any: payload.rolesAny,
-      permissions_any: payload.permissionsAny,
-      permissions_all: payload.permissionsAll,
+      path_dsl: ("pathDsl" in payload && payload.pathDsl) ? payload.pathDsl : null,
+      route_name: ("routeName" in payload && payload.routeName) ? payload.routeName : null,
+      roles_any: payload.rolesAny || [],
+      permissions_any: payload.permissionsAny || [],
+      permissions_all: payload.permissionsAll || [],
+      priority: payload.priority ?? 1,
+      is_active: payload.isActive ?? true,
     };
 
-    // Add path configuration based on type
-    if ("pathDsl" in payload && payload.pathDsl) {
-      requestBody.path_dsl = payload.pathDsl;
-    }
-    if ("routeName" in payload && payload.routeName) {
-      requestBody.route_name = payload.routeName;
-    }
-
-    const { data } = await axiosClient.post<ApiResponse<AuthRule>>(
+    const { data } = await axiosClient.post<{ success: boolean; message?: string; data: { rule: Record<string, unknown> } }>(
       "/auth-rules",
       requestBody
     );
-    return data;
+    return {
+      success: data.success,
+      message: data.message,
+      data: normalizeAuthRule(data.data.rule ?? data.data as unknown as Record<string, unknown>),
+    };
   },
 
   /**
@@ -91,21 +128,26 @@ export const authRuleService = {
     id: string,
     payload: UpdateAuthRulePayload
   ): Promise<ApiResponse<AuthRule>> => {
-    const { data } = await axiosClient.put<ApiResponse<AuthRule>>(
+    const requestBody: Record<string, unknown> = {
+      service: payload.service,
+      method: payload.method,
+      path_dsl: payload.pathDsl ?? null,
+      route_name: payload.routeName ?? null,
+      priority: payload.priority ?? 1,
+      is_active: payload.isActive ?? true,
+      roles_any: payload.rolesAny || [],
+      permissions_any: payload.permissionsAny || [],
+      permissions_all: payload.permissionsAll || [],
+    };
+    const { data } = await axiosClient.put<{ success: boolean; message?: string; data: { rule: Record<string, unknown> } }>(
       `/auth-rules/${id}`,
-      {
-        service: payload.service,
-        method: payload.method,
-        path_dsl: payload.pathDsl,
-        route_name: payload.routeName,
-        priority: payload.priority,
-        is_active: payload.isActive,
-        roles_any: payload.rolesAny,
-        permissions_any: payload.permissionsAny,
-        permissions_all: payload.permissionsAll,
-      }
+      requestBody
     );
-    return data;
+    return {
+      success: data.success,
+      message: data.message,
+      data: normalizeAuthRule(data.data.rule ?? data.data as unknown as Record<string, unknown>),
+    };
   },
 
   /**

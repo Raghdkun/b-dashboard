@@ -20,8 +20,12 @@ export default function ServiceClientsPage() {
   const [selectedClient, setSelectedClient] = useState<ServiceClient | null>(null);
 
   const { clients, isLoading, error } = useServiceClients();
-  const { token: createdToken, isTokenDialogOpen: showCreatedToken, closeTokenDialog: closeCreatedTokenDialog } = useCreateServiceClient();
-  const { token: rotatedToken, isTokenDialogOpen: showRotatedToken, closeTokenDialog: closeRotatedTokenDialog } = useRotateToken();
+  const { token: createdToken, isTokenDialogOpen: storeTokenDialogOpen, closeTokenDialog } = useCreateServiceClient();
+  const { token: rotatedToken } = useRotateToken();
+
+  // Determine which token dialog to show based on which token exists
+  const showCreatedToken = storeTokenDialogOpen && !!createdToken;
+  const showRotatedToken = storeTokenDialogOpen && !createdToken && !!rotatedToken;
 
   const handleRotateToken = (client: ServiceClient) => {
     setSelectedClient(client);
@@ -79,7 +83,7 @@ export default function ServiceClientsPage() {
 
       <TokenDisplayDialog
         open={showCreatedToken}
-        onOpenChange={closeCreatedTokenDialog}
+        onOpenChange={closeTokenDialog}
         token={createdToken}
         title="Service Client Created"
         description="Your new service client has been created. Copy the token below - it won't be shown again."
@@ -87,7 +91,7 @@ export default function ServiceClientsPage() {
 
       <TokenDisplayDialog
         open={showRotatedToken}
-        onOpenChange={closeRotatedTokenDialog}
+        onOpenChange={closeTokenDialog}
         token={rotatedToken}
         title="Token Rotated"
         description="The token has been rotated. Copy the new token below - it won't be shown again."
