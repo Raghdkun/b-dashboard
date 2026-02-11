@@ -6,26 +6,14 @@ import { useRouter, useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   ArrowLeft,
   ArrowRight,
   Search,
   Check,
-  X,
   Loader2,
   Store as StoreIcon,
   User as UserIcon,
@@ -37,12 +25,12 @@ import { storeService } from "@/lib/api/services/store.service";
 import { roleService } from "@/lib/api/services/role.service";
 import { assignmentService } from "@/lib/api/services/assignment.service";
 import { toast } from "sonner";
-import type { User, UserStore } from "@/types/user.types";
+import type { User } from "@/types/user.types";
 import type { Store } from "@/types/store.types";
 import type { RoleWithStats } from "@/types/role.types";
 
-export default function AssignStorePage() {
-  const t = useTranslations("userStoreAssignment.assign");
+export default function RemoveAssignmentPage() {
+  const t = useTranslations("userStoreAssignment.remove");
   const router = useRouter();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
@@ -52,18 +40,14 @@ export default function AssignStorePage() {
   const [users, setUsers] = useState<User[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [roles, setRoles] = useState<RoleWithStats[]>([]);
-  const [userDetails, setUserDetails] = useState<User | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isLoadingStores, setIsLoadingStores] = useState(true);
   const [isLoadingRoles, setIsLoadingRoles] = useState(true);
-  const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
 
   // Selection state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleWithStats | null>(null);
-  const [selectedStoreIds, setSelectedStoreIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
   // Search state
   const [userSearch, setUserSearch] = useState("");
@@ -124,29 +108,6 @@ export default function AssignStorePage() {
     fetchRoles();
   }, [fetchUsers, fetchStores, fetchRoles]);
 
-  // Fetch user details when a user is selected
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (!selectedUser) {
-        setUserDetails(null);
-        return;
-      }
-
-      setIsLoadingUserDetails(true);
-      try {
-        const response = await userService.getUser(selectedUser.id);
-        setUserDetails(response.data);
-      } catch (error) {
-        console.error("Failed to fetch user details:", error);
-        toast.error("Failed to load user assignments");
-      } finally {
-        setIsLoadingUserDetails(false);
-      }
-    };
-
-    fetchUserDetails();
-  }, [selectedUser]);
-
   // Filtered lists
   const filteredUsers = useMemo(() => {
     if (!userSearch) return users;
@@ -169,28 +130,6 @@ export default function AssignStorePage() {
     return stores.filter((s) => s.name.toLowerCase().includes(q));
   }, [stores, storeSearch]);
 
-  // Store toggle
-  const toggleStore = (storeId: string) => {
-    setSelectedStoreIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(storeId)) {
-        next.delete(storeId);
-      } else {
-        next.add(storeId);
-      }
-      return next;
-    });
-    setErrors((prev) => ({ ...prev, stores: "" }));
-  };
-
-  const removeStore = (storeId: string) => {
-    setSelectedStoreIds((prev) => {
-      const next = new Set(prev);
-      next.delete(storeId);
-      return next;
-    });
-  };
-
   // Validate form
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -200,45 +139,34 @@ export default function AssignStorePage() {
     if (!selectedRole) {
       newErrors.role = t("validation.roleRequired");
     }
-    if (selectedStoreIds.size === 0) {
-      newErrors.stores = t("validation.storeRequired");
+    if (!selectedStore) {
+      newErrors.store = t("validation.storeRequired");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Submit assignment
+  // Submit removal
   const handleSubmit = async () => {
     if (!validate()) return;
 
     setIsSubmitting(true);
     try {
-      const storeIds = Array.from(selectedStoreIds);
-
-      // Assign each store one by one using the endpoint
-      for (const storeId of storeIds) {
-        await assignmentService.createAssignment({
-          userId: selectedUser!.id,
-          roleId: selectedRole!.id,
-          storeId: storeId,
-          metadata: {},
-          isActive: true,
-        });
-      }
+      await assignmentService.deleteAssignment(
+        selectedUser!.id,
+        selectedRole!.id,
+        selectedStore!.id
+      );
 
       toast.success(t("success"));
       router.push(`/${locale}/dashboard/user-store-assignment`);
     } catch (error) {
-      console.error("Failed to assign store:", error);
+      console.error("Failed to remove assignment:", error);
       toast.error(t("error"));
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const selectedStoreObjects = stores.filter((s) =>
-    selectedStoreIds.has(s.id)
-  );
 
   return (
     <div className="space-y-6">
@@ -428,17 +356,17 @@ export default function AssignStorePage() {
           </CardContent>
         </Card>
 
-        {/* Step 3: Select Stores */}
+        {/* Step 3: Select Store */}
         <Card
           className={cn(
             "transition-all",
-            selectedStoreIds.size > 0 && "border-primary/50"
+            selectedStore && "border-destructive/50"
           )}
         >
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <StoreIcon className="h-4 w-4" />
-              {t("selectStores")}
+              {t("selectStore")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -446,15 +374,15 @@ export default function AssignStorePage() {
               <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder={t("selectStoresPlaceholder")}
+                placeholder={t("selectStorePlaceholder")}
                 value={storeSearch}
                 onChange={(e) => setStoreSearch(e.target.value)}
                 className="ps-8"
               />
             </div>
 
-            {errors.stores && (
-              <p className="text-sm text-destructive">{errors.stores}</p>
+            {errors.store && (
+              <p className="text-sm text-destructive">{errors.store}</p>
             )}
 
             <div className="max-h-[300px] space-y-1 overflow-y-auto">
@@ -471,25 +399,37 @@ export default function AssignStorePage() {
                 </p>
               ) : (
                 filteredStores.map((store) => (
-                  <Label
+                  <button
                     key={store.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedStore(store);
+                      setErrors((prev) => ({ ...prev, store: "" }));
+                    }}
                     className={cn(
-                      "flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors",
-                      selectedStoreIds.has(store.id)
-                        ? "bg-primary/10 ring-1 ring-primary/30"
+                      "flex w-full items-center gap-3 rounded-md p-2 text-start transition-colors",
+                      selectedStore?.id === store.id
+                        ? "bg-destructive/10 ring-1 ring-destructive/30"
                         : "hover:bg-muted"
                     )}
                   >
-                    <Checkbox
-                      checked={selectedStoreIds.has(store.id)}
-                      onCheckedChange={() => toggleStore(store.id)}
+                    <StoreIcon
+                      className={cn(
+                        "h-4 w-4 shrink-0",
+                        selectedStore?.id === store.id
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                      )}
                     />
                     <div className="flex-1 overflow-hidden">
                       <div className="truncate text-sm font-medium">
                         {store.name}
                       </div>
                     </div>
-                  </Label>
+                    {selectedStore?.id === store.id && (
+                      <Check className="h-4 w-4 shrink-0 text-destructive" />
+                    )}
+                  </button>
                 ))
               )}
             </div>
@@ -497,94 +437,11 @@ export default function AssignStorePage() {
         </Card>
       </div>
 
-      {/* Current User Assignments */}
-      {selectedUser && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              {t("currentAssignments")} - {selectedUser.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingUserDetails ? (
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : !userDetails?.stores || userDetails.stores.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t("noCurrentAssignments")}
-              </p>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("storeName")}</TableHead>
-                      <TableHead>{t("assignedRoles")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {userDetails.stores.map((userStore: UserStore, index: number) => (
-                      <TableRow key={`${userStore.store.id}-${index}`}>
-                        <TableCell className="font-medium">
-                          {userStore.store.name}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {userStore.roles.map((role) => (
-                              <Badge key={role.id} variant="outline" className="capitalize">
-                                {role.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Selected Stores Summary */}
-      {selectedStoreObjects.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              {t("selectedStores")} ({selectedStoreObjects.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {selectedStoreObjects.map((store) => (
-                <Badge
-                  key={store.id}
-                  variant="secondary"
-                  className="flex items-center gap-1 pe-1"
-                >
-                  {store.name}
-                  <button
-                    type="button"
-                    onClick={() => removeStore(store.id)}
-                    className="ms-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Submit */}
       <div className="flex justify-end">
         <Button
           size="lg"
+          variant="destructive"
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="min-w-[160px]"

@@ -53,6 +53,7 @@
     "serviceClients": "عملاء الخدمة",
     "userStoreAssignment": "تعيين الفروع للمستخدمين",
     "maintenance": "الصيانة",
+    "qualityAssurance": "ضمان الجودة",
     "settings": "الإعدادات",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
@@ -78,6 +79,7 @@
     "by-store": "حسب الفرع",
     "user-store-assignment": "تعيين الفروع للمستخدمين",
     "maintenance": "الصيانة",
+    "quality-assurance": "ضمان الجودة",
     "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
@@ -907,6 +909,7 @@
     "title": "تعيين الفروع للمستخدمين",
     "description": "عرض وإدارة تعيينات الفروع للمستخدمين.",
     "assignStore": "تعيين فرع",
+    "removeUser": "إزالة مستخدم",
     "searchPlaceholder": "بحث عن المستخدمين...",
     "noUsers": "لا يوجد مستخدمون.",
     "columns": {
@@ -926,6 +929,10 @@
       "noUsersFound": "لا يوجد مستخدمون.",
       "noRolesFound": "لا توجد أدوار.",
       "noStoresFound": "لا توجد فروع.",
+      "currentAssignments": "التعيينات الحالية",
+      "noCurrentAssignments": "لا توجد تعيينات فروع حالية لهذا المستخدم.",
+      "storeName": "اسم الفرع",
+      "assignedRoles": "الأدوار المعينة",
       "selectedStores": "الفروع المختارة",
       "submit": "تعيين الفرع",
       "submitting": "جارٍ التعيين...",
@@ -936,6 +943,28 @@
         "roleRequired": "يرجى اختيار دور.",
         "storeRequired": "يرجى اختيار فرع واحد على الأقل."
       }
+    },
+    "remove": {
+      "title": "إزالة تعيين المستخدم",
+      "description": "اختر المستخدم والدور والفرع لإزالة التعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStore": "اختر فرعاً",
+      "selectStorePlaceholder": "ابحث واختر فرعاً...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "submit": "إزالة التعيين",
+      "submitting": "جارٍ الإزالة...",
+      "success": "تم إزالة تعيين المستخدم بنجاح.",
+      "error": "فشل في إزالة تعيين المستخدم.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع."
+      }
     }
   },
   "maintenance": {
@@ -945,7 +974,7 @@
     "refreshing": "جارٍ التحديث...",
     "rows": "صفوف",
     "storeNumber": "فرع #",
-    "showing": "عرض {count} طلب(ات)",
+    "showing": "عرض {from}-{to} من {total} طلب(ات)",
     "columns": {
       "id": "المعرف",
       "entryNumber": "رقم الإدخال",
@@ -957,7 +986,15 @@
       "done": "مكتمل",
       "in_progress": "قيد التنفيذ",
       "pending": "قيد الانتظار",
-      "cancelled": "ملغي"
+      "cancelled": "ملغي",
+      "canceled": "ملغي"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
     },
     "noStore": {
       "title": "لم يتم اختيار فرع",
@@ -970,6 +1007,40 @@
     },
     "error": {
       "title": "خطأ في تحميل طلبات الصيانة",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "qa": {
+    "title": "ضمان الجودة",
+    "description": "عرض وإدارة عمليات التدقيق عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tableTitle": "عمليات تدقيق الجودة",
+    "showing": "عرض {from}-{to} من {total} عملية تدقيق",
+    "totalAudits": "{total} عملية تدقيق إجمالية",
+    "columns": {
+      "id": "المعرف",
+      "store": "الفرع",
+      "auditor": "المدقق",
+      "email": "البريد الإلكتروني",
+      "date": "تاريخ التدقيق",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noData": {
+      "title": "لا توجد عمليات تدقيق",
+      "description": "لا توجد عمليات تدقيق للجودة مسجلة بعد.",
+      "hint": "ستظهر عمليات التدقيق الجديدة هنا عند إنشائها."
+    },
+    "error": {
+      "title": "خطأ في تحميل عمليات التدقيق",
       "retry": "إعادة المحاولة",
       "dismiss": "تجاهل"
     }

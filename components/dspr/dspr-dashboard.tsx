@@ -15,6 +15,7 @@ import {
   OnTimeCard,
   LaborGauge,
   DsprDashboardSkeleton,
+  RecentMaintenanceTable,
 } from "@/components/dspr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -492,6 +493,9 @@ export function DsprDashboard() {
         <TopItemsList items={top.top_5_items_sales_for_day} />
         <TopIngredientsList ingredients={top.top_3_ingredients_used} />
       </div>
+
+      {/* ── Recent Maintenance Requests ──────────────────────────────── */}
+      <RecentMaintenanceTable />
     </div>
   );
 }

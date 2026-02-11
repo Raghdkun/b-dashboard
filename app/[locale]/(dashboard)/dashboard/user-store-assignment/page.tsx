@@ -8,7 +8,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus } from "lucide-react";
+import { Plus, UserMinus } from "lucide-react";
 import { userService } from "@/lib/api/services/user.service";
 import type { User } from "@/types/user.types";
 
@@ -108,16 +108,30 @@ export default function UserStoreAssignmentPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} description={t("description")}>
-        <Button
-          onClick={() =>
-            router.push(
-              `/${locale}/dashboard/user-store-assignment/assign`
-            )
-          }
-        >
-          <Plus className="me-2 h-4 w-4" />
-          {t("assignStore")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="destructive"
+            onClick={() =>
+              router.push(
+                `/${locale}/dashboard/user-store-assignment/remove`
+              )
+            }
+          >
+            <UserMinus className="me-2 h-4 w-4" />
+            {t("removeUser")}
+          </Button>
+
+          <Button
+            onClick={() =>
+              router.push(
+                `/${locale}/dashboard/user-store-assignment/assign`
+              )
+            }
+          >
+            <Plus className="me-2 h-4 w-4" />
+            {t("assignStore")}
+          </Button>
+        </div>
       </PageHeader>
 
       <DataTable

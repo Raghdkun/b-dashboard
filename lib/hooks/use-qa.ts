@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
-import { useMaintenanceStore } from "@/lib/store/maintenance.store";
-import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
+import { useEffect, useCallback } from "react";
+import { useQAStore } from "@/lib/store/qa.store";
 
 /**
- * Hook that exposes Maintenance store state with smart refresh capabilities:
+ * Hook that exposes QA store state with smart refresh capabilities:
  *  - Auto-refresh on visibility change (when tab comes back into focus)
  *  - Starts/stops periodic auto-refresh when component mounts/unmounts
  *  - Exposes refetch, isRefreshing, structured error, and stale indicator
  */
-export function useMaintenance() {
-  const { selectedStore } = useSelectedStoreStore();
+export function useQA() {
   const {
     data,
     isLoading,
@@ -20,36 +18,24 @@ export function useMaintenance() {
     currentPage,
     lastFetchedAt,
     fetchCount,
-    fetchRequests,
-    refreshRequests,
+    fetchAudits,
+    refreshAudits,
     goToPage,
     clearError,
     isStale,
     startAutoRefresh,
     stopAutoRefresh,
-  } = useMaintenanceStore();
+  } = useQAStore();
 
-  const storeIdRef = useRef(selectedStore?.storeId);
-  storeIdRef.current = selectedStore?.storeId;
-
-  /** Fetch maintenance requests (or re-fetch current) */
+  /** Fetch QA audits (or re-fetch current page) */
   const refetch = useCallback(() => {
-    if (storeIdRef.current) {
-      fetchRequests(storeIdRef.current);
-    }
-  }, [fetchRequests]);
+    fetchAudits(currentPage);
+  }, [fetchAudits, currentPage]);
 
-  /** Refresh the last fetched data (same store + limit) */
-  const refresh = useCallback(() => {
-    refreshRequests();
-  }, [refreshRequests]);
-
-  // ── Auto-fetch when store changes ─────────────────────────────────
+  // ── Auto-fetch on mount ───────────────────────────────────────────
   useEffect(() => {
-    if (selectedStore?.storeId) {
-      fetchRequests(selectedStore.storeId);
-    }
-  }, [selectedStore?.storeId, fetchRequests]);
+    fetchAudits(1);
+  }, [fetchAudits]);
 
   // ── Auto-refresh lifecycle ───────────────────────────────────────────
   useEffect(() => {
@@ -61,14 +47,14 @@ export function useMaintenance() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && isStale()) {
-        refreshRequests();
+        refreshAudits();
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [isStale, refreshRequests]);
+  }, [isStale, refreshAudits]);
 
   return {
     data,
@@ -79,10 +65,8 @@ export function useMaintenance() {
     lastFetchedAt,
     fetchCount,
     refetch,
-    refresh,
     goToPage,
     clearError,
     isStale: isStale(),
-    selectedStore,
   };
 }

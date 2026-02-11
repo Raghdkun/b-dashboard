@@ -1,22 +1,20 @@
 import axios from "axios";
 import type {
-  ApiMaintenanceResponse,
-  MaintenanceResponse,
-  MaintenanceRequest,
-  ApiMaintenanceRequest,
-  MaintenanceStatus,
-  PaginationInfo,
-  PaginationLinks,
-  ApiPaginationInfo,
-  ApiPaginationLinks,
-} from "@/types/maintenance.types";
+  ApiQAAuditsResponse,
+  QAAuditsResponse,
+  QAAudit,
+  ApiQAAudit,
+  QAStore,
+  ApiQAStore,
+  QAUser,
+  ApiQAUser,
+} from "@/types/qa.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Error Handling                                                          */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export type MaintenanceErrorCode =
-  | "NO_STORE"
+export type QAErrorCode =
   | "NOT_AUTHENTICATED"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
@@ -27,18 +25,14 @@ export type MaintenanceErrorCode =
   | "SERVER_ERROR"
   | "UNKNOWN";
 
-export class MaintenanceError extends Error {
-  readonly code: MaintenanceErrorCode;
+export class QAError extends Error {
+  readonly code: QAErrorCode;
   readonly retryable: boolean;
   readonly retryAfter?: number;
 
-  constructor(
-    message: string,
-    code: MaintenanceErrorCode,
-    retryAfter?: number
-  ) {
+  constructor(message: string, code: QAErrorCode, retryAfter?: number) {
     super(message);
-    this.name = "MaintenanceError";
+    this.name = "QAError";
     this.code = code;
     this.retryAfter = retryAfter;
     this.retryable = ["TIMEOUT", "NETWORK_ERROR", "SERVER_ERROR"].includes(
@@ -51,45 +45,52 @@ export class MaintenanceError extends Error {
 /*  Transform helpers                                                       */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-function transformRequest(raw: ApiMaintenanceRequest): MaintenanceRequest {
+function transformStore(raw: ApiQAStore): QAStore {
   return {
     id: raw.id,
-    entryNumber: raw.entry_number,
-    status: raw.status as MaintenanceStatus,
-    brokenItem: raw.broken_item,
-    submittedAt: raw.submitted_at,
+    store: raw.store,
+    group: raw.group,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
   };
 }
 
-function transformPagination(raw: ApiPaginationInfo): PaginationInfo {
+function transformUser(raw: ApiQAUser): QAUser {
   return {
-    currentPage: raw.current_page,
-    perPage: raw.per_page,
-    total: raw.total,
-    lastPage: raw.last_page,
-    from: raw.from,
-    to: raw.to,
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
   };
 }
 
-function transformLinks(raw: ApiPaginationLinks): PaginationLinks {
+function transformAudit(raw: ApiQAAudit): QAAudit {
   return {
-    first: raw.first,
-    last: raw.last,
-    prev: raw.prev,
-    next: raw.next,
+    id: raw.id,
+    storeId: raw.store_id,
+    userId: raw.user_id,
+    date: raw.date,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    store: transformStore(raw.store),
+    user: transformUser(raw.user),
   };
 }
 
-function transformResponse(raw: ApiMaintenanceResponse): MaintenanceResponse {
+function transformResponse(raw: ApiQAAuditsResponse): QAAuditsResponse {
   return {
-    storeNumber: raw.store_number,
-    storeName: raw.store_name,
-    ...(raw.pagination && { pagination: transformPagination(raw.pagination) }),
-    ...(raw.links && { links: transformLinks(raw.links) }),
-    ...(raw.limit != null && { limit: raw.limit }),
-    ...(raw.count != null && { count: raw.count }),
-    data: raw.data.map(transformRequest),
+    audits: raw.data.data.map(transformAudit),
+    pagination: {
+      currentPage: raw.data.current_page,
+      perPage: raw.data.per_page,
+      total: raw.data.total,
+      lastPage: raw.data.last_page,
+      from: raw.data.from,
+      to: raw.data.to,
+    },
+    hasNextPage: raw.data.next_page_url !== null,
+    hasPrevPage: raw.data.prev_page_url !== null,
   };
 }
 
@@ -109,60 +110,34 @@ function getToken(): string | null {
   }
 }
 
-function getSelectedStoreId(): string | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem("selected-store-storage");
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed?.state?.selectedStore?.storeId ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Service                                                                 */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export const maintenanceService = {
+export const qaService = {
   /**
-   * Fetch maintenance requests for a given store through the local API proxy.
+   * Fetch QA audits through the local API proxy.
    *
-   * @param storeId - Store ID (e.g., "03795-00001"). If omitted, uses selected store.
-   * @param page    - Page number for pagination (default 1).
-   * @param signal  - Optional AbortSignal for cancellation.
-   * @param limit   - Optional limit for the number of results per page.
+   * @param page   - Page number for pagination (default 1).
+   * @param signal - Optional AbortSignal for cancellation.
    */
-  async getRequests(
-    storeId?: string,
+  async getAudits(
     page: number = 1,
-    signal?: AbortSignal,
-    limit?: number
-  ): Promise<MaintenanceResponse> {
-    // Resolve store ID
-    const resolvedStoreId = storeId || getSelectedStoreId();
-    if (!resolvedStoreId) {
-      throw new MaintenanceError(
-        "No store selected. Please select a store first.",
-        "NO_STORE"
-      );
-    }
-
-    // Resolve token
+    signal?: AbortSignal
+  ): Promise<QAAuditsResponse> {
     const token = getToken();
     if (!token) {
-      throw new MaintenanceError(
-        "You must be logged in to view maintenance requests.",
+      throw new QAError(
+        "You must be logged in to view QA audits.",
         "NOT_AUTHENTICATED"
       );
     }
 
-    const url = `/api/maintenance/${encodeURIComponent(resolvedStoreId)}`;
+    const url = `/api/qa/audits`;
 
     try {
-      const response = await axios.get<ApiMaintenanceResponse>(url, {
-        params: { page, ...(limit && { limit }) },
+      const response = await axios.get<ApiQAAuditsResponse>(url, {
+        params: { page },
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -184,59 +159,58 @@ export const maintenanceService = {
         const serverMessage = errorData?.error?.message;
 
         if (status === 401 || serverCode === "UNAUTHORIZED") {
-          throw new MaintenanceError(
+          throw new QAError(
             serverMessage || "Authentication failed.",
             "UNAUTHORIZED"
           );
         }
         if (status === 403 || serverCode === "FORBIDDEN") {
-          throw new MaintenanceError(
+          throw new QAError(
             serverMessage ||
-              "You do not have permission to view maintenance requests for this store.",
+              "You do not have permission to view QA audits.",
             "FORBIDDEN"
           );
         }
         if (status === 404 || serverCode === "NOT_FOUND") {
-          throw new MaintenanceError(
-            serverMessage ||
-              "No maintenance data found for this store.",
+          throw new QAError(
+            serverMessage || "No QA audits found.",
             "NOT_FOUND"
           );
         }
         if (status === 429 || serverCode === "RATE_LIMITED") {
           const retryAfter = err.response?.headers?.["retry-after"];
-          throw new MaintenanceError(
+          throw new QAError(
             serverMessage || "Too many requests. Please wait and try again.",
             "RATE_LIMITED",
             retryAfter ? Number(retryAfter) : undefined
           );
         }
         if (serverCode === "TIMEOUT") {
-          throw new MaintenanceError(
+          throw new QAError(
             serverMessage || "Request timed out. Please try again.",
             "TIMEOUT"
           );
         }
         if (!err.response || err.code === "ERR_NETWORK") {
-          throw new MaintenanceError(
+          throw new QAError(
             "Unable to connect. Please check your internet connection.",
             "NETWORK_ERROR"
           );
         }
         if (err.code === "ECONNABORTED") {
-          throw new MaintenanceError(
+          throw new QAError(
             "Request timed out. Please try again.",
             "TIMEOUT"
           );
         }
 
-        throw new MaintenanceError(
+        throw new QAError(
           serverMessage || `Server error (${status}).`,
           "SERVER_ERROR"
         );
       }
 
-      throw new MaintenanceError(
+      throw new QAError(
         err instanceof Error ? err.message : "An unexpected error occurred.",
         "UNKNOWN"
       );

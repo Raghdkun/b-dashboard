@@ -29,11 +29,7 @@ const MAX_RETRIES = 2;
 /** Base delay between retries (exponential back-off) */
 const RETRY_BASE_MS = 500;
 
-/** Default limit for maintenance requests */
-const DEFAULT_LIMIT = 10;
 
-/** Max allowed limit */
-const MAX_LIMIT = 100;
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Validation helpers                                                      */
@@ -46,9 +42,7 @@ function isValidStoreId(id: string): boolean {
   return STORE_ID_RE.test(id);
 }
 
-function isValidLimit(limit: number): boolean {
-  return Number.isInteger(limit) && limit >= 1 && limit <= MAX_LIMIT;
-}
+
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Structured error response                                               */
@@ -156,7 +150,7 @@ async function fetchWithRetry(
 /* ────────────────────────────────────────────────────────────────────────── */
 
 /**
- * GET /api/maintenance/{storeId}?limit=N
+ * GET /api/maintenance/{storeId}?page=N
  *
  * Proxy to the upstream Maintenance API at attend.pnepizza.com.
  * Features:
@@ -180,8 +174,10 @@ export async function GET(
   // ── Extract & validate params ────────────────────────────────────────
   const { storeId } = await params;
   const { searchParams } = new URL(request.url);
+  const pageParam = searchParams.get("page");
+  const page = pageParam ? Number(pageParam) : 1;
   const limitParam = searchParams.get("limit");
-  const limit = limitParam ? Number(limitParam) : DEFAULT_LIMIT;
+  const limit = limitParam ? Number(limitParam) : undefined;
 
   if (!storeId) {
     return errorResponse("MISSING_PARAM", "Store ID is required", 400);
@@ -197,16 +193,25 @@ export async function GET(
       }
     );
   }
-  if (limitParam !== null && (!Number.isFinite(limit) || !isValidLimit(limit))) {
+  if (pageParam !== null && (!Number.isFinite(page) || page < 1)) {
     return errorResponse(
       "INVALID_PARAM",
-      `Limit must be an integer between 1 and ${MAX_LIMIT}`,
+      "Page must be a positive integer",
+      400,
+      {
+        param: "page",
+        ...(process.env.NODE_ENV === "development" && { received: pageParam }),
+      }
+    );
+  }
+  if (limitParam !== null && (!Number.isFinite(limit!) || limit! < 1 || limit! > 100)) {
+    return errorResponse(
+      "INVALID_PARAM",
+      "Limit must be a positive integer between 1 and 100",
       400,
       {
         param: "limit",
-        ...(process.env.NODE_ENV === "development" && {
-          received: limitParam,
-        }),
+        ...(process.env.NODE_ENV === "development" && { received: limitParam }),
       }
     );
   }
@@ -217,7 +222,7 @@ export async function GET(
     ? `Bearer ${MAINTENANCE_API_TOKEN}`
     : authorization ?? "";
 
-  const targetUrl = `${MAINTENANCE_BASE_URL}/stores/${encodeURIComponent(storeId)}/maintenance-requests?limit=${limit}`;
+  const targetUrl = `${MAINTENANCE_BASE_URL}/stores/${encodeURIComponent(storeId)}/maintenance-requests?page=${page}${limit ? `&limit=${limit}` : ''}`;
 
   console.log(
     `🔧 Maintenance Proxy → ${targetUrl}`,

@@ -6,3 +6,4 @@ export { HnrCard, PortalCard, OnTimeCard } from "./hnr-portal-cards";
 export { LaborGauge } from "./labor-gauge";
 export { DsprDashboardSkeleton } from "./dspr-skeleton";
 export { DsprDashboard } from "./dspr-dashboard";
+export { RecentMaintenanceTable } from "./recent-maintenance-table";

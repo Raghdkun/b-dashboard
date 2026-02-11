@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import {
-  maintenanceService,
-  MaintenanceError,
-  type MaintenanceErrorCode,
-} from "@/lib/api/services/maintenance.service";
-import type { MaintenanceResponse } from "@/types/maintenance.types";
+  qaService,
+  QAError,
+  type QAErrorCode,
+} from "@/lib/api/services/qa.service";
+import type { QAAuditsResponse } from "@/types/qa.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Constants                                                               */
@@ -26,31 +26,30 @@ const RETRY_DELAY_MS = 3_000;
 /*  Types                                                                   */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-interface MaintenanceErrorState {
+interface QAErrorState {
   message: string;
-  code: MaintenanceErrorCode;
+  code: QAErrorCode;
   retryable: boolean;
   retryAfter?: number;
 }
 
-interface MaintenanceState {
+interface QAState {
   // Data
-  data: MaintenanceResponse | null;
+  data: QAAuditsResponse | null;
   isLoading: boolean;
   isRefreshing: boolean;
-  error: MaintenanceErrorState | null;
+  error: QAErrorState | null;
 
   // Pagination
   currentPage: number;
 
   // Metadata
   lastFetchedAt: number | null;
-  lastStoreId: string | null;
   fetchCount: number;
 
   // Actions
-  fetchRequests: (storeId?: string, page?: number) => Promise<void>;
-  refreshRequests: () => Promise<void>;
+  fetchAudits: (page?: number) => Promise<void>;
+  refreshAudits: () => Promise<void>;
   goToPage: (page: number) => void;
   clearError: () => void;
   reset: () => void;
@@ -74,17 +73,16 @@ let _retryCount = 0;
 /*  Store                                                                   */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
+export const useQAStore = create<QAState>()((set, get) => ({
   data: null,
   isLoading: false,
   isRefreshing: false,
   error: null,
   currentPage: 1,
   lastFetchedAt: null,
-  lastStoreId: null,
   fetchCount: 0,
 
-  fetchRequests: async (storeId?: string, page: number = 1) => {
+  fetchAudits: async (page: number = 1) => {
     const state = get();
 
     // Cancel any in-flight request
@@ -105,8 +103,7 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
 
     const performFetch = async (): Promise<void> => {
       try {
-        const data = await maintenanceService.getRequests(
-          storeId,
+        const data = await qaService.getAudits(
           page,
           _abortController?.signal
         );
@@ -118,7 +115,6 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
           error: null,
           currentPage: page,
           lastFetchedAt: Date.now(),
-          lastStoreId: storeId ?? data.storeNumber ?? null,
           fetchCount: get().fetchCount + 1,
         });
       } catch (err: unknown) {
@@ -130,23 +126,23 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
           return;
         }
 
-        const maintenanceErr =
-          err instanceof MaintenanceError
+        const qaErr =
+          err instanceof QAError
             ? err
-            : new MaintenanceError(
+            : new QAError(
                 err instanceof Error
                   ? err.message
-                  : "Failed to load maintenance requests.",
+                  : "Failed to load QA audits.",
                 "UNKNOWN"
               );
 
         // Auto-retry for retryable errors (exclude auth errors)
         const isAuthError =
-          maintenanceErr.code === "UNAUTHORIZED" ||
-          maintenanceErr.code === "NOT_AUTHENTICATED" ||
-          maintenanceErr.code === "FORBIDDEN";
+          qaErr.code === "UNAUTHORIZED" ||
+          qaErr.code === "NOT_AUTHENTICATED" ||
+          qaErr.code === "FORBIDDEN";
         if (
-          maintenanceErr.retryable &&
+          qaErr.retryable &&
           !isAuthError &&
           _retryCount < MAX_AUTO_RETRIES
         ) {
@@ -174,10 +170,10 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
           isLoading: false,
           isRefreshing: false,
           error: {
-            message: maintenanceErr.message,
-            code: maintenanceErr.code,
-            retryable: maintenanceErr.retryable,
-            retryAfter: maintenanceErr.retryAfter,
+            message: qaErr.message,
+            code: qaErr.code,
+            retryable: qaErr.retryable,
+            retryAfter: qaErr.retryAfter,
           },
           // Keep stale data on refresh failures
           ...(hasExistingData ? {} : { data: null }),
@@ -188,18 +184,14 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
     await performFetch();
   },
 
-  refreshRequests: async () => {
-    const { lastStoreId, currentPage, fetchRequests } = get();
-    if (lastStoreId) {
-      await fetchRequests(lastStoreId, currentPage);
-    }
+  refreshAudits: async () => {
+    const { currentPage, fetchAudits } = get();
+    await fetchAudits(currentPage);
   },
 
   goToPage: (page: number) => {
-    const { lastStoreId, fetchRequests } = get();
-    if (lastStoreId) {
-      fetchRequests(lastStoreId, page);
-    }
+    const { fetchAudits } = get();
+    fetchAudits(page);
   },
 
   clearError: () => set({ error: null }),
@@ -219,7 +211,6 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
       error: null,
       currentPage: 1,
       lastFetchedAt: null,
-      lastStoreId: null,
       fetchCount: 0,
     });
   },
@@ -234,9 +225,9 @@ export const useMaintenanceStore = create<MaintenanceState>()((set, get) => ({
     if (_autoRefreshTimer) return;
 
     _autoRefreshTimer = setInterval(() => {
-      const { isLoading, isRefreshing, refreshRequests } = get();
+      const { isLoading, isRefreshing, refreshAudits } = get();
       if (!isLoading && !isRefreshing) {
-        refreshRequests();
+        refreshAudits();
       }
     }, AUTO_REFRESH_MS);
   },

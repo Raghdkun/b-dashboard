@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -26,11 +27,17 @@ import {
   AlertCircle,
   XCircle,
   Wrench,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 
 interface MaintenanceRequestsTableProps {
   data: MaintenanceResponse;
   isRefreshing: boolean;
+  currentPage: number;
+  onPageChange: (page: number) => void;
 }
 
 const statusConfig: Record<
@@ -65,6 +72,12 @@ const statusConfig: Record<
     className:
       "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30",
   },
+  canceled: {
+    variant: "destructive",
+    icon: XCircle,
+    className:
+      "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30",
+  },
 };
 
 function getStatusConfig(status: string) {
@@ -86,8 +99,13 @@ function formatStatusLabel(status: string): string {
 export function MaintenanceRequestsTable({
   data,
   isRefreshing,
+  currentPage,
+  onPageChange,
 }: MaintenanceRequestsTableProps) {
   const t = useTranslations("maintenance");
+  const { pagination } = data;
+  const hasNextPage = !!data.links.next;
+  const hasPrevPage = !!data.links.prev;
 
   return (
     <Card>
@@ -100,7 +118,7 @@ export function MaintenanceRequestsTable({
             </CardTitle>
             <CardDescription>
               {t("storeNumber")}: {data.storeNumber} &middot;{" "}
-              {t("showing", { count: data.count })}
+              {t("showing", { from: pagination.from, to: pagination.to, total: pagination.total })}
             </CardDescription>
           </div>
           {isRefreshing && (
@@ -216,6 +234,57 @@ export function MaintenanceRequestsTable({
           })}
         </div>
       </CardContent>
+
+      {/* Pagination controls */}
+      {pagination.lastPage > 1 && (
+        <div className="flex items-center justify-between border-t px-6 py-4">
+          <p className="text-sm text-muted-foreground">
+            {t("pagination.page", { current: currentPage, total: pagination.lastPage })}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onPageChange(1)}
+              disabled={!hasPrevPage || isRefreshing}
+              aria-label={t("pagination.first")}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={!hasPrevPage || isRefreshing}
+              aria-label={t("pagination.previous")}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={!hasNextPage || isRefreshing}
+              aria-label={t("pagination.next")}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onPageChange(pagination.lastPage)}
+              disabled={!hasNextPage || isRefreshing}
+              aria-label={t("pagination.last")}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

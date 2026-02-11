@@ -10,29 +10,20 @@ import { MaintenanceSkeleton } from "@/components/maintenance/maintenance-skelet
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const LIMIT_OPTIONS = [5, 10, 25, 50];
 
 export default function MaintenancePage() {
   const t = useTranslations("maintenance");
-  const [limit, setLimit] = useState(10);
   const {
     data,
     isLoading,
     isRefreshing,
     error,
+    currentPage,
     refetch,
     clearError,
+    goToPage,
     selectedStore,
-  } = useMaintenance(limit);
+  } = useMaintenance();
 
   return (
     <div className="space-y-6">
@@ -41,22 +32,6 @@ export default function MaintenancePage() {
         description={t("description")}
       >
         <div className="flex items-center gap-2">
-          <Select
-            value={String(limit)}
-            onValueChange={(v) => setLimit(Number(v))}
-          >
-            <SelectTrigger className="w-25">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {LIMIT_OPTIONS.map((opt) => (
-                <SelectItem key={opt} value={String(opt)}>
-                  {opt} {t("rows")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
           <Button
             variant="outline"
             size="sm"
@@ -101,6 +76,8 @@ export default function MaintenancePage() {
         <MaintenanceRequestsTable
           data={data}
           isRefreshing={isRefreshing}
+          currentPage={currentPage}
+          onPageChange={goToPage}
         />
       )}
     </div>

@@ -53,6 +53,7 @@
     "serviceClients": "Service Clients",
     "userStoreAssignment": "User Store Assignment",
     "maintenance": "Maintenance",
+    "qualityAssurance": "Quality Assurance",
     "settings": "Settings",
     "collapse": "Collapse",
     "selectStore": "Select Store",
@@ -78,6 +79,7 @@
     "by-store": "By Store",
     "user-store-assignment": "User Store Assignment",
     "maintenance": "Maintenance",
+    "quality-assurance": "Quality Assurance",
     "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
@@ -908,6 +910,7 @@
     "title": "User Store Assignment",
     "description": "View and manage store assignments for users.",
     "assignStore": "Assign Store",
+    "removeUser": "Remove User",
     "searchPlaceholder": "Search users...",
     "noUsers": "No users found.",
     "columns": {
@@ -927,6 +930,10 @@
       "noUsersFound": "No users found.",
       "noRolesFound": "No roles found.",
       "noStoresFound": "No stores found.",
+      "currentAssignments": "Current Assignments",
+      "noCurrentAssignments": "No current store assignments for this user.",
+      "storeName": "Store Name",
+      "assignedRoles": "Assigned Roles",
       "selectedStores": "Selected Stores",
       "submit": "Assign Store",
       "submitting": "Assigning...",
@@ -937,6 +944,28 @@
         "roleRequired": "Please select a role.",
         "storeRequired": "Please select at least one store."
       }
+    },
+    "remove": {
+      "title": "Remove User Assignment",
+      "description": "Select the user, role, and store to remove the assignment.",
+      "selectUser": "Select User",
+      "selectUserPlaceholder": "Search and select a user...",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Search and select a role...",
+      "selectStore": "Select Store",
+      "selectStorePlaceholder": "Search and select a store...",
+      "noUsersFound": "No users found.",
+      "noRolesFound": "No roles found.",
+      "noStoresFound": "No stores found.",
+      "submit": "Remove Assignment",
+      "submitting": "Removing...",
+      "success": "User assignment removed successfully.",
+      "error": "Failed to remove user assignment.",
+      "validation": {
+        "userRequired": "Please select a user.",
+        "roleRequired": "Please select a role.",
+        "storeRequired": "Please select a store."
+      }
     }
   },
   "maintenance": {
@@ -946,7 +975,7 @@
     "refreshing": "Refreshing...",
     "rows": "rows",
     "storeNumber": "Store #",
-    "showing": "Showing {count} request(s)",
+    "showing": "Showing {from}-{to} of {total} request(s)",
     "columns": {
       "id": "ID",
       "entryNumber": "Entry #",
@@ -958,7 +987,15 @@
       "done": "Done",
       "in_progress": "In Progress",
       "pending": "Pending",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "canceled": "Canceled"
+    },
+    "pagination": {
+      "page": "Page {current} of {total}",
+      "first": "First page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "last": "Last page"
     },
     "noStore": {
       "title": "No Store Selected",
@@ -971,6 +1008,40 @@
     },
     "error": {
       "title": "Error Loading Maintenance Requests",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    }
+  },
+  "qa": {
+    "title": "Quality Assurance",
+    "description": "View and manage QA audits across all stores.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tableTitle": "QA Audits",
+    "showing": "Showing {from}-{to} of {total} audit(s)",
+    "totalAudits": "{total} audit(s) total",
+    "columns": {
+      "id": "ID",
+      "store": "Store",
+      "auditor": "Auditor",
+      "email": "Email",
+      "date": "Audit Date",
+      "createdAt": "Created At"
+    },
+    "pagination": {
+      "page": "Page {current} of {total}",
+      "first": "First page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "last": "Last page"
+    },
+    "noData": {
+      "title": "No QA Audits",
+      "description": "There are no QA audits recorded yet.",
+      "hint": "New audits will appear here once they are created."
+    },
+    "error": {
+      "title": "Error Loading QA Audits",
       "retry": "Try Again",
       "dismiss": "Dismiss"
     }

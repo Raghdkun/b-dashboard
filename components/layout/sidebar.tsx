@@ -26,6 +26,7 @@ import {
   Briefcase,
   ClipboardList,
   HardHat,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -117,6 +118,11 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       icon: HardHat,
     },
     {
+      title: t("qualityAssurance"),
+      href: `/${locale}/dashboard/quality-assurance`,
+      icon: ClipboardCheck,
+    },
+    {
       title: t("settings"),
       href: `/${locale}/dashboard/settings`,
       icon: Settings,
@@ -206,10 +212,18 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })) || [];
+        // // Deduplicate by id to avoid React key warnings ---
+        // const seen = new Set<string>();
+        // const stores = allStores.filter((s) => {
+        //   if (seen.has(s.id)) return false;
+        //   seen.add(s.id);
+        //   return true;
+        // });
+        setUserStores(stores);
 
         // console.log("[Sidebar] Loaded stores from /auth/me:", stores.map(s => ({ id: s.id, name: s.name })));
         // console.log("[Sidebar] Raw auth stores:", response.data.stores?.map(s => ({ id: s.store.id, name: s.store.name })));
-        setUserStores(stores);
+     
       } catch {
         if (isActive) {
           setUserStores([]);
