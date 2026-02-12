@@ -104,8 +104,8 @@ export function MaintenanceRequestsTable({
 }: MaintenanceRequestsTableProps) {
   const t = useTranslations("maintenance");
   const { pagination } = data;
-  const hasNextPage = !!data.links.next;
-  const hasPrevPage = !!data.links.prev;
+  const hasNextPage = !!data.links?.next;
+  const hasPrevPage = !!data.links?.prev;
 
   return (
     <Card>
@@ -117,8 +117,10 @@ export function MaintenanceRequestsTable({
               {data.storeName}
             </CardTitle>
             <CardDescription>
-              {t("storeNumber")}: {data.storeNumber} &middot;{" "}
-              {t("showing", { from: pagination.from, to: pagination.to, total: pagination.total })}
+              {t("storeNumber")}: {data.storeNumber}
+              {pagination && (
+                <> &middot; {t("showing", { from: pagination.from, to: pagination.to, total: pagination.total })}</>
+              )}
             </CardDescription>
           </div>
           {isRefreshing && (
@@ -236,7 +238,7 @@ export function MaintenanceRequestsTable({
       </CardContent>
 
       {/* Pagination controls */}
-      {pagination.lastPage > 1 && (
+      {pagination && pagination.lastPage > 1 && (
         <div className="flex items-center justify-between border-t px-6 py-4">
           <p className="text-sm text-muted-foreground">
             {t("pagination.page", { current: currentPage, total: pagination.lastPage })}
@@ -276,7 +278,7 @@ export function MaintenanceRequestsTable({
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => onPageChange(pagination.lastPage)}
+              onClick={() => onPageChange(pagination!.lastPage)}
               disabled={!hasNextPage || isRefreshing}
               aria-label={t("pagination.last")}
             >
