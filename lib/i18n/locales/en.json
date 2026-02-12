@@ -51,7 +51,17 @@
     "assignments": "Assignments",
     "hierarchy": "Hierarchy",
     "serviceClients": "Service Clients",
+    "userStoreAssignment": "User Store Assignment",
+    "maintenance": "Maintenance",
+    "qualityAssurance": "Quality Assurance",
+    "createQaCategory": "Create QA Category",
+    "createQaEntity": "Create QA Entity",
+    "entitiesAndCategories": "Entities & Categories",
     "settings": "Settings",
+    "storeManagement": "Store Management",
+    "userManagement": "User Management",
+    "qaManagement": "QA Management",
+    "highLevelMgmt": "High Level MGMT",
     "collapse": "Collapse",
     "selectStore": "Select Store",
     "selectStoreDescription": "Choose a store to manage",
@@ -74,6 +84,12 @@
     "hierarchy": "Hierarchy",
     "by-user": "By User",
     "by-store": "By Store",
+    "user-store-assignment": "User Store Assignment",
+    "maintenance": "Maintenance",
+    "quality-assurance": "Quality Assurance",
+    "create-qa-category": "Create QA Category",
+    "entities-and-categories": "Entities & Categories",
+    "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
     "profile": "Profile",
@@ -89,7 +105,9 @@
     "en": "English",
     "ar": "Arabic",
     "create": "Create",
-    "edit": "Edit"
+    "edit": "Edit",
+    "store-details": "Store Details",
+    "user-details": "User Details"
   },
   "auth": {
     "login": {
@@ -691,6 +709,10 @@
       "selectAll": "Select All",
       "deselectAll": "Deselect All",
       "create": "Create Role"
+    },
+    "details": {
+      "title": "Role Details",
+      "description": "View and manage details for"
     }
   },
   "authRules": {
@@ -707,7 +729,8 @@
       "path": "Path",
       "authorization": "Authorization",
       "priority": "Priority",
-      "status": "Status"
+      "status": "Status",
+      "createdAt": "Created At"
     },
     "status": {
       "active": "Active",
@@ -725,6 +748,10 @@
     "create": {
       "title": "Create Authorization Rule",
       "description": "Add a new API endpoint authorization rule."
+    },
+    "edit": {
+      "title": "Edit Authorization Rule",
+      "description": "Update an existing API endpoint authorization rule."
     },
     "form": {
       "routeInfo": "Route Information",
@@ -887,5 +914,253 @@
       "reasonPlaceholder": "Why is this hierarchy being created?",
       "reasonHint": "Provide context for this hierarchy relationship."
     }
+  },
+  "userStoreAssignment": {
+    "title": "User Store Assignment",
+    "description": "View and manage store assignments for users.",
+    "assignStore": "Assign Store",
+    "removeUser": "Remove User",
+    "searchPlaceholder": "Search users...",
+    "noUsers": "No users found.",
+    "columns": {
+      "user": "User",
+      "roles": "Roles",
+      "storesAssigned": "Stores Assigned"
+    },
+    "assign": {
+      "title": "Assign Store to User",
+      "description": "Select a user, a role, and stores to assign.",
+      "selectUser": "Select User",
+      "selectUserPlaceholder": "Search and select a user...",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Search and select a role...",
+      "selectStores": "Select Stores",
+      "selectStoresPlaceholder": "Search and select stores...",
+      "noUsersFound": "No users found.",
+      "noRolesFound": "No roles found.",
+      "noStoresFound": "No stores found.",
+      "currentAssignments": "Current Assignments",
+      "noCurrentAssignments": "No current store assignments for this user.",
+      "storeName": "Store Name",
+      "assignedRoles": "Assigned Roles",
+      "selectedStores": "Selected Stores",
+      "submit": "Assign Store",
+      "submitting": "Assigning...",
+      "success": "Store assigned successfully.",
+      "error": "Failed to assign store.",
+      "validation": {
+        "userRequired": "Please select a user.",
+        "roleRequired": "Please select a role.",
+        "storeRequired": "Please select at least one store."
+      }
+    },
+    "remove": {
+      "title": "Remove User Assignment",
+      "description": "Select the user, role, and store to remove the assignment.",
+      "selectUser": "Select User",
+      "selectUserPlaceholder": "Search and select a user...",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Search and select a role...",
+      "selectStore": "Select Store",
+      "selectStorePlaceholder": "Search and select a store...",
+      "noUsersFound": "No users found.",
+      "noRolesFound": "No roles found.",
+      "noStoresFound": "No stores found.",
+      "submit": "Remove Assignment",
+      "submitting": "Removing...",
+      "success": "User assignment removed successfully.",
+      "error": "Failed to remove user assignment.",
+      "validation": {
+        "userRequired": "Please select a user.",
+        "roleRequired": "Please select a role.",
+        "storeRequired": "Please select a store."
+      }
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance Requests",
+    "description": "View and track maintenance requests for your store.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "rows": "rows",
+    "storeNumber": "Store #",
+    "showing": "Showing {from}-{to} of {total} request(s)",
+    "columns": {
+      "id": "ID",
+      "entryNumber": "Entry #",
+      "brokenItem": "Broken Item",
+      "status": "Status",
+      "submittedAt": "Submitted At"
+    },
+    "status": {
+      "done": "Done",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "canceled": "Canceled"
+    },
+    "pagination": {
+      "page": "Page {current} of {total}",
+      "first": "First page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "last": "Last page"
+    },
+    "noStore": {
+      "title": "No Store Selected",
+      "description": "Please select a store from the sidebar to view its maintenance requests."
+    },
+    "noData": {
+      "title": "No Maintenance Requests",
+      "description": "There are no maintenance requests for this store.",
+      "hint": "New maintenance requests will appear here when submitted."
+    },
+    "error": {
+      "title": "Error Loading Maintenance Requests",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    }
+  },
+  "qa": {
+    "title": "Quality Assurance",
+    "description": "View and manage QA audits across all stores.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tableTitle": "QA Audits",
+    "showing": "Showing {from}-{to} of {total} audit(s)",
+    "totalAudits": "{total} audit(s) total",
+    "columns": {
+      "id": "ID",
+      "store": "Store",
+      "auditor": "Auditor",
+      "email": "Email",
+      "date": "Audit Date",
+      "createdAt": "Created At"
+    },
+    "pagination": {
+      "page": "Page {current} of {total}",
+      "first": "First page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "last": "Last page"
+    },
+    "noData": {
+      "title": "No QA Audits",
+      "description": "There are no QA audits recorded yet.",
+      "hint": "New audits will appear here once they are created."
+    },
+    "error": {
+      "title": "Error Loading QA Audits",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    }
+  },
+  "qaCategories": {
+    "title": "Create QA Category",
+    "description": "Create a new quality assurance category.",
+    "formTitle": "Category Details",
+    "formDescription": "Fill in the details below to create a new QA category.",
+    "fields": {
+      "label": "Label",
+      "labelPlaceholder": "e.g. Entrance, Kitchen, Bathroom",
+      "labelHint": "A descriptive name for the category (max 255 characters).",
+      "sortOrder": "Sort Order",
+      "sortOrderPlaceholder": "e.g. 1",
+      "sortOrderHint": "Optional. Determines the display order of categories."
+    },
+    "validation": {
+      "labelRequired": "Label is required.",
+      "labelMaxLength": "Label must be {max} characters or less.",
+      "sortOrderNumber": "Sort order must be a valid number."
+    },
+    "create": "Create Category",
+    "creating": "Creating...",
+    "success": "Category \"{label}\" created successfully."
+  },
+  "qaEntities": {
+    "title": "Create QA Entity",
+    "description": "Create a new quality assurance entity.",
+    "formTitle": "Entity Details",
+    "formDescription": "Fill in the details below to create a new QA entity.",
+    "fields": {
+      "entityLabel": "Entity Label",
+      "entityLabelPlaceholder": "e.g. Back Room Camera Coverage",
+      "entityLabelHint": "A descriptive name for the entity (max 255 characters).",
+      "categoryId": "Category ID",
+      "categoryIdPlaceholder": "e.g. 6",
+      "categoryIdHint": "Optional. The ID of the category this entity belongs to.",
+      "category": "Choose Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryLoading": "Loading categories...",
+      "categoryHint": "Optional. The category this entity belongs to.",
+      "dateRangeType": "Date Range Type",
+      "dateRangeTypePlaceholder": "Select date range type",
+      "dateRangeTypeHint": "Determines the reporting frequency for this entity.",
+      "dateRangeDaily": "Daily",
+      "dateRangeWeekly": "Weekly",
+      "reportType": "Report Type",
+      "reportTypePlaceholder": "Select report type",
+      "reportTypeHint": "Optional. The type of report for this entity.",
+      "reportTypeNone": "None",
+      "reportTypeMain": "Main",
+      "reportTypeSecondary": "Secondary",
+      "sortOrder": "Sort Order",
+      "sortOrderPlaceholder": "e.g. 20",
+      "sortOrderHint": "Optional. Determines the display order of entities.",
+      "active": "Active",
+      "activeHint": "Whether this entity is currently active."
+    },
+    "validation": {
+      "entityLabelRequired": "Entity label is required.",
+      "entityLabelMaxLength": "Entity label must be {max} characters or less.",
+      "dateRangeTypeRequired": "Date range type is required.",
+      "categoryIdNumber": "Category ID must be a valid number.",
+      "sortOrderNumber": "Sort order must be a valid number."
+    },
+    "create": "Create Entity",
+    "creating": "Creating...",
+    "success": "Entity \"{label}\" created successfully."
+  },
+  "qaEntitiesAndCategories": {
+    "title": "Entities & Categories",
+    "description": "View all QA entities and their associated categories.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tabs": {
+      "entities": "Entities",
+      "categories": "Categories"
+    },
+    "entitiesTable": {
+      "title": "QA Entities",
+      "columns": {
+        "id": "ID",
+        "entityLabel": "Entity Label",
+        "category": "Category",
+        "dateRange": "Date Range",
+        "reportType": "Report Type",
+        "sortOrder": "Sort Order",
+        "active": "Status"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "noData": "No entities found."
+    },
+    "categoriesTable": {
+      "title": "QA Categories",
+      "columns": {
+        "id": "ID",
+        "label": "Label",
+        "entitiesCount": "Entities",
+        "sortOrder": "Sort Order",
+        "createdAt": "Created At"
+      },
+      "noData": "No categories found."
+    },
+    "error": {
+      "title": "Error Loading Data",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    },
+    "showing": "Showing {count} item(s)"
   }
 }

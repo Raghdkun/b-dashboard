@@ -73,7 +73,7 @@ export default function StoreDetailsPage() {
     <div className="space-y-6">
       <PageHeader
         title={store.name}
-        description={`ID: ${store.id}`}
+        description={`Store ID: ${store.storeId}`}
       >
         <Button
           variant="outline"

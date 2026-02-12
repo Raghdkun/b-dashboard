@@ -10,7 +10,8 @@ import type { CreatePermissionPayload, UpdatePermissionPayload } from "@/types/r
 /**
  * Hook for fetching and managing permissions list
  */
-export function usePermissions() {
+export function usePermissions(options?: { perPage?: number }) {
+  const perPage = options?.perPage;
   const {
     permissions,
     pagination,
@@ -23,26 +24,26 @@ export function usePermissions() {
   } = usePermissionsStore();
 
   useEffect(() => {
-    fetchPermissions();
-  }, [fetchPermissions]);
+    fetchPermissions(1, perPage);
+  }, [fetchPermissions, perPage]);
 
   const refetch = useCallback(() => {
-    fetchPermissions(pagination?.page || 1);
-  }, [fetchPermissions, pagination?.page]);
+    fetchPermissions(pagination?.page || 1, perPage);
+  }, [fetchPermissions, pagination?.page, perPage]);
 
   const goToPage = useCallback(
     (page: number) => {
-      fetchPermissions(page);
+      fetchPermissions(page, perPage);
     },
-    [fetchPermissions]
+    [fetchPermissions, perPage]
   );
 
   const search = useCallback(
     (searchTerm: string) => {
       setFilters({ search: searchTerm });
-      fetchPermissions(1);
+      fetchPermissions(1, perPage);
     },
-    [setFilters, fetchPermissions]
+    [setFilters, fetchPermissions, perPage]
   );
 
   return {

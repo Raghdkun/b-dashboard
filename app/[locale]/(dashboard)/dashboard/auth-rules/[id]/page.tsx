@@ -25,6 +25,7 @@ const HTTP_METHOD_COLORS: Record<string, string> = {
   PUT: "bg-yellow-100 text-yellow-700",
   PATCH: "bg-orange-100 text-orange-700",
   DELETE: "bg-red-100 text-red-700",
+  ANY: "bg-purple-100 text-purple-700",
 };
 
 export default function AuthRuleDetailsPage() {
@@ -77,7 +78,7 @@ export default function AuthRuleDetailsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={authRule.routeName || "Auth Rule"}
+        title={authRule.service || authRule.routeName || "Auth Rule"}
         description={`ID: ${authRule.id}`}
       >
         <Button
@@ -108,9 +109,15 @@ export default function AuthRuleDetailsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
+                {t("form.service")}
+              </span>
+              <Badge variant="outline">{authRule.service}</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
                 {t("form.routeName")}
               </span>
-              <span className="font-medium">{authRule.routeName}</span>
+              <span className="font-medium">{authRule.routeName || "-"}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
@@ -129,8 +136,14 @@ export default function AuthRuleDetailsPage() {
                 {t("form.pathDsl")}
               </span>
               <code className="text-sm bg-muted px-2 py-1 rounded">
-                {authRule.pathDsl}
+                {authRule.pathDsl || "-"}
               </code>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {t("form.priority")}
+              </span>
+              <span className="font-medium">{authRule.priority}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">

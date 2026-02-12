@@ -17,13 +17,19 @@ import {
   Building2,
   UserCog,
   Lock,
-  UserPlus,
   GitBranch,
   Key,
   ShieldCheck,
   Check,
   ChevronDown,
   Briefcase,
+  ClipboardList,
+  HardHat,
+  ClipboardCheck,
+  FolderPlus,
+  FileText,
+  List,
+  Landmark,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,13 +39,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -48,13 +52,115 @@ import { useUIStore } from "@/lib/store/ui.store";
 import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
 import { useFeature, Feature } from "@/lib/config";
 import { authService } from "@/lib/api/services/auth.service";
-import type { Store } from "@/types/store.types";
+import type { Store, StoreMetadata } from "@/types/store.types";
+import type { LucideIcon } from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+interface NavGroup {
+  label: string;
+  icon: LucideIcon;
+  items: NavItem[];
+}
 
 interface SidebarProps {
   collapsed?: boolean;
   onNavigate?: () => void;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Collapsible nav‑group rendered inside the sidebar                 */
+/* ------------------------------------------------------------------ */
+function SidebarNavGroup({
+  group,
+  pathname,
+  locale,
+  collapsed,
+  onNavigate,
+}: {
+  group: NavGroup;
+  pathname: string;
+  locale: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const hasActiveChild = group.items.some(
+    (item) => pathname === item.href || pathname.startsWith(item.href)
+  );
+  const [open, setOpen] = useState(hasActiveChild);
+
+  // Auto-open when a child becomes active (e.g. direct URL navigation)
+  useEffect(() => {
+    if (hasActiveChild) setOpen(true);
+  }, [hasActiveChild]);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          className={cn(
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            hasActiveChild
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "justify-center px-2"
+          )}
+        >
+          <group.icon className="h-5 w-5 shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="truncate">{group.label}</span>
+              <ChevronDown
+                className={cn(
+                  "ms-auto h-4 w-4 shrink-0 transition-transform duration-200",
+                  open && "rotate-180"
+                )}
+              />
+            </>
+          )}
+        </button>
+      </CollapsibleTrigger>
+
+      {!collapsed && (
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+          <div className="ms-4 border-s ps-2 mt-1 space-y-0.5">
+            {group.items.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                    isActive
+                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{item.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      )}
+    </Collapsible>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Sidebar component                                             */
+/* ------------------------------------------------------------------ */
 export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const params = useParams();
@@ -68,75 +174,121 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const i18nIntelligenceEnabled = useFeature("i18nIntelligence");
   const securityMonitorEnabled = useFeature("securityMonitor");
 
-  const navItems = [
-    {
-      title: t("dashboard"),
-      href: `/${locale}/dashboard`,
-      icon: LayoutDashboard,
-    },
-    {
-      title: t("stores"),
-      href: `/${locale}/dashboard/stores`,
-      icon: Building2,
-    },
-    {
-      title: t("employees"),
-      href: `/${locale}/dashboard/employees`,
-      icon: Briefcase,
-    },
-    {
-      title: t("authRules"),
-      href: `/${locale}/dashboard/auth-rules`,
-      icon: Lock,
-    },
-    {
-      title: t("assignments"),
-      href: `/${locale}/dashboard/assignments`,
-      icon: UserPlus,
-    },
-    {
-      title: t("hierarchy"),
-      href: `/${locale}/dashboard/hierarchy`,
-      icon: GitBranch,
-    },
-    {
-      title: t("serviceClients"),
-      href: `/${locale}/dashboard/service-clients`,
-      icon: Key,
-    },
-    {
-      title: t("settings"),
-      href: `/${locale}/dashboard/settings`,
-      icon: Settings,
-    },
-  ];
+  /* ---- Flat nav items ---- */
+  const dashboardItem: NavItem = {
+    title: t("dashboard"),
+    href: `/${locale}/dashboard`,
+    icon: LayoutDashboard,
+  };
 
-  // User Management dropdown items
-  const userManagementItems = [
-    {
-      title: t("users"),
-      href: `/${locale}/dashboard/users`,
-      icon: Users,
-    },
-    {
-      title: t("roles"),
-      href: `/${locale}/dashboard/roles`,
-      icon: UserCog,
-    },
-    {
-      title: t("permissions"),
-      href: `/${locale}/dashboard/permissions`,
-      icon: ShieldCheck,
-    },
-  ];
+  const maintenanceItem: NavItem = {
+    title: t("maintenance"),
+    href: `/${locale}/dashboard/maintenance`,
+    icon: HardHat,
+  };
+
+  const settingsItem: NavItem = {
+    title: t("settings"),
+    href: `/${locale}/dashboard/settings`,
+    icon: Settings,
+  };
+
+  /* ---- Collapsible groups ---- */
+  const storeManagementGroup: NavGroup = {
+    label: t("storeManagement"),
+    icon: Building2,
+    items: [
+      {
+        title: t("stores"),
+        href: `/${locale}/dashboard/stores`,
+        icon: Building2,
+      },
+      {
+        title: t("userStoreAssignment"),
+        href: `/${locale}/dashboard/user-store-assignment`,
+        icon: ClipboardList,
+      },
+    ],
+  };
+
+  const userManagementGroup: NavGroup = {
+    label: t("userManagement"),
+    icon: Users,
+    items: [
+      {
+        title: t("users"),
+        href: `/${locale}/dashboard/users`,
+        icon: Users,
+      },
+      {
+        title: t("employees"),
+        href: `/${locale}/dashboard/employees`,
+        icon: Briefcase,
+      },
+      {
+        title: t("roles"),
+        href: `/${locale}/dashboard/roles`,
+        icon: UserCog,
+      },
+      {
+        title: t("permissions"),
+        href: `/${locale}/dashboard/permissions`,
+        icon: ShieldCheck,
+      },
+    ],
+  };
+
+  const qaManagementGroup: NavGroup = {
+    label: t("qaManagement"),
+    icon: ClipboardCheck,
+    items: [
+      {
+        title: t("qualityAssurance"),
+        href: `/${locale}/dashboard/quality-assurance`,
+        icon: ClipboardCheck,
+      },
+      {
+        title: t("entitiesAndCategories"),
+        href: `/${locale}/dashboard/entities-and-categories`,
+        icon: List,
+      },
+      {
+        title: t("createQaCategory"),
+        href: `/${locale}/dashboard/create-qa-category`,
+        icon: FolderPlus,
+      },
+      {
+        title: t("createQaEntity"),
+        href: `/${locale}/dashboard/create-qa-entity`,
+        icon: FileText,
+      },
+    ],
+  };
+
+  const highLevelMgmtGroup: NavGroup = {
+    label: t("highLevelMgmt"),
+    icon: Landmark,
+    items: [
+      {
+        title: t("authRules"),
+        href: `/${locale}/dashboard/auth-rules`,
+        icon: Lock,
+      },
+      {
+        title: t("hierarchy"),
+        href: `/${locale}/dashboard/hierarchy`,
+        icon: GitBranch,
+      },
+      {
+        title: t("serviceClients"),
+        href: `/${locale}/dashboard/service-clients`,
+        icon: Key,
+      },
+    ],
+  };
 
   // Dev tools navigation (controlled by feature flags)
-  const devToolsItems: Array<{
-    title: string;
-    href: string;
-    icon: typeof Languages;
-  }> = [];
-
+  const devToolsItems: NavItem[] = [];
   if (devToolsEnabled && process.env.NODE_ENV === "development") {
     if (i18nIntelligenceEnabled) {
       devToolsItems.push({
@@ -156,22 +308,25 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
 
   // For RTL, swap chevron icons
   const CollapseIcon = collapsed
-    ? isRtl ? ChevronLeft : ChevronRight
-    : isRtl ? ChevronRight : ChevronLeft;
+    ? isRtl
+      ? ChevronLeft
+      : ChevronRight
+    : isRtl
+      ? ChevronRight
+      : ChevronLeft;
 
   // Store selection state
-  const { selectedStore: zustandSelectedStore, setSelectedStore } = useSelectedStoreStore();
+  const { selectedStore: zustandSelectedStore, setSelectedStore } =
+    useSelectedStoreStore();
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
   const [selectedStore, setLocalSelectedStore] = useState<Store | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [userStores, setUserStores] = useState<Store[]>([]);
 
   // Initialize from Zustand store
   useEffect(() => {
     if (zustandSelectedStore) {
       setLocalSelectedStore(zustandSelectedStore);
-      console.log("🔄 Sidebar: Synced with Zustand store:", zustandSelectedStore.name);
     }
     setIsMounted(true);
   }, [zustandSelectedStore]);
@@ -182,30 +337,27 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     const loadStores = async () => {
       try {
         const response = await authService.me();
-        if (!isActive || !response.success) {
-          return;
-        }
+        if (!isActive || !response.success) return;
 
-        const stores: Store[] = response.data.stores?.map((userStore) => ({
-          id: userStore.store.id,
-          name: userStore.store.name,
-          metadata: (userStore.store.metadata || {}) as any,
-          isActive: userStore.store.isActive ?? true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })) || [];
-
+        const stores: Store[] =
+          response.data.stores?.map((userStore) => ({
+            id: userStore.store.id,
+            storeId:
+              ((userStore.store as Record<string, unknown>).store_id as string) ||
+              userStore.store.id,
+            name: userStore.store.name,
+            metadata: (userStore.store.metadata ?? {}) as StoreMetadata,
+            isActive: userStore.store.isActive ?? true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })) || [];
         setUserStores(stores);
-        // console.log(response)
       } catch {
-        if (isActive) {
-          setUserStores([]);
-        }
+        if (isActive) setUserStores([]);
       }
     };
 
     loadStores();
-
     return () => {
       isActive = false;
     };
@@ -213,6 +365,31 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
 
   const currentStoreName = selectedStore?.name || "Select Store";
 
+  /* ---- Helper: render a single flat nav link ---- */
+  const renderNavLink = (item: NavItem) => {
+    const basePath = `/${locale}/dashboard`;
+    const isActive =
+      pathname === item.href ||
+      (item.href !== basePath && pathname.startsWith(item.href));
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          isActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          collapsed && "justify-center px-2"
+        )}
+      >
+        <item.icon className="h-5 w-5 shrink-0" />
+        {!collapsed && <span className="truncate">{item.title}</span>}
+      </Link>
+    );
+  };
 
   return (
     <div
@@ -224,16 +401,19 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       {/* Logo */}
       <div
         className={cn(
-          "flex h-14 items-center border-b px-2 sm:px-3  sm:py-3",
+          "flex h-14 items-center border-b px-2 sm:px-3 sm:py-3",
           collapsed ? "justify-center" : "justify-between"
         )}
       >
         {!collapsed && (
-          <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-            <Image 
-              src="/logo.svg" 
-              alt="Pizza Dashboard Logo" 
-              width={32} 
+          <Link
+            href={`/${locale}/dashboard`}
+            className="flex items-center gap-2"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Pizza Dashboard Logo"
+              width={32}
               height={32}
               className="h-8 w-8"
             />
@@ -243,15 +423,16 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           </Link>
         )}
         {collapsed && (
-          <Image 
-            src="/logo.svg" 
-            alt="Pizza Dashboard Logo" 
-            width={32} 
+          <Image
+            src="/logo.svg"
+            alt="Pizza Dashboard Logo"
+            width={32}
             height={32}
             className="h-8 w-8"
           />
         )}
       </div>
+
       {/* Store selection */}
       <div className="px-3 pt-2 pb-0">
         <Button
@@ -279,19 +460,22 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                 {userStores.map((store) => (
                   <Button
                     key={store.id}
-                    variant={selectedStore?.id === store.id ? "default" : "outline"}
+                    variant={
+                      selectedStore?.id === store.id ? "default" : "outline"
+                    }
                     className="w-full justify-start"
                     onClick={() => {
                       setLocalSelectedStore(store);
-                      setSelectedStore(store); // Update Zustand store
-                      console.log("✅ Store selected from sidebar:", store.name);
+                      setSelectedStore(store);
                       setIsStoreModalOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
                         "me-2 h-4 w-4",
-                        selectedStore?.id === store.id ? "opacity-100" : "opacity-0"
+                        selectedStore?.id === store.id
+                          ? "opacity-100"
+                          : "opacity-0"
                       )}
                     />
                     <span className="truncate">{store.name}</span>
@@ -307,113 +491,66 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         </DialogContent>
       </Dialog>
 
+      {/* Navigation — scrollable when content overflows */}
+      <ScrollArea className="flex-1">
+        <nav className="space-y-1 px-2 sm:px-3 py-2 sm:py-3">
+          {/* 1. Dashboard */}
+          {renderNavLink(dashboardItem)}
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-2 sm:px-3 py-2 sm:py-3">
-        {navItems.map((item, index) => {
-          const basePath = `/${locale}/dashboard`;
-          const isActive =
-            pathname === item.href ||
-            (item.href !== basePath && pathname.startsWith(item.href));
+          {/* 2. Store Management */}
+          <SidebarNavGroup
+            group={storeManagementGroup}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
 
-          return (
-            <div key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span>{item.title}</span>}
-              </Link>
+          {/* 3. User Management */}
+          <SidebarNavGroup
+            group={userManagementGroup}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
 
-              {/* User Management Dropdown - Show after Stores */}
-              {item.href === `/${locale}/dashboard/stores` && (
-                <DropdownMenu open={isUserManagementOpen} onOpenChange={setIsUserManagementOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                        userManagementItems.some(item => 
-                          pathname === item.href || pathname.startsWith(item.href)
-                        )
-                          ? "text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground hover:text-sidebar-accent-foreground",
-                        collapsed && "justify-center px-2"
-                      )}
-                    >
-                      <Users className="h-5 w-5 shrink-0" />
-                      {!collapsed && (
-                        <>
-                          <span>User Management</span>
-                          <ChevronDown className={cn("h-4 w-4 ms-auto transition-transform", isUserManagementOpen && "rotate-180")} />
-                        </>
-                      )}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align={isRtl ? "end" : "start"} className="w-56">
-                    <DropdownMenuLabel>User Management</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {userManagementItems.map((item) => (
-                      <DropdownMenuItem key={item.href} asChild>
-                        <Link href={item.href} onClick={onNavigate} className="cursor-pointer flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          );
-        })}
+          {/* 4. QA Management */}
+          <SidebarNavGroup
+            group={qaManagementGroup}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
 
-        {/* Dev Tools Section */}
-        {/* {devToolsItems.length > 0 && (
-          <>
-            <Separator className="my-2" />
-            {!collapsed && (
-              <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <Wrench className="h-3 w-3" />
-                <span>{t("devTools.title")}</span>
-              </div>
-            )}
-            {devToolsItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    collapsed && "justify-center px-2"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && <span>{item.title}</span>}
-                </Link>
-              );
-            })}
-          </>
-        )} */}
-      </nav>
+          {/* 5. High Level MGMT */}
+          <SidebarNavGroup
+            group={highLevelMgmtGroup}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+
+          {/* 6. Maintenance */}
+          {renderNavLink(maintenanceItem)}
+
+          {/* 7. Settings */}
+          {renderNavLink(settingsItem)}
+        </nav>
+      </ScrollArea>
 
       <Separator />
 
       {/* User Menu - conditionally rendered */}
       <Feature name="userMenu">
-        <div className={cn("px-2 sm:px-3 py-2 sm:py-3", collapsed && "flex justify-center")}>
+        <div
+          className={cn(
+            "px-2 sm:px-3 py-2 sm:py-3",
+            collapsed && "flex justify-center"
+          )}
+        >
           <UserMenu collapsed={collapsed} />
         </div>
       </Feature>

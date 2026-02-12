@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,8 +83,8 @@ export default function RoleDetailsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={role.name}
-        description={`ID: ${role.id}`}
+        title={t("details.title")}
+        description={`${t("details.description")} ${role.name}`}
       >
         <Button
           variant="outline"
@@ -103,73 +103,81 @@ export default function RoleDetailsPage() {
         </Button>
       </PageHeader>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Basic Information Section */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Shield className="h-5 w-5" />
               {t("form.basicInfo")}
             </CardTitle>
+            <CardDescription>{t("form.basicInfoDescription") || "Core information about this role"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {t("columns.name")}
               </span>
-              <span className="font-medium">{role.name}</span>
+              <p className="text-sm font-medium">{role.name}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {t("columns.guardName")}
               </span>
-              <Badge variant="outline">{role.guardName}</Badge>
+              <div>
+                <Badge variant="outline" className="font-medium">{role.guardName}</Badge>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {t("columns.users")}
               </span>
-              <span className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                {role.usersCount || 0}
-              </span>
+                <span className="font-medium">{role.usersCount || 0}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {t("columns.createdAt")}
               </span>
-              <span className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {role.createdAt
-                  ? new Date(role.createdAt).toLocaleDateString()
-                  : "-"}
-              </span>
+                <span className="font-medium">
+                  {role.createdAt
+                    ? new Date(role.createdAt).toLocaleDateString()
+                    : "-"}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        {/* Permissions Section */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Key className="h-5 w-5" />
               {t("form.permissions")}
             </CardTitle>
+            <CardDescription>{t("form.permissionsDescription") || "All permissions assigned to this role"}</CardDescription>
           </CardHeader>
           <CardContent>
             {Object.keys(permissionsByCategory).length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2">
                 {Object.entries(permissionsByCategory).map(
                   ([category, permissions]) => (
-                    <div key={category}>
-                      <h4 className="text-sm font-medium mb-2 capitalize flex items-center gap-2">
-                        <Lock className="h-3 w-3" />
+                    <div key={category} className="space-y-3">
+                      <h4 className="text-sm font-semibold capitalize flex items-center gap-2 text-foreground">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
                         {category}
                       </h4>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-2">
                         {permissions.map((permission: string) => (
                           <Badge
                             key={permission}
                             variant="secondary"
-                            className="text-xs"
+                            className="text-xs font-medium px-2 py-1"
                           >
                             {permission.split(".")[1] || permission}
                           </Badge>
@@ -180,7 +188,9 @@ export default function RoleDetailsPage() {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No permissions assigned</p>
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground">{t("noPermissions") || "No permissions assigned"}</p>
+              </div>
             )}
           </CardContent>
         </Card>

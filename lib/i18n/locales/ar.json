@@ -51,7 +51,17 @@
     "assignments": "التعيينات",
     "hierarchy": "الهيكل",
     "serviceClients": "عملاء الخدمة",
+    "userStoreAssignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "qualityAssurance": "ضمان الجودة",
+    "createQaCategory": "إنشاء فئة الجودة",
+    "createQaEntity": "إنشاء كيان الجودة",
+    "entitiesAndCategories": "الكيانات والفئات",
     "settings": "الإعدادات",
+    "storeManagement": "إدارة الفروع",
+    "userManagement": "إدارة المستخدمين",
+    "qaManagement": "إدارة الجودة",
+    "highLevelMgmt": "الإدارة العليا",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
     "selectStoreDescription": "اختر فرعاً لإدارته",
@@ -74,6 +84,12 @@
     "hierarchy": "الهيكل",
     "by-user": "حسب المستخدم",
     "by-store": "حسب الفرع",
+    "user-store-assignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "quality-assurance": "ضمان الجودة",
+    "create-qa-category": "إنشاء فئة الجودة",
+    "entities-and-categories": "الكيانات والفئات",
+    "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
@@ -89,7 +105,9 @@
     "en": "الإنجليزية",
     "ar": "العربية",
     "create": "إنشاء",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "store-details": "تفاصيل الفرع",
+    "user-details": "تفاصيل المستخدم"
   },
   "employees": {
     "title": "الموظفون",
@@ -690,6 +708,10 @@
       "selectAll": "تحديد الكل",
       "deselectAll": "إلغاء تحديد الكل",
       "create": "إنشاء الدور"
+    },
+    "details": {
+      "title": "تفاصيل الدور",
+      "description": "عرض وإدارة التفاصيل لـ"
     }
   },
   "authRules": {
@@ -706,7 +728,8 @@
       "path": "المسار",
       "authorization": "التصريح",
       "priority": "الأولوية",
-      "status": "الحالة"
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
     },
     "status": {
       "active": "نشط",
@@ -724,6 +747,10 @@
     "create": {
       "title": "إنشاء قاعدة تصريح",
       "description": "إضافة قاعدة تصريح جديدة لنقطة API."
+    },
+    "edit": {
+      "title": "تعديل قاعدة التصريح",
+      "description": "تحديث قاعدة تصريح موجودة لنقطة API."
     },
     "form": {
       "routeInfo": "معلومات المسار",
@@ -886,5 +913,253 @@
       "reasonPlaceholder": "لماذا يتم إنشاء هذا الهيكل؟",
       "reasonHint": "قدم سياقاً لعلاقة الهيكل هذه."
     }
+  },
+  "userStoreAssignment": {
+    "title": "تعيين الفروع للمستخدمين",
+    "description": "عرض وإدارة تعيينات الفروع للمستخدمين.",
+    "assignStore": "تعيين فرع",
+    "removeUser": "إزالة مستخدم",
+    "searchPlaceholder": "بحث عن المستخدمين...",
+    "noUsers": "لا يوجد مستخدمون.",
+    "columns": {
+      "user": "المستخدم",
+      "roles": "الأدوار",
+      "storesAssigned": "الفروع المعينة"
+    },
+    "assign": {
+      "title": "تعيين فرع لمستخدم",
+      "description": "اختر مستخدماً ودوراً وفروعاً للتعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStores": "اختر الفروع",
+      "selectStoresPlaceholder": "ابحث واختر الفروع...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "currentAssignments": "التعيينات الحالية",
+      "noCurrentAssignments": "لا توجد تعيينات فروع حالية لهذا المستخدم.",
+      "storeName": "اسم الفرع",
+      "assignedRoles": "الأدوار المعينة",
+      "selectedStores": "الفروع المختارة",
+      "submit": "تعيين الفرع",
+      "submitting": "جارٍ التعيين...",
+      "success": "تم تعيين الفرع بنجاح.",
+      "error": "فشل تعيين الفرع.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع واحد على الأقل."
+      }
+    },
+    "remove": {
+      "title": "إزالة تعيين المستخدم",
+      "description": "اختر المستخدم والدور والفرع لإزالة التعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStore": "اختر فرعاً",
+      "selectStorePlaceholder": "ابحث واختر فرعاً...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "submit": "إزالة التعيين",
+      "submitting": "جارٍ الإزالة...",
+      "success": "تم إزالة تعيين المستخدم بنجاح.",
+      "error": "فشل في إزالة تعيين المستخدم.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع."
+      }
+    }
+  },
+  "maintenance": {
+    "title": "طلبات الصيانة",
+    "description": "عرض وتتبع طلبات الصيانة لفرعك.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "rows": "صفوف",
+    "storeNumber": "فرع #",
+    "showing": "عرض {from}-{to} من {total} طلب(ات)",
+    "columns": {
+      "id": "المعرف",
+      "entryNumber": "رقم الإدخال",
+      "brokenItem": "العنصر المكسور",
+      "status": "الحالة",
+      "submittedAt": "تاريخ التقديم"
+    },
+    "status": {
+      "done": "مكتمل",
+      "in_progress": "قيد التنفيذ",
+      "pending": "قيد الانتظار",
+      "cancelled": "ملغي",
+      "canceled": "ملغي"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض طلبات الصيانة الخاصة به."
+    },
+    "noData": {
+      "title": "لا توجد طلبات صيانة",
+      "description": "لا توجد طلبات صيانة لهذا الفرع.",
+      "hint": "ستظهر طلبات الصيانة الجديدة هنا عند تقديمها."
+    },
+    "error": {
+      "title": "خطأ في تحميل طلبات الصيانة",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "qa": {
+    "title": "ضمان الجودة",
+    "description": "عرض وإدارة عمليات التدقيق عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tableTitle": "عمليات تدقيق الجودة",
+    "showing": "عرض {from}-{to} من {total} عملية تدقيق",
+    "totalAudits": "{total} عملية تدقيق إجمالية",
+    "columns": {
+      "id": "المعرف",
+      "store": "الفرع",
+      "auditor": "المدقق",
+      "email": "البريد الإلكتروني",
+      "date": "تاريخ التدقيق",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noData": {
+      "title": "لا توجد عمليات تدقيق",
+      "description": "لا توجد عمليات تدقيق للجودة مسجلة بعد.",
+      "hint": "ستظهر عمليات التدقيق الجديدة هنا عند إنشائها."
+    },
+    "error": {
+      "title": "خطأ في تحميل عمليات التدقيق",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "qaCategories": {
+    "title": "إنشاء فئة الجودة",
+    "description": "إنشاء فئة جديدة لضمان الجودة.",
+    "formTitle": "تفاصيل الفئة",
+    "formDescription": "املأ التفاصيل أدناه لإنشاء فئة جودة جديدة.",
+    "fields": {
+      "label": "التسمية",
+      "labelPlaceholder": "مثال: المدخل، المطبخ، الحمام",
+      "labelHint": "اسم وصفي للفئة (بحد أقصى 255 حرفاً).",
+      "sortOrder": "ترتيب العرض",
+      "sortOrderPlaceholder": "مثال: 1",
+      "sortOrderHint": "اختياري. يحدد ترتيب عرض الفئات."
+    },
+    "validation": {
+      "labelRequired": "التسمية مطلوبة.",
+      "labelMaxLength": "يجب ألا تتجاوز التسمية {max} حرفاً.",
+      "sortOrderNumber": "ترتيب العرض يجب أن يكون رقماً صحيحاً."
+    },
+    "create": "إنشاء الفئة",
+    "creating": "جارٍ الإنشاء...",
+    "success": "تم إنشاء الفئة \"{label}\" بنجاح."
+  },
+  "qaEntities": {
+    "title": "إنشاء كيان الجودة",
+    "description": "إنشاء كيان جديد لضمان الجودة.",
+    "formTitle": "تفاصيل الكيان",
+    "formDescription": "املأ التفاصيل أدناه لإنشاء كيان جودة جديد.",
+    "fields": {
+      "entityLabel": "تسمية الكيان",
+      "entityLabelPlaceholder": "مثال: تغطية كاميرا الغرفة الخلفية",
+      "entityLabelHint": "اسم وصفي للكيان (بحد أقصى 255 حرفاً).",
+      "categoryId": "معرف الفئة",
+      "categoryIdPlaceholder": "مثال: 6",
+      "categoryIdHint": "اختياري. معرف الفئة التي ينتمي إليها هذا الكيان.",
+      "category": "اختيار الفئة",
+      "categoryPlaceholder": "اختر فئة",
+      "categoryLoading": "جارٍ تحميل الفئات...",
+      "categoryHint": "اختياري. الفئة التي ينتمي إليها هذا الكيان.",
+      "dateRangeType": "نوع النطاق الزمني",
+      "dateRangeTypePlaceholder": "اختر نوع النطاق الزمني",
+      "dateRangeTypeHint": "يحدد تكرار التقارير لهذا الكيان.",
+      "dateRangeDaily": "يومي",
+      "dateRangeWeekly": "أسبوعي",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "اختر نوع التقرير",
+      "reportTypeHint": "اختياري. نوع التقرير لهذا الكيان.",
+      "reportTypeNone": "بدون",
+      "reportTypeMain": "رئيسي",
+      "reportTypeSecondary": "ثانوي",
+      "sortOrder": "ترتيب العرض",
+      "sortOrderPlaceholder": "مثال: 20",
+      "sortOrderHint": "اختياري. يحدد ترتيب عرض الكيانات.",
+      "active": "نشط",
+      "activeHint": "ما إذا كان هذا الكيان نشطاً حالياً."
+    },
+    "validation": {
+      "entityLabelRequired": "تسمية الكيان مطلوبة.",
+      "entityLabelMaxLength": "يجب ألا تتجاوز تسمية الكيان {max} حرفاً.",
+      "dateRangeTypeRequired": "نوع النطاق الزمني مطلوب.",
+      "categoryIdNumber": "معرف الفئة يجب أن يكون رقماً صحيحاً.",
+      "sortOrderNumber": "ترتيب العرض يجب أن يكون رقماً صحيحاً."
+    },
+    "create": "إنشاء الكيان",
+    "creating": "جارٍ الإنشاء...",
+    "success": "تم إنشاء الكيان \"{label}\" بنجاح."
+  },
+  "qaEntitiesAndCategories": {
+    "title": "الكيانات والفئات",
+    "description": "عرض جميع كيانات وفئات ضمان الجودة.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tabs": {
+      "entities": "الكيانات",
+      "categories": "الفئات"
+    },
+    "entitiesTable": {
+      "title": "كيانات الجودة",
+      "columns": {
+        "id": "المعرف",
+        "entityLabel": "تسمية الكيان",
+        "category": "الفئة",
+        "dateRange": "النطاق الزمني",
+        "reportType": "نوع التقرير",
+        "sortOrder": "ترتيب العرض",
+        "active": "الحالة"
+      },
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "noData": "لا توجد كيانات."
+    },
+    "categoriesTable": {
+      "title": "فئات الجودة",
+      "columns": {
+        "id": "المعرف",
+        "label": "التسمية",
+        "entitiesCount": "الكيانات",
+        "sortOrder": "ترتيب العرض",
+        "createdAt": "تاريخ الإنشاء"
+      },
+      "noData": "لا توجد فئات."
+    },
+    "error": {
+      "title": "خطأ في تحميل البيانات",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    },
+    "showing": "عرض {count} عنصر(عناصر)"
   }
 }

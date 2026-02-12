@@ -128,7 +128,8 @@ export interface ApiAuthPermission {
 
 export interface ApiAuthUserStore {
   store: {
-    id: string;
+    id: number;
+    store_id: string;
     name: string;
     metadata?: Record<string, unknown>;
     is_active?: boolean;
