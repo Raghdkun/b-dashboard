@@ -108,7 +108,7 @@ function MaintenancePreviewSkeleton() {
  * in a card with a link to the full maintenance page.
  */
 export function MaintenancePreview() {
-  const { data, isLoading, isRefreshing, error } = useMaintenance(3);
+  const { data, isLoading, isRefreshing, error } = useMaintenance();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const router = useRouter();
@@ -123,6 +123,9 @@ export function MaintenancePreview() {
 
   // Don't render if no data or empty
   if (!data || data.data.length === 0) return null;
+
+  // Limit to 3 most recent items for the preview
+  const previewItems = data.data.slice(0, 3);
 
   return (
     <Card>
@@ -148,7 +151,7 @@ export function MaintenancePreview() {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3">
-          {data.data.map((request) => {
+          {previewItems.map((request) => {
             const config = getConfig(request.status);
             const StatusIcon = config.icon;
 
