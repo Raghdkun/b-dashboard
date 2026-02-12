@@ -54,7 +54,14 @@
     "userStoreAssignment": "User Store Assignment",
     "maintenance": "Maintenance",
     "qualityAssurance": "Quality Assurance",
+    "createQaCategory": "Create QA Category",
+    "createQaEntity": "Create QA Entity",
+    "entitiesAndCategories": "Entities & Categories",
     "settings": "Settings",
+    "storeManagement": "Store Management",
+    "userManagement": "User Management",
+    "qaManagement": "QA Management",
+    "highLevelMgmt": "High Level MGMT",
     "collapse": "Collapse",
     "selectStore": "Select Store",
     "selectStoreDescription": "Choose a store to manage",
@@ -80,6 +87,8 @@
     "user-store-assignment": "User Store Assignment",
     "maintenance": "Maintenance",
     "quality-assurance": "Quality Assurance",
+    "create-qa-category": "Create QA Category",
+    "entities-and-categories": "Entities & Categories",
     "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
@@ -1045,5 +1054,113 @@
       "retry": "Try Again",
       "dismiss": "Dismiss"
     }
+  },
+  "qaCategories": {
+    "title": "Create QA Category",
+    "description": "Create a new quality assurance category.",
+    "formTitle": "Category Details",
+    "formDescription": "Fill in the details below to create a new QA category.",
+    "fields": {
+      "label": "Label",
+      "labelPlaceholder": "e.g. Entrance, Kitchen, Bathroom",
+      "labelHint": "A descriptive name for the category (max 255 characters).",
+      "sortOrder": "Sort Order",
+      "sortOrderPlaceholder": "e.g. 1",
+      "sortOrderHint": "Optional. Determines the display order of categories."
+    },
+    "validation": {
+      "labelRequired": "Label is required.",
+      "labelMaxLength": "Label must be {max} characters or less.",
+      "sortOrderNumber": "Sort order must be a valid number."
+    },
+    "create": "Create Category",
+    "creating": "Creating...",
+    "success": "Category \"{label}\" created successfully."
+  },
+  "qaEntities": {
+    "title": "Create QA Entity",
+    "description": "Create a new quality assurance entity.",
+    "formTitle": "Entity Details",
+    "formDescription": "Fill in the details below to create a new QA entity.",
+    "fields": {
+      "entityLabel": "Entity Label",
+      "entityLabelPlaceholder": "e.g. Back Room Camera Coverage",
+      "entityLabelHint": "A descriptive name for the entity (max 255 characters).",
+      "categoryId": "Category ID",
+      "categoryIdPlaceholder": "e.g. 6",
+      "categoryIdHint": "Optional. The ID of the category this entity belongs to.",
+      "category": "Choose Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryLoading": "Loading categories...",
+      "categoryHint": "Optional. The category this entity belongs to.",
+      "dateRangeType": "Date Range Type",
+      "dateRangeTypePlaceholder": "Select date range type",
+      "dateRangeTypeHint": "Determines the reporting frequency for this entity.",
+      "dateRangeDaily": "Daily",
+      "dateRangeWeekly": "Weekly",
+      "reportType": "Report Type",
+      "reportTypePlaceholder": "Select report type",
+      "reportTypeHint": "Optional. The type of report for this entity.",
+      "reportTypeNone": "None",
+      "reportTypeMain": "Main",
+      "reportTypeSecondary": "Secondary",
+      "sortOrder": "Sort Order",
+      "sortOrderPlaceholder": "e.g. 20",
+      "sortOrderHint": "Optional. Determines the display order of entities.",
+      "active": "Active",
+      "activeHint": "Whether this entity is currently active."
+    },
+    "validation": {
+      "entityLabelRequired": "Entity label is required.",
+      "entityLabelMaxLength": "Entity label must be {max} characters or less.",
+      "dateRangeTypeRequired": "Date range type is required.",
+      "categoryIdNumber": "Category ID must be a valid number.",
+      "sortOrderNumber": "Sort order must be a valid number."
+    },
+    "create": "Create Entity",
+    "creating": "Creating...",
+    "success": "Entity \"{label}\" created successfully."
+  },
+  "qaEntitiesAndCategories": {
+    "title": "Entities & Categories",
+    "description": "View all QA entities and their associated categories.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tabs": {
+      "entities": "Entities",
+      "categories": "Categories"
+    },
+    "entitiesTable": {
+      "title": "QA Entities",
+      "columns": {
+        "id": "ID",
+        "entityLabel": "Entity Label",
+        "category": "Category",
+        "dateRange": "Date Range",
+        "reportType": "Report Type",
+        "sortOrder": "Sort Order",
+        "active": "Status"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "noData": "No entities found."
+    },
+    "categoriesTable": {
+      "title": "QA Categories",
+      "columns": {
+        "id": "ID",
+        "label": "Label",
+        "entitiesCount": "Entities",
+        "sortOrder": "Sort Order",
+        "createdAt": "Created At"
+      },
+      "noData": "No categories found."
+    },
+    "error": {
+      "title": "Error Loading Data",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    },
+    "showing": "Showing {count} item(s)"
   }
 }
