@@ -159,7 +159,7 @@ function SidebarNavGroup({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main Sidebar component                                             */
+/*  Main Sidebar component                  /                           */
 /* ------------------------------------------------------------------ */
 export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
