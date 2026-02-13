@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export function QAEntityForm() {
   const t = useTranslations("qaEntities");
   const tCommon = useTranslations("common");
   const params = useParams();
+  const router = useRouter();
   const locale = (params?.locale as string) || "en";
 
   const { createEntity, isCreating, error, clearError } =
@@ -96,16 +97,8 @@ export function QAEntityForm() {
     const result = await createEntity(payload);
 
     if (result) {
-      setSuccessMessage(
-        t("success", { label: result.entityLabel })
-      );
-      setEntityLabel("");
-      setCategoryId("");
-      setDateRangeType("");
-      setReportType("");
-      setSortOrder("");
-      setActive(true);
-      setValidationErrors({});
+      // Redirect to Entities & Categories page for better UX
+      router.push(`/${locale}/dashboard/entities-and-categories`);
     }
   };
 

@@ -11,12 +11,27 @@ import type {
   ApiQACategoryCreateResponse,
   QACategory,
   CreateQACategoryPayload,
+  UpdateQACategoryPayload,
   ApiQAEntityCreateResponse,
   QAEntity,
   CreateQAEntityPayload,
+  UpdateQAEntityPayload,
   ApiQAEntitiesListResponse,
   QAEntityListCategory,
   QAEntitiesAndCategories,
+  ApiCameraReportResponse,
+  CameraReportData,
+  CameraReportSummaryItem,
+  CameraReportEntity,
+  CameraReportCategory,
+  CameraReportEntityDef,
+  CameraReportScoreData,
+  ApiCameraReportSummaryItem,
+  ApiCameraReportEntity,
+  ApiCameraReportCategory,
+  ApiCameraReportEntityDef,
+  CameraFormEntityEntry,
+  ApiCameraFormCreateResponse,
 } from "@/types/qa.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -437,6 +452,209 @@ export const qaService = {
   },
 
   /**
+   * Update an existing QA category through the local API proxy.
+   *
+   * @param id      - Category ID to update.
+   * @param payload - Fields to update (label, sort_order).
+   */
+  async updateCategory(id: number, payload: UpdateQACategoryPayload): Promise<QACategory> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to update QA categories.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/categories/${id}`;
+
+    try {
+      const response = await axios.put<ApiQACategoryCreateResponse>(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        timeout: 15_000,
+      });
+
+      const raw = response.data.data;
+      return {
+        id: raw.id,
+        label: raw.label,
+        sortOrder: raw.sort_order,
+        createdAt: raw.created_at,
+        updatedAt: raw.updated_at,
+      };
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string; details?: Record<string, unknown> } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage || "You do not have permission to update categories.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Category not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 422 || serverCode === "VALIDATION_ERROR") {
+          throw new QAError(
+            serverMessage || "Validation failed. Please check your input.",
+            "SERVER_ERROR"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Delete a QA category through the local API proxy.
+   *
+   * @param id - Category ID to delete.
+   */
+  async deleteCategory(id: number): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to delete QA categories.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/categories/${id}`;
+
+    try {
+      await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+      });
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage || "You do not have permission to delete categories.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Category not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
    * Create a new QA entity through the local API proxy.
    */
   async createEntity(payload: CreateQAEntityPayload): Promise<QAEntity> {
@@ -540,4 +758,658 @@ export const qaService = {
       );
     }
   },
+
+  /**
+   * Update an existing QA entity through the local API proxy.
+   *
+   * @param id      - Entity ID to update.
+   * @param payload - Fields to update.
+   */
+  async updateEntity(id: number, payload: UpdateQAEntityPayload): Promise<QAEntity> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to update QA entities.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/entities/${id}`;
+
+    try {
+      const response = await axios.put<ApiQAEntityCreateResponse>(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        timeout: 15_000,
+      });
+
+      const raw = response.data.data;
+      return {
+        id: raw.id,
+        entityLabel: raw.entity_label,
+        categoryId: raw.category_id,
+        dateRangeType: raw.date_range_type,
+        reportType: raw.report_type,
+        sortOrder: raw.sort_order,
+        active: raw.active,
+        createdAt: raw.created_at,
+        updatedAt: raw.updated_at,
+      };
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string; details?: Record<string, unknown> } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage || "You do not have permission to update entities.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Entity not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 422 || serverCode === "VALIDATION_ERROR") {
+          throw new QAError(
+            serverMessage || "Validation failed. Please check your input.",
+            "SERVER_ERROR"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Delete a QA entity through the local API proxy.
+   *
+   * @param id - Entity ID to delete.
+   */
+  async deleteEntity(id: number): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to delete QA entities.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/entities/${id}`;
+
+    try {
+      await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+      });
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage || "You do not have permission to delete entities.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Entity not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Fetch camera report through the local API proxy.
+   *
+   * @param params - Optional filter parameters.
+   * @param signal - Optional AbortSignal for cancellation.
+   */
+  async getCameraReport(
+    params?: {
+      store_id?: number;
+      group?: number;
+      report_type?: string;
+      date_from?: string;
+      date_to?: string;
+      rating_id?: number;
+    },
+    signal?: AbortSignal
+  ): Promise<CameraReportData> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to view camera reports.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-reports`;
+
+    try {
+      const response = await axios.get<ApiCameraReportResponse>(url, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+        signal,
+      });
+
+      return transformCameraReportResponse(response.data);
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage ||
+              "You do not have permission to view camera reports.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Camera reports not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Export camera report through the local API proxy.
+   * Triggers a file download in the browser.
+   *
+   * @param params - Optional filter parameters.
+   */
+  async exportCameraReport(params?: {
+    store_id?: number;
+    group?: number;
+    report_type?: string;
+    date_from?: string;
+    date_to?: string;
+    rating_id?: number;
+  }): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to export camera reports.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-reports/export`;
+
+    try {
+      const response = await axios.get(url, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+        timeout: 30_000,
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "camera-report-export.xlsx";
+      if (contentDisposition) {
+        const match = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+        );
+        if (match?.[1]) {
+          filename = match[1].replace(/['"]/g, "");
+        }
+      }
+
+      // Trigger download
+      const blob = new Blob([response.data]);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+
+        if (status === 401) {
+          throw new QAError("Authentication failed.", "UNAUTHORIZED");
+        }
+        if (status === 403) {
+          throw new QAError(
+            "You do not have permission to export camera reports.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 429) {
+          throw new QAError(
+            "Too many requests. Please wait and try again.",
+            "RATE_LIMITED"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Create a camera form (audit) through the local API proxy.
+   *
+   * @param storeId  - Store ID (integer).
+   * @param date     - Date in YYYY-MM-DD format.
+   * @param entities - Array of entity rating entries (with optional note & attachments).
+   */
+  async createCameraForm(
+    storeId: number,
+    date: string,
+    entities: CameraFormEntityEntry[]
+  ): Promise<ApiCameraFormCreateResponse> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to create camera forms.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-forms`;
+
+    // Build form data: the upstream API expects repeated 'entities' fields,
+    // each containing a JSON-stringified object:
+    //   entities = {"entity_id":33,"rating_id":1}
+    //   entities = {"entity_id":34,"rating_id":2,"notes":[{"note":"text"}]}
+    const formData = new FormData();
+    formData.append("store_id", String(storeId));
+    formData.append("date", date);
+
+    for (const entity of entities) {
+      const entityObj: Record<string, unknown> = {
+        entity_id: entity.entity_id,
+        rating_id: entity.rating_id,
+      };
+
+      // Add notes array if there's a note or attachments
+      if (entity.note?.trim()) {
+        entityObj.notes = [{ note: entity.note.trim() }];
+      }
+
+      formData.append("entities", JSON.stringify(entityObj));
+
+      // If there are file attachments, send them as separate indexed fields
+      // that the API proxy will forward alongside the entity data
+      if (entity.attachments && entity.attachments.length > 0) {
+        const entityIdx = entities.indexOf(entity);
+        for (const file of entity.attachments) {
+          formData.append(`entities_attachments[${entityIdx}][]`, file);
+        }
+      }
+    }
+
+    try {
+      const response = await axios.post<ApiCameraFormCreateResponse>(url, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 30_000,
+      });
+
+      return response.data;
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string; details?: Record<string, unknown> } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage || "You do not have permission to create camera forms.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 422 || serverCode === "VALIDATION_ERROR") {
+          throw new QAError(
+            serverMessage || "Validation failed. Please check your data.",
+            "SERVER_ERROR"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
 };
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Camera Report transform helpers                                         */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function transformCameraCategory(
+  raw: ApiCameraReportCategory
+): CameraReportCategory {
+  return {
+    id: raw.id,
+    label: raw.label,
+    sortOrder: raw.sort_order,
+  };
+}
+
+function transformCameraEntity(
+  raw: ApiCameraReportEntity
+): CameraReportEntity {
+  return {
+    entityId: raw.entity_id,
+    entityLabel: raw.entity_label,
+    ratingCounts: raw.rating_counts.map((rc) => ({
+      ratingLabel: rc.rating_label,
+      count: rc.count,
+    })),
+    notes: raw.notes,
+    category: transformCameraCategory(raw.category),
+  };
+}
+
+function transformCameraSummaryItem(
+  raw: ApiCameraReportSummaryItem
+): CameraReportSummaryItem {
+  const entities: Record<string, CameraReportEntity> = {};
+  for (const [key, val] of Object.entries(raw.entities)) {
+    entities[key] = transformCameraEntity(val);
+  }
+  return {
+    storeId: raw.store_id,
+    storeName: raw.store_name,
+    storeGroup: raw.store_group,
+    entities,
+  };
+}
+
+function transformCameraEntityDef(
+  raw: ApiCameraReportEntityDef
+): CameraReportEntityDef {
+  return {
+    id: raw.id,
+    entityLabel: raw.entity_label,
+    categoryId: raw.category_id,
+    dateRangeType: raw.date_range_type,
+    reportType: raw.report_type,
+    sortOrder: raw.sort_order,
+    active: raw.active,
+    category: transformCameraCategory(raw.category),
+  };
+}
+
+function transformCameraScoreData(raw: {
+  score_without_auto_fail: number;
+  score_with_auto_fail: number;
+}): CameraReportScoreData {
+  return {
+    scoreWithoutAutoFail: raw.score_without_auto_fail,
+    scoreWithAutoFail: raw.score_with_auto_fail,
+  };
+}
+
+function transformCameraReportResponse(
+  raw: ApiCameraReportResponse
+): CameraReportData {
+  const scoreData: Record<string, CameraReportScoreData> = {};
+  for (const [key, val] of Object.entries(raw.data.report.scoreData)) {
+    scoreData[key] = transformCameraScoreData(val);
+  }
+
+  return {
+    summary: raw.data.report.summary.map(transformCameraSummaryItem),
+    entities: raw.data.report.entities.map(transformCameraEntityDef),
+    totalStores: raw.data.report.total_stores,
+    scoreData,
+    stores: raw.data.stores.map((s) => ({
+      id: s.id,
+      store: s.store,
+      group: s.group,
+    })),
+    groups: raw.data.groups,
+    ratings: raw.data.ratings.map((r) => ({
+      id: r.id,
+      label: r.label,
+    })),
+    filters: {
+      storeId: raw.data.filters.store_id,
+      group: raw.data.filters.group,
+      reportType: raw.data.filters.report_type,
+      dateFrom: raw.data.filters.date_from,
+      dateTo: raw.data.filters.date_to,
+      ratingId: raw.data.filters.rating_id,
+    },
+  };
+}

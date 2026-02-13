@@ -71,12 +71,8 @@ export function QACategoryForm() {
     const result = await createCategory(payload);
 
     if (result) {
-      setSuccessMessage(
-        t("success", { label: result.label })
-      );
-      setLabel("");
-      setSortOrder("");
-      setValidationErrors({});
+      // Redirect to Entities & Categories page for better UX
+      router.push(`/${locale}/dashboard/entities-and-categories`);
     }
   };
 
