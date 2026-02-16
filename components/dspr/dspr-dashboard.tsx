@@ -480,11 +480,11 @@ export function DsprDashboard() {
         toolbar={false}
       />
 
-      {/* ── HNR · Portal · On Time · Labor gauges row ────────────── */}
+      {/* ── Portal · On Time · HNR · Labor gauges row ────────────── */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <HnrCard hnr={day.hnr} />
         <PortalCard portal={day.portal} />
         <OnTimeCard portal={day.portal} />
+        <HnrCard hnr={day.hnr} />
         <LaborGauge value={day.labor} />
       </div>
 

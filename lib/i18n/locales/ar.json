@@ -54,9 +54,12 @@
     "userStoreAssignment": "تعيين الفروع للمستخدمين",
     "maintenance": "الصيانة",
     "qualityAssurance": "ضمان الجودة",
+    "cameraForms": "نماذج الكاميرا",
+    "createCameraForms": "إنشاء نماذج الكاميرا",
     "createQaCategory": "إنشاء فئة الجودة",
     "createQaEntity": "إنشاء كيان الجودة",
     "entitiesAndCategories": "الكيانات والفئات",
+    "cameraReport": "تقرير الكاميرا",
     "settings": "الإعدادات",
     "storeManagement": "إدارة الفروع",
     "userManagement": "إدارة المستخدمين",
@@ -89,6 +92,7 @@
     "quality-assurance": "ضمان الجودة",
     "create-qa-category": "إنشاء فئة الجودة",
     "entities-and-categories": "الكيانات والفئات",
+    "camera-report": "تقرير الكاميرا",
     "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
@@ -1142,7 +1146,46 @@
       },
       "active": "نشط",
       "inactive": "غير نشط",
-      "noData": "لا توجد كيانات."
+      "noData": "لا توجد كيانات.",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "edit": "تعديل الكيان",
+      "delete": "حذف الكيان",
+      "openMenu": "فتح القائمة"
+    },
+    "editDialog": {
+      "title": "تعديل الكيان",
+      "description": "قم بتحديث تفاصيل الكيان أدناه.",
+      "entityLabel": "تسمية الكيان",
+      "entityLabelPlaceholder": "أدخل تسمية الكيان",
+      "category": "الفئة",
+      "categoryPlaceholder": "اختر فئة",
+      "noCategory": "بدون فئة",
+      "dateRangeType": "نوع النطاق الزمني",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "مثال: رئيسي",
+      "sortOrder": "ترتيب العرض",
+      "active": "نشط",
+      "save": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "cancel": "إلغاء",
+      "success": "تم تحديث الكيان بنجاح.",
+      "error": "فشل تحديث الكيان.",
+      "validation": {
+        "labelRequired": "تسمية الكيان مطلوبة.",
+        "labelMaxLength": "يجب ألا تتجاوز تسمية الكيان 255 حرفاً.",
+        "dateRangeRequired": "نوع النطاق الزمني مطلوب."
+      }
+    },
+    "deleteDialog": {
+      "title": "حذف الكيان",
+      "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف...",
+      "cancel": "إلغاء",
+      "success": "تم حذف الكيان بنجاح.",
+      "error": "فشل حذف الكيان."
     },
     "categoriesTable": {
       "title": "فئات الجودة",
@@ -1153,7 +1196,38 @@
         "sortOrder": "ترتيب العرض",
         "createdAt": "تاريخ الإنشاء"
       },
-      "noData": "لا توجد فئات."
+      "noData": "لا توجد فئات.",
+      "actions": "الإجراءات"
+    },
+    "categoryActions": {
+      "edit": "تعديل الفئة",
+      "delete": "حذف الفئة",
+      "openMenu": "فتح القائمة"
+    },
+    "editCategoryDialog": {
+      "title": "تعديل الفئة",
+      "description": "قم بتحديث تفاصيل الفئة أدناه.",
+      "label": "التسمية",
+      "labelPlaceholder": "أدخل اسم الفئة",
+      "sortOrder": "ترتيب العرض",
+      "save": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "cancel": "إلغاء",
+      "success": "تم تحديث الفئة بنجاح.",
+      "error": "فشل في تحديث الفئة.",
+      "validation": {
+        "labelRequired": "اسم الفئة مطلوب.",
+        "labelMaxLength": "يجب ألا يتجاوز اسم الفئة 255 حرفاً."
+      }
+    },
+    "deleteCategoryDialog": {
+      "title": "حذف الفئة",
+      "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirm": "حذف",
+      "deleting": "جاري الحذف...",
+      "cancel": "إلغاء",
+      "success": "تم حذف الفئة بنجاح.",
+      "error": "فشل في حذف الفئة."
     },
     "error": {
       "title": "خطأ في تحميل البيانات",
@@ -1161,5 +1235,113 @@
       "dismiss": "تجاهل"
     },
     "showing": "عرض {count} عنصر(عناصر)"
+  },
+  "cameraReport": {
+    "title": "تقرير الكاميرا",
+    "description": "عرض تقارير تدقيق الكاميرا عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جاري التحديث...",
+    "tableTitle": "تقارير الكاميرا",
+    "totalStores": "{count} فرع(فروع) إجمالي",
+    "noData": "لا توجد بيانات تقرير الكاميرا.",
+    "columns": {
+      "store": "الفرع",
+      "group": "المجموعة",
+      "entity": "الكيان",
+      "category": "الفئة",
+      "ratings": "التقييمات",
+      "score": "النتيجة",
+      "notes": "ملاحظات"
+    },
+    "scoreWithAutoFail": "النتيجة (مع الرسوب التلقائي)",
+    "scoreWithoutAutoFail": "النتيجة (بدون الرسوب التلقائي)",
+    "scoreLabel": "النتيجة",
+    "scoreWithAutoFailSub": "(مع الرسوب التلقائي)",
+    "scoreWithoutAutoFailSub": "(بدون الرسوب التلقائي)",
+    "filters": {
+      "title": "الفلاتر",
+      "store": "الفرع",
+      "group": "المجموعة",
+      "reportType": "نوع التقرير",
+      "dateFrom": "من تاريخ",
+      "dateTo": "إلى تاريخ",
+      "rating": "التقييم",
+      "apply": "تطبيق الفلاتر",
+      "reset": "إعادة تعيين",
+      "export": "تصدير",
+      "allStores": "جميع الفروع",
+      "allGroups": "جميع المجموعات",
+      "allTypes": "جميع الأنواع",
+      "allRatings": "جميع التقييمات",
+      "main": "رئيسي",
+      "secondary": "ثانوي",
+      "groupLabel": "مجموعة {group}",
+      "ratingPass": "ناجح",
+      "ratingFail": "راسب",
+      "ratingNotDone": "لم يتم",
+      "ratingCameraFail": "فشل الكاميرا",
+      "ratingAutoFail": "رسوب تلقائي",
+      "ratingUrgent": "عاجل"
+    },
+    "error": {
+      "title": "خطأ في تحميل تقرير الكاميرا",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "createCameraForm": {
+    "title": "إنشاء نموذج الكاميرا",
+    "description": "تقييم الكيانات لفرع في تاريخ محدد",
+    "filterEntities": {
+      "title": "تصفية الكيانات",
+      "dateRangeType": "نوع نطاق التاريخ",
+      "dateRangeTypePlaceholder": "اختر نوع نطاق التاريخ",
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "اختر نوع التقرير",
+      "allReports": "جميع التقارير",
+      "main": "رئيسي",
+      "secondary": "ثانوي"
+    },
+    "basicInfo": {
+      "title": "المعلومات الأساسية",
+      "store": "الفرع",
+      "storePlaceholder": "اختر فرعاً",
+      "storeLoading": "جاري تحميل الفروع...",
+      "date": "التاريخ",
+      "datePlaceholder": "اختر تاريخاً (YYYY-MM-DD)"
+    },
+    "entities": {
+      "title": "الكيانات",
+      "noEntities": "لم يتم العثور على كيانات للفلاتر المحددة.",
+      "rating": "التقييم",
+      "ratingPlaceholder": "اختر التقييم",
+      "pass": "ناجح",
+      "fail": "راسب",
+      "notDone": "لم يتم",
+      "cameraFail": "فشل الكاميرا",
+      "autoFail": "رسوب تلقائي",
+      "urgent": "عاجل",
+      "note": "ملاحظة",
+      "notePlaceholder": "أضف ملاحظة (اختياري)",
+      "attachment": "مرفق"
+    },
+    "submit": "إرسال نموذج الكاميرا",
+    "submitting": "جاري الإرسال...",
+    "reset": "إعادة تعيين النموذج",
+    "success": "تم إرسال نموذج الكاميرا بنجاح!",
+    "validation": {
+      "storeRequired": "يرجى اختيار فرع.",
+      "dateRequired": "يرجى اختيار تاريخ.",
+      "dateInvalid": "يجب أن يكون التاريخ بصيغة YYYY-MM-DD.",
+      "entitiesRequired": "يجب تقييم كيان واحد على الأقل.",
+      "ratingRequired": "يرجى اختيار تقييم لجميع الكيانات المعروضة."
+    },
+    "error": {
+      "loadEntities": "فشل تحميل الكيانات.",
+      "loadStores": "فشل تحميل الفروع.",
+      "submitFailed": "فشل إرسال نموذج الكاميرا."
+    }
   }
 }

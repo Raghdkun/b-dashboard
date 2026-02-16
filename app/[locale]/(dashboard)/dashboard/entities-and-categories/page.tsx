@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { useQAEntitiesAndCategories } from "@/lib/hooks/use-qa-entities-and-categories";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,10 @@ import {
   XCircle,
   Layers,
   FolderOpen,
+  Plus,
 } from "lucide-react";
+import { EntityActions } from "@/components/qa/entity-actions";
+import { CategoryActions } from "@/components/qa/category-actions";
 import { cn } from "@/lib/utils";
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -49,14 +54,14 @@ function EntitiesAndCategoriesSkeleton() {
         </div>
         {/* Desktop skeleton */}
         <div className="hidden md:block space-y-4">
-          <div className="grid grid-cols-7 gap-4">
-            {Array.from({ length: 7 }).map((_, i) => (
+          <div className="grid grid-cols-8 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton key={i} className="h-4 w-full" />
             ))}
           </div>
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="grid grid-cols-7 gap-4">
-              {Array.from({ length: 7 }).map((_, j) => (
+            <div key={i} className="grid grid-cols-8 gap-4">
+              {Array.from({ length: 8 }).map((_, j) => (
                 <Skeleton key={j} className="h-5 w-full" />
               ))}
             </div>
@@ -159,6 +164,8 @@ function EmptyState({
 
 export default function EntitiesAndCategoriesPage() {
   const t = useTranslations("qaEntitiesAndCategories");
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
   const {
     entities,
     categories,
@@ -223,10 +230,16 @@ export default function EntitiesAndCategoriesPage() {
           {/* ──── Entities Tab ──── */}
           <TabsContent value="entities">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg">
                   {t("entitiesTable.title")}
                 </CardTitle>
+                <Button asChild size="sm">
+                  <Link href={`/${locale}/dashboard/entities-and-categories/create-qa-entity`}>
+                    <Plus className="me-2 h-4 w-4" />
+                    Create Entity
+                  </Link>
+                </Button>
               </CardHeader>
               <CardContent>
                 {entities.length === 0 ? (
@@ -248,6 +261,7 @@ export default function EntitiesAndCategoriesPage() {
                             <TableHead>{t("entitiesTable.columns.reportType")}</TableHead>
                             <TableHead>{t("entitiesTable.columns.sortOrder")}</TableHead>
                             <TableHead>{t("entitiesTable.columns.active")}</TableHead>
+                            <TableHead className="w-12.5">{t("entitiesTable.actions")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -256,7 +270,7 @@ export default function EntitiesAndCategoriesPage() {
                               <TableCell className="font-mono text-xs">
                                 {entity.id}
                               </TableCell>
-                              <TableCell className="font-medium max-w-[200px] truncate">
+                              <TableCell className="font-medium max-w-50 truncate">
                                 {entity.entityLabel}
                               </TableCell>
                               <TableCell>
@@ -286,6 +300,13 @@ export default function EntitiesAndCategoriesPage() {
                                     : t("entitiesTable.inactive")}
                                 </Badge>
                               </TableCell>
+                              <TableCell>
+                                <EntityActions
+                                  entity={entity}
+                                  categories={categories}
+                                  onSuccess={refetch}
+                                />
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -300,17 +321,24 @@ export default function EntitiesAndCategoriesPage() {
                           className="rounded-lg border p-4 space-y-2"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm truncate max-w-[60%]">
+                            <span className="font-medium text-sm truncate max-w-[50%]">
                               {entity.entityLabel}
                             </span>
-                            <Badge
-                              variant={entity.active ? "default" : "destructive"}
-                              className="text-xs"
-                            >
-                              {entity.active
-                                ? t("entitiesTable.active")
-                                : t("entitiesTable.inactive")}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={entity.active ? "default" : "destructive"}
+                                className="text-xs"
+                              >
+                                {entity.active
+                                  ? t("entitiesTable.active")
+                                  : t("entitiesTable.inactive")}
+                              </Badge>
+                              <EntityActions
+                                entity={entity}
+                                categories={categories}
+                                onSuccess={refetch}
+                              />
+                            </div>
                           </div>
                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                             <span>{t("entitiesTable.columns.id")}: {entity.id}</span>
@@ -347,10 +375,16 @@ export default function EntitiesAndCategoriesPage() {
           {/* ──── Categories Tab ──── */}
           <TabsContent value="categories">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg">
                   {t("categoriesTable.title")}
                 </CardTitle>
+                <Button asChild size="sm">
+                  <Link href={`/${locale}/dashboard/entities-and-categories/create-qa-category`}>
+                    <Plus className="me-2 h-4 w-4" />
+                    Create Category
+                  </Link>
+                </Button>
               </CardHeader>
               <CardContent>
                 {categories.length === 0 ? (
@@ -370,6 +404,7 @@ export default function EntitiesAndCategoriesPage() {
                             <TableHead>{t("categoriesTable.columns.entitiesCount")}</TableHead>
                             <TableHead>{t("categoriesTable.columns.sortOrder")}</TableHead>
                             <TableHead>{t("categoriesTable.columns.createdAt")}</TableHead>
+                            <TableHead className="w-12.5">{t("categoriesTable.actions")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -390,6 +425,12 @@ export default function EntitiesAndCategoriesPage() {
                               <TableCell className="text-xs text-muted-foreground">
                                 {new Date(category.createdAt).toLocaleDateString()}
                               </TableCell>
+                              <TableCell>
+                                <CategoryActions
+                                  category={category}
+                                  onSuccess={refetch}
+                                />
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -407,10 +448,16 @@ export default function EntitiesAndCategoriesPage() {
                             <span className="font-medium text-sm">
                               {category.label}
                             </span>
-                            <Badge variant="secondary" className="text-xs">
-                              {category.entitiesCount}{" "}
-                              {t("categoriesTable.columns.entitiesCount")}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {category.entitiesCount}{" "}
+                                {t("categoriesTable.columns.entitiesCount")}
+                              </Badge>
+                              <CategoryActions
+                                category={category}
+                                onSuccess={refetch}
+                              />
+                            </div>
                           </div>
                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                             <span>

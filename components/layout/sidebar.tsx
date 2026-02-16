@@ -30,6 +30,7 @@ import {
   FileText,
   List,
   Landmark,
+  Camera,
 } from "lucide-react";
 import {
   Dialog,
@@ -211,6 +212,12 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     ],
   };
 
+  const employeesItem: NavItem = {
+    title: t("employees"),
+    href: `/${locale}/dashboard/employees`,
+    icon: Briefcase,
+  };
+
   const userManagementGroup: NavGroup = {
     label: t("userManagement"),
     icon: Users,
@@ -219,11 +226,6 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         title: t("users"),
         href: `/${locale}/dashboard/users`,
         icon: Users,
-      },
-      {
-        title: t("employees"),
-        href: `/${locale}/dashboard/employees`,
-        icon: Briefcase,
       },
       {
         title: t("roles"),
@@ -243,9 +245,14 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     icon: ClipboardCheck,
     items: [
       {
-        title: t("qualityAssurance"),
+        title: t("cameraForms"),
         href: `/${locale}/dashboard/quality-assurance`,
         icon: ClipboardCheck,
+      },
+      {
+        title: t("createCameraForms"),
+        href: `/${locale}/dashboard/create-camera-forms`,
+        icon: FileText,
       },
       {
         title: t("entitiesAndCategories"),
@@ -253,14 +260,9 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         icon: List,
       },
       {
-        title: t("createQaCategory"),
-        href: `/${locale}/dashboard/create-qa-category`,
-        icon: FolderPlus,
-      },
-      {
-        title: t("createQaEntity"),
-        href: `/${locale}/dashboard/create-qa-entity`,
-        icon: FileText,
+        title: t("cameraReport"),
+        href: `/${locale}/dashboard/camera-report`,
+        icon: Camera,
       },
     ],
   };
@@ -492,7 +494,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
       </Dialog>
 
       {/* Navigation — scrollable when content overflows */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-y-auto">
         <nav className="space-y-1 px-2 sm:px-3 py-2 sm:py-3">
           {/* 1. Dashboard */}
           {renderNavLink(dashboardItem)}
@@ -533,7 +535,10 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
             onNavigate={onNavigate}
           />
 
-          {/* 6. Maintenance */}
+          {/* 6. Employees */}
+          {renderNavLink(employeesItem)}
+
+          {/* 7. Maintenance */}
           {renderNavLink(maintenanceItem)}
 
           {/* 7. Settings */}

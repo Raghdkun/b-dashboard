@@ -54,9 +54,12 @@
     "userStoreAssignment": "User Store Assignment",
     "maintenance": "Maintenance",
     "qualityAssurance": "Quality Assurance",
+    "cameraForms": "Camera Forms",
+    "createCameraForms": "Create Camera Forms",
     "createQaCategory": "Create QA Category",
     "createQaEntity": "Create QA Entity",
     "entitiesAndCategories": "Entities & Categories",
+    "cameraReport": "Camera Report",
     "settings": "Settings",
     "storeManagement": "Store Management",
     "userManagement": "User Management",
@@ -89,6 +92,7 @@
     "quality-assurance": "Quality Assurance",
     "create-qa-category": "Create QA Category",
     "entities-and-categories": "Entities & Categories",
+    "camera-report": "Camera Report",
     "assign": "Assign Store",
     "bulk": "Bulk Assignment",
     "settings": "Settings",
@@ -1143,7 +1147,46 @@
       },
       "active": "Active",
       "inactive": "Inactive",
-      "noData": "No entities found."
+      "noData": "No entities found.",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit Entity",
+      "delete": "Delete Entity",
+      "openMenu": "Open menu"
+    },
+    "editDialog": {
+      "title": "Edit Entity",
+      "description": "Update the entity details below.",
+      "entityLabel": "Entity Label",
+      "entityLabelPlaceholder": "Enter entity label",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "noCategory": "No category",
+      "dateRangeType": "Date Range Type",
+      "reportType": "Report Type",
+      "reportTypePlaceholder": "e.g. main",
+      "sortOrder": "Sort Order",
+      "active": "Active",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "success": "Entity updated successfully.",
+      "error": "Failed to update entity.",
+      "validation": {
+        "labelRequired": "Entity label is required.",
+        "labelMaxLength": "Entity label must be 255 characters or less.",
+        "dateRangeRequired": "Date range type is required."
+      }
+    },
+    "deleteDialog": {
+      "title": "Delete Entity",
+      "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "cancel": "Cancel",
+      "success": "Entity deleted successfully.",
+      "error": "Failed to delete entity."
     },
     "categoriesTable": {
       "title": "QA Categories",
@@ -1154,7 +1197,38 @@
         "sortOrder": "Sort Order",
         "createdAt": "Created At"
       },
-      "noData": "No categories found."
+      "noData": "No categories found.",
+      "actions": "Actions"
+    },
+    "categoryActions": {
+      "edit": "Edit Category",
+      "delete": "Delete Category",
+      "openMenu": "Open menu"
+    },
+    "editCategoryDialog": {
+      "title": "Edit Category",
+      "description": "Update the category details below.",
+      "label": "Label",
+      "labelPlaceholder": "Enter category label",
+      "sortOrder": "Sort Order",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "success": "Category updated successfully.",
+      "error": "Failed to update category.",
+      "validation": {
+        "labelRequired": "Category label is required.",
+        "labelMaxLength": "Category label must be 255 characters or less."
+      }
+    },
+    "deleteCategoryDialog": {
+      "title": "Delete Category",
+      "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "cancel": "Cancel",
+      "success": "Category deleted successfully.",
+      "error": "Failed to delete category."
     },
     "error": {
       "title": "Error Loading Data",
@@ -1162,5 +1236,113 @@
       "dismiss": "Dismiss"
     },
     "showing": "Showing {count} item(s)"
+  },
+  "cameraReport": {
+    "title": "Camera Report",
+    "description": "View camera audit reports across all stores.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "tableTitle": "Camera Reports",
+    "totalStores": "{count} store(s) total",
+    "noData": "No camera report data available.",
+    "columns": {
+      "store": "Store",
+      "group": "Group",
+      "entity": "Entity",
+      "category": "Category",
+      "ratings": "Ratings",
+      "score": "Score",
+      "notes": "Notes"
+    },
+    "scoreWithAutoFail": "Score (with auto-fail)",
+    "scoreWithoutAutoFail": "Score (without auto-fail)",
+    "scoreLabel": "Score",
+    "scoreWithAutoFailSub": "(with auto-fail)",
+    "scoreWithoutAutoFailSub": "(without auto-fail)",
+    "filters": {
+      "title": "Filters",
+      "store": "Store",
+      "group": "Group",
+      "reportType": "Report Type",
+      "dateFrom": "Date From",
+      "dateTo": "Date To",
+      "rating": "Rating",
+      "apply": "Apply Filters",
+      "reset": "Reset",
+      "export": "Export",
+      "allStores": "All Stores",
+      "allGroups": "All Groups",
+      "allTypes": "All Types",
+      "allRatings": "All Ratings",
+      "main": "Main",
+      "secondary": "Secondary",
+      "groupLabel": "Group {group}",
+      "ratingPass": "Pass",
+      "ratingFail": "Fail",
+      "ratingNotDone": "Not Done",
+      "ratingCameraFail": "Camera Fail",
+      "ratingAutoFail": "Auto Fail",
+      "ratingUrgent": "Urgent"
+    },
+    "error": {
+      "title": "Error Loading Camera Report",
+      "retry": "Try Again",
+      "dismiss": "Dismiss"
+    }
+  },
+  "createCameraForm": {
+    "title": "Create Camera Form",
+    "description": "Rate entities for a store on a specific date",
+    "filterEntities": {
+      "title": "Filter Entities",
+      "dateRangeType": "Date Range Type",
+      "dateRangeTypePlaceholder": "Select date range type",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "reportType": "Report Type",
+      "reportTypePlaceholder": "Select report type",
+      "allReports": "All Reports",
+      "main": "Main",
+      "secondary": "Secondary"
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "store": "Store",
+      "storePlaceholder": "Select a store",
+      "storeLoading": "Loading stores...",
+      "date": "Date",
+      "datePlaceholder": "Select a date (YYYY-MM-DD)"
+    },
+    "entities": {
+      "title": "Entities",
+      "noEntities": "No entities found for the selected filters.",
+      "rating": "Rating",
+      "ratingPlaceholder": "Select rating",
+      "pass": "Pass",
+      "fail": "Fail",
+      "notDone": "Not Done",
+      "cameraFail": "Camera Fail",
+      "autoFail": "Auto Fail",
+      "urgent": "Urgent",
+      "note": "Note",
+      "notePlaceholder": "Add a note (optional)",
+      "attachment": "Attachment"
+    },
+    "submit": "Submit Camera Form",
+    "submitting": "Submitting...",
+    "reset": "Reset Form",
+    "success": "Camera form submitted successfully!",
+    "validation": {
+      "storeRequired": "Please select a store.",
+      "dateRequired": "Please select a date.",
+      "dateInvalid": "Date must be in YYYY-MM-DD format.",
+      "entitiesRequired": "At least one entity must be rated.",
+      "ratingRequired": "Please select a rating for all displayed entities."
+    },
+    "error": {
+      "loadEntities": "Failed to load entities.",
+      "loadStores": "Failed to load stores.",
+      "submitFailed": "Failed to submit camera form."
+    }
   }
 }
