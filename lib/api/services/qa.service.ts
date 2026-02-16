@@ -31,7 +31,17 @@ import type {
   ApiCameraReportCategory,
   ApiCameraReportEntityDef,
   CameraFormEntityEntry,
+  CameraFormUpdateEntityEntry,
   ApiCameraFormCreateResponse,
+  ApiCameraFormsListResponse,
+  CameraFormsListResponse,
+  CameraFormAudit,
+  CameraFormEntryItem,
+  CameraFormNote,
+  CameraFormAttachment,
+  CameraFormsFilterParams,
+  ApiCameraFormAudit,
+  ApiCameraFormEntry,
 } from "@/types/qa.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -115,6 +125,88 @@ function transformResponse(raw: ApiQAAuditsResponse): QAAuditsResponse {
     },
     hasNextPage: raw.data.next_page_url !== null,
     hasPrevPage: raw.data.prev_page_url !== null,
+  };
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Camera Forms List transform helpers                                     */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function transformCameraFormAudit(raw: ApiCameraFormAudit): CameraFormAudit {
+  return {
+    id: raw.id,
+    storeId: raw.store_id,
+    userId: raw.user_id,
+    date: raw.date,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    store: {
+      id: raw.store.id,
+      store: raw.store.store,
+      group: raw.store.group,
+    },
+    user: {
+      id: raw.user.id,
+      name: raw.user.name,
+      email: raw.user.email,
+    },
+    cameraForms: (raw.camera_forms ?? []).map(
+      (cf: ApiCameraFormEntry): CameraFormEntryItem => ({
+        id: cf.id,
+        userId: cf.user_id,
+        entityId: cf.entity_id,
+        auditId: cf.audit_id,
+        ratingId: cf.rating_id,
+        entity: {
+          id: cf.entity.id,
+          entityLabel: cf.entity.entity_label,
+          category: {
+            id: cf.entity.category.id,
+            label: cf.entity.category.label,
+            sortOrder: cf.entity.category.sort_order,
+          },
+        },
+        rating: {
+          id: cf.rating.id,
+          label: cf.rating.label,
+        },
+        notes: (cf.notes ?? []).map(
+          (n): CameraFormNote => ({
+            id: n.id,
+            cameraFormId: n.camera_form_id,
+            note: n.note,
+            attachments: (n.attachments ?? []).map(
+              (a): CameraFormAttachment => ({
+                id: a.id,
+                cameraFormNoteId: a.camera_form_note_id,
+                path: a.path,
+                url: a.url,
+              })
+            ),
+          })
+        ),
+      })
+    ),
+  };
+}
+
+function transformCameraFormsListResponse(
+  raw: ApiCameraFormsListResponse
+): CameraFormsListResponse {
+  const data = raw.data;
+  return {
+    audits: (data.data ?? []).map(transformCameraFormAudit),
+    pagination: {
+      currentPage: data.current_page,
+      perPage: data.per_page,
+      total: data.total,
+      lastPage: data.last_page ?? (Math.ceil(data.total / data.per_page) || 1),
+      from: data.from ?? null,
+      to: data.to ?? null,
+    },
+    hasNextPage: data.next_page_url !== null && data.next_page_url !== undefined,
+    hasPrevPage:
+      data.prev_page_url !== null && data.prev_page_url !== undefined,
   };
 }
 
@@ -1179,6 +1271,119 @@ export const qaService = {
   },
 
   /**
+   * Fetch camera forms list through the local API proxy.
+   *
+   * @param filters - Filter/pagination parameters.
+   * @param signal  - Optional AbortSignal for cancellation.
+   */
+  async getCameraForms(
+    filters: CameraFormsFilterParams = {},
+    signal?: AbortSignal
+  ): Promise<CameraFormsListResponse> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to view camera forms.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-forms`;
+    const params: Record<string, string | number> = {};
+
+    if (filters.page && filters.page >= 1) params.page = filters.page;
+    if (filters.dateRangeType)
+      params.date_range_type = filters.dateRangeType;
+    if (filters.dateFrom) params.date_from = filters.dateFrom;
+    if (filters.dateTo) params.date_to = filters.dateTo;
+    if (filters.storeId) params.store_id = filters.storeId;
+
+    try {
+      const response = await axios.get<ApiCameraFormsListResponse>(url, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+        signal,
+      });
+
+      return transformCameraFormsListResponse(response.data);
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage ||
+              "You do not have permission to view camera forms.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Camera forms not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage ||
+              "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
    * Create a camera form (audit) through the local API proxy.
    *
    * @param storeId  - Store ID (integer).
@@ -1200,33 +1405,32 @@ export const qaService = {
 
     const url = `/api/qa/camera-forms`;
 
-    // Build form data: the upstream API expects repeated 'entities' fields,
-    // each containing a JSON-stringified object:
-    //   entities = {"entity_id":33,"rating_id":1}
-    //   entities = {"entity_id":34,"rating_id":2,"notes":[{"note":"text"}]}
+    // Build form data: Laravel expects indexed array notation
+    // e.g., entities[0][entity_id], entities[0][rating_id], 
+    //       entities[0][notes][0][note], entities[0][notes][0][images][]
     const formData = new FormData();
     formData.append("store_id", String(storeId));
     formData.append("date", date);
 
-    for (const entity of entities) {
-      const entityObj: Record<string, unknown> = {
-        entity_id: entity.entity_id,
-        rating_id: entity.rating_id,
-      };
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      
+      // Required fields for each entity
+      formData.append(`entities[${i}][entity_id]`, String(entity.entity_id));
+      formData.append(`entities[${i}][rating_id]`, String(entity.rating_id));
 
-      // Add notes array if there's a note or attachments
-      if (entity.note?.trim()) {
-        entityObj.notes = [{ note: entity.note.trim() }];
-      }
-
-      formData.append("entities", JSON.stringify(entityObj));
-
-      // If there are file attachments, send them as separate indexed fields
-      // that the API proxy will forward alongside the entity data
-      if (entity.attachments && entity.attachments.length > 0) {
-        const entityIdx = entities.indexOf(entity);
-        for (const file of entity.attachments) {
-          formData.append(`entities_attachments[${entityIdx}][]`, file);
+      // Optional note and attachments
+      if (entity.note?.trim() || (entity.attachments && entity.attachments.length > 0)) {
+        // If we have a note, add it to notes[0][note]
+        if (entity.note?.trim()) {
+          formData.append(`entities[${i}][notes][0][note]`, entity.note.trim());
+        }
+        
+        // If we have attachments, add them to notes[0][images][]
+        if (entity.attachments && entity.attachments.length > 0) {
+          for (const file of entity.attachments) {
+            formData.append(`entities[${i}][notes][0][images][]`, file);
+          }
         }
       }
     }
@@ -1301,6 +1505,168 @@ export const qaService = {
           serverMessage || `Server error (${status}).`,
           "SERVER_ERROR"
         );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Delete a camera form (audit) by ID.
+   */
+  async deleteCameraForm(id: number): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to delete camera forms.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-forms/${id}`;
+
+    try {
+      await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+      });
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401) {
+          throw new QAError(serverMessage || "Authentication failed.", "UNAUTHORIZED");
+        }
+        if (status === 403) {
+          throw new QAError(serverMessage || "Permission denied.", "FORBIDDEN");
+        }
+        if (status === 404) {
+          throw new QAError(serverMessage || "Camera form not found.", "NOT_FOUND");
+        }
+
+        throw new QAError(serverMessage || `Server error (${status}).`, "SERVER_ERROR");
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Update a camera form (audit) by ID.
+   */
+  async updateCameraForm(
+    id: number,
+    storeId: number,
+    date: string,
+    entities: CameraFormUpdateEntityEntry[]
+  ): Promise<unknown> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to update camera forms.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-forms/${id}`;
+
+    const formData = new FormData();
+    formData.append("store_id", String(storeId));
+    formData.append("date", date);
+
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      formData.append(`entities[${i}][entity_id]`, String(entity.entity_id));
+      formData.append(`entities[${i}][rating_id]`, String(entity.rating_id));
+
+      // Notes array
+      if (entity.notes && entity.notes.length > 0) {
+        for (let j = 0; j < entity.notes.length; j++) {
+          const note = entity.notes[j];
+
+          // Existing note id (for update)
+          if (note.id != null) {
+            formData.append(`entities[${i}][notes][${j}][id]`, String(note.id));
+          }
+
+          // Note text
+          if (note.note?.trim()) {
+            formData.append(`entities[${i}][notes][${j}][note]`, note.note.trim());
+          }
+
+          // New images
+          if (note.images && note.images.length > 0) {
+            for (const file of note.images) {
+              formData.append(`entities[${i}][notes][${j}][images][]`, file);
+            }
+          }
+
+          // Remove specific attachments from this note
+          if (note.remove_attachment_ids && note.remove_attachment_ids.length > 0) {
+            for (const attachId of note.remove_attachment_ids) {
+              formData.append(`entities[${i}][notes][${j}][remove_attachment_ids][]`, String(attachId));
+            }
+          }
+        }
+      }
+
+      // Remove entire notes
+      if (entity.remove_note_ids && entity.remove_note_ids.length > 0) {
+        for (const noteId of entity.remove_note_ids) {
+          formData.append(`entities[${i}][remove_note_ids][]`, String(noteId));
+        }
+      }
+    }
+
+    try {
+      const response = await axios.put(url, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 30_000,
+      });
+
+      return response.data;
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401) {
+          throw new QAError(serverMessage || "Authentication failed.", "UNAUTHORIZED");
+        }
+        if (status === 403) {
+          throw new QAError(serverMessage || "Permission denied.", "FORBIDDEN");
+        }
+        if (status === 404) {
+          throw new QAError(serverMessage || "Camera form not found.", "NOT_FOUND");
+        }
+        if (status === 422) {
+          throw new QAError(serverMessage || "Validation failed.", "SERVER_ERROR");
+        }
+
+        throw new QAError(serverMessage || `Server error (${status}).`, "SERVER_ERROR");
       }
 
       throw new QAError(

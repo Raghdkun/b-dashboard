@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -33,13 +33,18 @@ import {
   ClipboardCheck,
   Paperclip,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import {
   useStoresForCameraForm,
   useEntitiesForCameraForm,
-  useCreateCameraForm,
+  useUpdateCameraForm,
+  useCameraFormDetail,
 } from "@/lib/hooks/use-camera-form";
-import type { CameraFormEntityEntry } from "@/types/qa.types";
+import type {
+  CameraFormUpdateEntityEntry,
+  CameraFormAttachment,
+} from "@/types/qa.types";
 import { useRouter, useParams } from "next/navigation";
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -61,9 +66,13 @@ const REPORT_TYPE_ALL = "__all__";
 /*  Component                                                               */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export function CameraForm() {
-  const t = useTranslations("createCameraForm");
-  const tCommon = useTranslations("common");
+interface EditCameraFormProps {
+  formId: number;
+}
+
+export function EditCameraForm({ formId }: EditCameraFormProps) {
+  const t = useTranslations("editCameraForm");
+  const tCreate = useTranslations("createCameraForm");
   const router = useRouter();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
@@ -83,11 +92,17 @@ export function CameraForm() {
   } = useEntitiesForCameraForm();
 
   const {
-    submitCameraForm,
+    audit,
+    isLoading: isAuditLoading,
+    error: auditError,
+  } = useCameraFormDetail(formId);
+
+  const {
+    updateCameraForm,
     isSubmitting,
     error: submitError,
     clearError,
-  } = useCreateCameraForm();
+  } = useUpdateCameraForm();
 
   // ── Filter state ───────────────────────────────────────────────────────
   const [dateRangeType, setDateRangeType] = useState<string>("daily");
@@ -100,27 +115,69 @@ export function CameraForm() {
     {}
   );
   const [entityNotes, setEntityNotes] = useState<Record<number, string>>({});
+  const [entityNoteIds, setEntityNoteIds] = useState<Record<number, number>>(
+    {}
+  );
   const [entityFiles, setEntityFiles] = useState<Record<number, File[]>>({});
+  const [existingAttachments, setExistingAttachments] = useState<
+    Record<number, CameraFormAttachment[]>
+  >({});
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<
+    Record<number, number[]>
+  >({});
+  const [removedNoteIds, setRemovedNoteIds] = useState<number[]>([]);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isPrePopulated, setIsPrePopulated] = useState(false);
+
+  // ── Pre-populate form data from audit ──────────────────────────────────
+  useEffect(() => {
+    if (!audit || isPrePopulated) return;
+
+    setSelectedStoreId(String(audit.storeId));
+    const dateOnly = audit.date.includes("T")
+      ? audit.date.split("T")[0]
+      : audit.date;
+    setSelectedDate(dateOnly);
+
+    const ratings: Record<number, string> = {};
+    const notes: Record<number, string> = {};
+    const noteIds: Record<number, number> = {};
+    const attachments: Record<number, CameraFormAttachment[]> = {};
+
+    for (const cf of audit.cameraForms) {
+      ratings[cf.entityId] = String(cf.ratingId);
+      const firstNote = cf.notes?.[0];
+      if (firstNote) {
+        noteIds[cf.entityId] = firstNote.id;
+        if (firstNote.note) {
+          notes[cf.entityId] = firstNote.note;
+        }
+        if (firstNote.attachments?.length) {
+          attachments[cf.entityId] = firstNote.attachments;
+        }
+      }
+    }
+
+    setEntityRatings(ratings);
+    setEntityNotes(notes);
+    setEntityNoteIds(noteIds);
+    setExistingAttachments(attachments);
+    setIsPrePopulated(true);
+  }, [audit, isPrePopulated]);
 
   // ── Filtered entities ──────────────────────────────────────────────────
   const filteredEntities = useMemo(() => {
     return entities.filter((entity) => {
-      // Only show active entities
       if (!entity.active) return false;
-
-      // Filter by date range type
       if (
         dateRangeType &&
         entity.dateRangeType.toLowerCase() !== dateRangeType.toLowerCase()
       ) {
         return false;
       }
-
-      // Filter by report type
       if (reportType && reportType !== REPORT_TYPE_ALL) {
         if (
           !entity.reportType ||
@@ -129,7 +186,6 @@ export function CameraForm() {
           return false;
         }
       }
-
       return true;
     });
   }, [entities, dateRangeType, reportType]);
@@ -159,7 +215,6 @@ export function CameraForm() {
       groups[catId].entities.push(entity);
     }
 
-    // Sort groups by category sort order
     return Object.values(groups).sort((a, b) => {
       const catA = categories.find((c) => c.id === a.categoryId);
       const catB = categories.find((c) => c.id === b.categoryId);
@@ -167,11 +222,10 @@ export function CameraForm() {
     });
   }, [filteredEntities, categories]);
 
-  // ── Rating update handler ──────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────
   const handleRatingChange = useCallback(
     (entityId: number, ratingId: string) => {
       setEntityRatings((prev) => ({ ...prev, [entityId]: ratingId }));
-      // Clear any related validation errors
       setValidationErrors((prev) => {
         const next = { ...prev };
         delete next[`entity_${entityId}`];
@@ -210,34 +264,47 @@ export function CameraForm() {
     []
   );
 
+  const handleRemoveExistingAttachment = useCallback(
+    (entityId: number, attachmentId: number) => {
+      setExistingAttachments((prev) => ({
+        ...prev,
+        [entityId]: (prev[entityId] || []).filter((a) => a.id !== attachmentId),
+      }));
+      setRemovedAttachmentIds((prev) => ({
+        ...prev,
+        [entityId]: [...(prev[entityId] || []), attachmentId],
+      }));
+    },
+    []
+  );
+
   // ── Validation ─────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
 
     if (!selectedStoreId) {
-      errors.store = t("validation.storeRequired");
+      errors.store = tCreate("validation.storeRequired");
     }
 
     if (!selectedDate) {
-      errors.date = t("validation.dateRequired");
+      errors.date = tCreate("validation.dateRequired");
     } else {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(selectedDate) || isNaN(Date.parse(selectedDate))) {
-        errors.date = t("validation.dateInvalid");
+        errors.date = tCreate("validation.dateInvalid");
       }
     }
 
     if (filteredEntities.length === 0) {
-      errors.entities = t("validation.entitiesRequired");
+      errors.entities = tCreate("validation.entitiesRequired");
     } else {
-      // Check that all displayed entities have a rating
       const unrated = filteredEntities.filter(
         (e) => !entityRatings[e.id]
       );
       if (unrated.length > 0) {
-        errors.entities = t("validation.ratingRequired");
+        errors.entities = tCreate("validation.ratingRequired");
         for (const e of unrated) {
-          errors[`entity_${e.id}`] = t("validation.ratingRequired");
+          errors[`entity_${e.id}`] = tCreate("validation.ratingRequired");
         }
       }
     }
@@ -254,20 +321,50 @@ export function CameraForm() {
 
     if (!validate()) return;
 
-    const entityEntries: CameraFormEntityEntry[] = filteredEntities
+    const entityEntries: CameraFormUpdateEntityEntry[] = filteredEntities
       .filter((entity) => entityRatings[entity.id])
-      .map((entity) => ({
-        entity_id: entity.id,
-        rating_id: Number(entityRatings[entity.id]),
-        ...(entityNotes[entity.id]?.trim() && {
-          note: entityNotes[entity.id].trim(),
-        }),
-        ...(entityFiles[entity.id]?.length && {
-          attachments: entityFiles[entity.id],
-        }),
-      }));
+      .map((entity) => {
+        const noteText = entityNotes[entity.id]?.trim();
+        const existingNoteId = entityNoteIds[entity.id];
+        const newFiles = entityFiles[entity.id];
+        const removedAttachIds = removedAttachmentIds[entity.id];
 
-    const success = await submitCameraForm(
+        const hasNote = !!noteText;
+        const hasNewFiles = newFiles && newFiles.length > 0;
+        const hasRemovedAttachments =
+          removedAttachIds && removedAttachIds.length > 0;
+
+        const entry: CameraFormUpdateEntityEntry = {
+          entity_id: entity.id,
+          rating_id: Number(entityRatings[entity.id]),
+        };
+
+        // Build notes array if there's any note-related data
+        if (hasNote || hasNewFiles || hasRemovedAttachments || existingNoteId) {
+          entry.notes = [
+            {
+              ...(existingNoteId != null ? { id: existingNoteId } : {}),
+              ...(hasNote ? { note: noteText } : {}),
+              ...(hasNewFiles ? { images: newFiles } : {}),
+              ...(hasRemovedAttachments
+                ? { remove_attachment_ids: removedAttachIds }
+                : {}),
+            },
+          ];
+        }
+
+        return entry;
+      });
+
+    if (entityEntries.length === 0) {
+      setValidationErrors({
+        entities: tCreate("validation.entitiesRequired"),
+      });
+      return;
+    }
+
+    const success = await updateCameraForm(
+      formId,
       Number(selectedStoreId),
       selectedDate,
       entityEntries
@@ -275,25 +372,48 @@ export function CameraForm() {
 
     if (success) {
       setSuccessMessage(t("success"));
-      handleReset();
-      router.push(`/${locale}/dashboard/quality-assurance`);
+      setTimeout(() => {
+        router.push(`/${locale}/dashboard/quality-assurance`);
+      }, 1500);
     }
   };
 
-  // ── Reset handler ──────────────────────────────────────────────────────
-  const handleReset = () => {
-    setSelectedStoreId("");
-    setSelectedDate("");
-    setEntityRatings({});
-    setEntityNotes({});
-    setEntityFiles({});
-    setValidationErrors({});
-    setSuccessMessage(null);
-    clearError();
-  };
-
   // ── Loading state ──────────────────────────────────────────────────────
-  const isDataLoading = isStoresLoading || isEntitiesLoading;
+  const isDataLoading = isStoresLoading || isEntitiesLoading || isAuditLoading;
+
+  if (isAuditLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  if (auditError) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{auditError}</AlertDescription>
+        </Alert>
+        <Button
+          variant="outline"
+          onClick={() =>
+            router.push(`/${locale}/dashboard/quality-assurance`)
+          }
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t("back")}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -334,18 +454,16 @@ export function CameraForm() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>{t("filterEntities.title")}</CardTitle>
+            <CardTitle>{tCreate("filterEntities.title")}</CardTitle>
           </div>
-          <CardDescription>
-            {t("description")}
-          </CardDescription>
+          <CardDescription>{tCreate("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Date Range Type */}
             <div className="space-y-2">
               <Label htmlFor="dateRangeType">
-                {t("filterEntities.dateRangeType")}
+                {tCreate("filterEntities.dateRangeType")}
               </Label>
               <Select
                 value={dateRangeType}
@@ -354,15 +472,17 @@ export function CameraForm() {
               >
                 <SelectTrigger id="dateRangeType">
                   <SelectValue
-                    placeholder={t("filterEntities.dateRangeTypePlaceholder")}
+                    placeholder={tCreate(
+                      "filterEntities.dateRangeTypePlaceholder"
+                    )}
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="daily">
-                    {t("filterEntities.daily")}
+                    {tCreate("filterEntities.daily")}
                   </SelectItem>
                   <SelectItem value="weekly">
-                    {t("filterEntities.weekly")}
+                    {tCreate("filterEntities.weekly")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -371,7 +491,7 @@ export function CameraForm() {
             {/* Report Type */}
             <div className="space-y-2">
               <Label htmlFor="reportType">
-                {t("filterEntities.reportType")}
+                {tCreate("filterEntities.reportType")}
               </Label>
               <Select
                 value={reportType}
@@ -380,18 +500,20 @@ export function CameraForm() {
               >
                 <SelectTrigger id="reportType">
                   <SelectValue
-                    placeholder={t("filterEntities.reportTypePlaceholder")}
+                    placeholder={tCreate(
+                      "filterEntities.reportTypePlaceholder"
+                    )}
                   />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={REPORT_TYPE_ALL}>
-                    {t("filterEntities.allReports")}
+                    {tCreate("filterEntities.allReports")}
                   </SelectItem>
                   <SelectItem value="main">
-                    {t("filterEntities.main")}
+                    {tCreate("filterEntities.main")}
                   </SelectItem>
                   <SelectItem value="secondary">
-                    {t("filterEntities.secondary")}
+                    {tCreate("filterEntities.secondary")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -407,7 +529,7 @@ export function CameraForm() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-muted-foreground" />
-            <CardTitle>{t("basicInfo.title")}</CardTitle>
+            <CardTitle>{tCreate("basicInfo.title")}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -415,7 +537,7 @@ export function CameraForm() {
             {/* Store Selection */}
             <div className="space-y-2">
               <Label htmlFor="store">
-                {t("basicInfo.store")}{" "}
+                {tCreate("basicInfo.store")}{" "}
                 <span className="text-destructive">*</span>
               </Label>
               {isStoresLoading ? (
@@ -444,8 +566,8 @@ export function CameraForm() {
                     <SelectValue
                       placeholder={
                         isStoresLoading
-                          ? t("basicInfo.storeLoading")
-                          : t("basicInfo.storePlaceholder")
+                          ? tCreate("basicInfo.storeLoading")
+                          : tCreate("basicInfo.storePlaceholder")
                       }
                     />
                   </SelectTrigger>
@@ -468,7 +590,7 @@ export function CameraForm() {
             {/* Date Selection */}
             <div className="space-y-2">
               <Label htmlFor="date">
-                {t("basicInfo.date")}{" "}
+                {tCreate("basicInfo.date")}{" "}
                 <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -507,7 +629,7 @@ export function CameraForm() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>{t("entities.title")}</CardTitle>
+              <CardTitle>{tCreate("entities.title")}</CardTitle>
             </div>
             {!isEntitiesLoading && (
               <Badge variant="secondary">
@@ -535,7 +657,7 @@ export function CameraForm() {
           ) : filteredEntities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
               <ClipboardCheck className="mb-2 h-10 w-10" />
-              <p>{t("entities.noEntities")}</p>
+              <p>{tCreate("entities.noEntities")}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -578,7 +700,7 @@ export function CameraForm() {
                                 (r) =>
                                   String(r.id) === entityRatings[entity.id]
                               )
-                                ? t(
+                                ? tCreate(
                                     `entities.${RATINGS.find((r) => String(r.id) === entityRatings[entity.id])!.key}`
                                   )
                                 : ""}
@@ -592,7 +714,7 @@ export function CameraForm() {
                             htmlFor={`rating-${entity.id}`}
                             className="text-xs text-muted-foreground"
                           >
-                            {t("entities.rating")}{" "}
+                            {tCreate("entities.rating")}{" "}
                             <span className="text-destructive">*</span>
                           </Label>
                           <Select
@@ -611,7 +733,9 @@ export function CameraForm() {
                               }`}
                             >
                               <SelectValue
-                                placeholder={t("entities.ratingPlaceholder")}
+                                placeholder={tCreate(
+                                  "entities.ratingPlaceholder"
+                                )}
                               />
                             </SelectTrigger>
                             <SelectContent>
@@ -620,24 +744,24 @@ export function CameraForm() {
                                   key={rating.id}
                                   value={String(rating.id)}
                                 >
-                                  {t(`entities.${rating.key}`)}
+                                  {tCreate(`entities.${rating.key}`)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
 
-                        {/* Note / Attachment */}
+                        {/* Note */}
                         <div className="space-y-1.5">
                           <Label
                             htmlFor={`note-${entity.id}`}
                             className="text-xs text-muted-foreground"
                           >
-                            {t("entities.note")}
+                            {tCreate("entities.note")}
                           </Label>
                           <Textarea
                             id={`note-${entity.id}`}
-                            placeholder={t("entities.notePlaceholder")}
+                            placeholder={tCreate("entities.notePlaceholder")}
                             value={entityNotes[entity.id] || ""}
                             onChange={(e) =>
                               handleNoteChange(entity.id, e.target.value)
@@ -654,7 +778,7 @@ export function CameraForm() {
                             htmlFor={`file-${entity.id}`}
                             className="text-xs text-muted-foreground"
                           >
-                            {t("entities.attachment")}
+                            {tCreate("entities.attachment")}
                           </Label>
                           <div className="flex items-center gap-2">
                             <Button
@@ -670,7 +794,7 @@ export function CameraForm() {
                               }}
                             >
                               <Paperclip className="me-1.5 h-3.5 w-3.5" />
-                              {t("entities.attachment")}
+                              {tCreate("entities.attachment")}
                             </Button>
                             <Input
                               id={`file-${entity.id}`}
@@ -680,14 +804,51 @@ export function CameraForm() {
                               className="hidden"
                               disabled={isSubmitting}
                               onChange={(e) =>
-                                handleFilesChange(
-                                  entity.id,
-                                  e.target.files
-                                )
+                                handleFilesChange(entity.id, e.target.files)
                               }
                             />
                           </div>
-                          {/* Attached files list */}
+
+                          {/* Existing attachments */}
+                          {existingAttachments[entity.id]?.length ? (
+                            <div className="mt-2 space-y-1">
+                              {existingAttachments[entity.id].map(
+                                (attachment) => (
+                                  <div
+                                    key={attachment.id}
+                                    className="flex items-center gap-2 rounded bg-muted/50 px-2 py-1 text-xs"
+                                  >
+                                    <Paperclip className="h-3 w-3 shrink-0 text-muted-foreground" />
+                                    <a
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="min-w-0 flex-1 truncate text-primary underline-offset-2 hover:underline"
+                                    >
+                                      {attachment.path}
+                                    </a>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-5 w-5 p-0"
+                                      disabled={isSubmitting}
+                                      onClick={() =>
+                                        handleRemoveExistingAttachment(
+                                          entity.id,
+                                          attachment.id
+                                        )
+                                      }
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          ) : null}
+
+                          {/* New attached files list */}
                           {entityFiles[entity.id] &&
                             entityFiles[entity.id].length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -756,10 +917,12 @@ export function CameraForm() {
         <Button
           type="button"
           variant="outline"
-          onClick={handleReset}
+          onClick={() =>
+            router.push(`/${locale}/dashboard/quality-assurance`)
+          }
           disabled={isSubmitting}
         >
-          {t("reset")}
+          {t("cancel")}
         </Button>
       </div>
     </form>

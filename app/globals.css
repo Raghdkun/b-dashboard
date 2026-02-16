@@ -84,6 +84,7 @@
   --skeleton-base: oklch(0.95 0 0);
   --skeleton-highlight: oklch(0.98 0 0);
   --skeleton-shimmer-direction: 90deg;
+  --skeleton-border-radius: calc(var(--radius) - 2px);
 }
 
 .dark {
@@ -122,6 +123,7 @@
   /* Skeleton shimmer - dark mode */
   --skeleton-base: oklch(0.25 0 0);
   --skeleton-highlight: oklch(0.32 0 0);
+  --skeleton-border-radius: calc(var(--radius) - 2px);
 }
 
 /* RTL shimmer direction */
@@ -129,24 +131,25 @@
   --skeleton-shimmer-direction: 270deg;
 }
 
-/* Skeleton shimmer animation */
+/* Skeleton pulse animation (replaced shimmer globally) */
 .skeleton-shimmer {
-  background: linear-gradient(
-    var(--skeleton-shimmer-direction),
-    var(--skeleton-base) 0%,
-    var(--skeleton-highlight) 50%,
-    var(--skeleton-base) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
+  /* use the same CSS variable colors so themes keep working */
+  background-color: var(--skeleton-base);
+  /* use the skeleton-specific border-radius variable */
+  border-radius: var(--skeleton-border-radius);
+  /* pulse animation (keeps original duration) */
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes shimmer {
+@keyframes skeleton-pulse {
   0% {
-    background-position: 200% 0;
+    background-color: var(--skeleton-base);
+  }
+  50% {
+    background-color: var(--skeleton-highlight);
   }
   100% {
-    background-position: -200% 0;
+    background-color: var(--skeleton-base);
   }
 }
 

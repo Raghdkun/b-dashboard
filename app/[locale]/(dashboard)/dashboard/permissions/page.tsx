@@ -71,7 +71,7 @@ export default function PermissionsPage() {
   const [permissionToDelete, setPermissionToDelete] = useState<Permission | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { permissions, isLoading, error, search, pagination, goToPage } = usePermissions();
+  const { permissions, isLoading, error, search, pagination, goToPage, refetch } = usePermissions();
   const { isCreating, error: createError, createPermission } = useCreatePermission();
   const { isDeleting, deletePermission } = useDeletePermission();
 
@@ -97,6 +97,8 @@ export default function PermissionsPage() {
       });
       form.reset();
       setCreateDialogOpen(false);
+      // Refetch the table from the server to get fresh data
+      refetch();
     } catch {
       // Error handled in store
     }

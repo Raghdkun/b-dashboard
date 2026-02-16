@@ -250,11 +250,6 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         icon: ClipboardCheck,
       },
       {
-        title: t("createCameraForms"),
-        href: `/${locale}/dashboard/create-camera-forms`,
-        icon: FileText,
-      },
-      {
         title: t("entitiesAndCategories"),
         href: `/${locale}/dashboard/entities-and-categories`,
         icon: List,

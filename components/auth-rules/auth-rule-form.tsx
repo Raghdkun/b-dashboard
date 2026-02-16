@@ -88,6 +88,7 @@ export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormP
   });
 
   const [newPermission, setNewPermission] = useState("");
+  const [validationError, setValidationError] = useState<string>("");
 
   const handleChange = (field: keyof AuthRuleFormData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -131,54 +132,60 @@ export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.service?.trim()) {
+      setValidationError("Service is required");
+      return;
+    }
+    if (!formData.method) {
+      setValidationError("HTTP Method is required");
+      return;
+    }
+    if (!formData.pathDsl?.trim() && !formData.routeName?.trim()) {
+      setValidationError("Either Path DSL or Route Name is required");
+      return;
+    }
+    
+    setValidationError("");
+
     try {
       let result: AuthRule;
 
       if (isEditMode) {
         // Edit mode — send update payload
         const updatePayload: UpdateAuthRulePayload = {
-          service: formData.service,
+          service: formData.service.trim(),
           method: formData.method,
-          pathDsl: formData.pathDsl || undefined,
-          routeName: formData.routeName || undefined,
-          rolesAny: formData.rolesAny,
-          permissionsAny: formData.permissionsAny,
-          permissionsAll: formData.permissionsAll,
+          pathDsl: formData.pathDsl?.trim() || undefined,
+          routeName: formData.routeName?.trim() || undefined,
+          rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+          permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+          permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
           priority: formData.priority,
           isActive: formData.isActive,
         };
         result = await updateRule(updatePayload);
       } else {
         // Create mode
-        const payload: CreateAuthRulePayload = formData.pathDsl
+        const payload: CreateAuthRulePayload = formData.pathDsl?.trim()
           ? {
-              service: formData.service,
+              service: formData.service.trim(),
               method: formData.method,
-              pathDsl: formData.pathDsl,
-              rolesAny: formData.rolesAny,
-              permissionsAny: formData.permissionsAny,
-              permissionsAll: formData.permissionsAll,
-              priority: formData.priority,
-              isActive: formData.isActive,
-            }
-          : formData.routeName
-          ? {
-              service: formData.service,
-              method: formData.method,
-              routeName: formData.routeName,
-              rolesAny: formData.rolesAny,
-              permissionsAny: formData.permissionsAny,
-              permissionsAll: formData.permissionsAll,
+              pathDsl: formData.pathDsl.trim(),
+              rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+              permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+              permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
               priority: formData.priority,
               isActive: formData.isActive,
             }
           : {
-              service: formData.service,
+              service: formData.service.trim(),
               method: formData.method,
-              pathDsl: "",
-              rolesAny: formData.rolesAny,
-              permissionsAny: formData.permissionsAny,
-              permissionsAll: formData.permissionsAll,
+              routeName: formData.routeName!.trim(),
+              rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+              permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+              permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
               priority: formData.priority,
               isActive: formData.isActive,
             };
@@ -197,10 +204,10 @@ export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
+      {(error || validationError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error || validationError}</AlertDescription>
         </Alert>
       )}
 
@@ -241,6 +248,7 @@ export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormP
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">Required field</p>
             </div>
           </div>
 
@@ -265,6 +273,9 @@ export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormP
               onChange={(e) => handleChange("routeName", e.target.value)}
               placeholder={t("form.routeNamePlaceholder")}
             />
+            <p className="text-sm text-muted-foreground">
+              Either Path DSL or Route Name is required
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

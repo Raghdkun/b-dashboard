@@ -119,10 +119,9 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     try {
       const response = await permissionService.createPermission(data);
       if (response.success) {
-        set((state) => ({
-          permissions: [response.data, ...state.permissions],
-          isCreating: false,
-        }));
+        set({ isCreating: false });
+        // Refetch the list to get fresh data from the server
+        get().fetchPermissions(1);
         return response.data;
       }
       throw new Error(response.message || "Failed to create permission");
