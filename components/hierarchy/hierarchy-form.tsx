@@ -170,11 +170,11 @@ export function HierarchyForm({
           <div className="space-y-2">
             <Label htmlFor="storeId">{t("form.store")}</Label>
             <Select
-              value={formData.storeId}
+              value={formData.storeId || undefined}
               onValueChange={(value: string) => handleChange("storeId", value)}
               disabled={!!preselectedStoreId}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={t("form.selectStore")} />
               </SelectTrigger>
               <SelectContent>
@@ -184,7 +184,7 @@ export function HierarchyForm({
                   </div>
                 ) : (
                   stores.map((store: { id: string; name: string }) => (
-                    <SelectItem key={store.id} value={store.id}>
+                    <SelectItem key={String(store.id)} value={String(store.id)}>
                       {store.name}
                     </SelectItem>
                   ))
@@ -210,12 +210,12 @@ export function HierarchyForm({
             <div className="space-y-2">
               <Label htmlFor="parentRoleId">{t("form.parentRole")}</Label>
               <Select
-                value={formData.parentRoleId}
+                value={formData.parentRoleId || undefined}
                 onValueChange={(value: string) =>
                   handleChange("parentRoleId", value)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("form.selectParentRole")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -227,7 +227,7 @@ export function HierarchyForm({
                     roles
                       .filter((r) => r.id !== formData.childRoleId)
                       .map((role: { id: string; name: string }) => (
-                        <SelectItem key={role.id} value={role.id}>
+                        <SelectItem key={String(role.id)} value={String(role.id)}>
                           {role.name}
                         </SelectItem>
                       ))
@@ -239,19 +239,17 @@ export function HierarchyForm({
               </p>
             </div>
 
-            <div className="flex items-center justify-center pb-6">
-              <ArrowRight className="h-6 w-6 text-muted-foreground" />
-            </div>
+            
 
             <div className="space-y-2">
               <Label htmlFor="childRoleId">{t("form.childRole")}</Label>
               <Select
-                value={formData.childRoleId}
+                value={formData.childRoleId || undefined}
                 onValueChange={(value: string) =>
                   handleChange("childRoleId", value)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t("form.selectChildRole")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -263,7 +261,7 @@ export function HierarchyForm({
                     roles
                       .filter((r) => r.id !== formData.parentRoleId)
                       .map((role: { id: string; name: string }) => (
-                        <SelectItem key={role.id} value={role.id}>
+                        <SelectItem key={String(role.id)} value={String(role.id)}>
                           {role.name}
                         </SelectItem>
                       ))

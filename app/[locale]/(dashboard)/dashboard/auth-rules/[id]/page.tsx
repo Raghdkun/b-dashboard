@@ -78,8 +78,8 @@ export default function AuthRuleDetailsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={authRule.service || authRule.routeName || "Auth Rule"}
-        description={`ID: ${authRule.id}`}
+        title="Rule Details"
+        description={`${authRule.service || authRule.routeName || "Auth Rule"} — ID: ${authRule.id}`}
       >
         <Button
           variant="outline"

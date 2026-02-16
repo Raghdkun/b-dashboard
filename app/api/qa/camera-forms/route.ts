@@ -101,6 +101,150 @@ async function fetchWithRetry(
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
+/*  GET /api/qa/camera-forms?page=1&date_range_type=daily&...               */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
+  // Auth check
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
+  // Parse query params
+  const { searchParams } = new URL(request.url);
+  const pageParam = searchParams.get("page");
+  const page = pageParam ? Number(pageParam) : 1;
+
+  if (pageParam !== null && (!Number.isFinite(page) || page < 1)) {
+    return errorResponse(
+      "INVALID_PARAM",
+      "Page must be a positive integer",
+      400,
+      { param: "page" }
+    );
+  }
+
+  // Build upstream query string
+  const upstreamParams = new URLSearchParams();
+  upstreamParams.set("page", String(page));
+
+  const dateRangeType = searchParams.get("date_range_type");
+  if (dateRangeType) upstreamParams.set("date_range_type", dateRangeType);
+
+  const dateFrom = searchParams.get("date_from");
+  if (dateFrom) upstreamParams.set("date_from", dateFrom);
+
+  const dateTo = searchParams.get("date_to");
+  if (dateTo) upstreamParams.set("date_to", dateTo);
+
+  const storeId = searchParams.get("store_id");
+  if (storeId) upstreamParams.set("store_id", storeId);
+
+  // Build upstream auth
+  const authorization = getAuthorizationHeader(request);
+  const upstreamAuth = QA_API_TOKEN
+    ? `Bearer ${QA_API_TOKEN}`
+    : authorization ?? "";
+  const targetUrl = `${QA_BASE_URL}/camera-forms?${upstreamParams.toString()}`;
+
+  try {
+    const response = await fetchWithRetry(
+      targetUrl,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(upstreamAuth && { Authorization: upstreamAuth }),
+        },
+      },
+      UPSTREAM_TIMEOUT_MS,
+      MAX_RETRIES
+    );
+
+    const elapsed = Date.now() - startTime;
+
+    if (response.ok) {
+      const body = await response.text();
+      try {
+        JSON.parse(body);
+      } catch {
+        return errorResponse(
+          "UPSTREAM_ERROR",
+          "Upstream returned invalid JSON",
+          502,
+          { upstreamStatus: response.status }
+        );
+      }
+      return new NextResponse(body, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+          "X-Response-Time": `${elapsed}ms`,
+        },
+      });
+    }
+
+    if (response.status === 401) {
+      return errorResponse(
+        "UNAUTHORIZED",
+        "Authentication failed for the QA API.",
+        401,
+        { upstream: true, tokenConfigured: !!QA_API_TOKEN }
+      );
+    }
+    if (response.status === 403) {
+      return errorResponse(
+        "FORBIDDEN",
+        "You do not have permission to access camera forms.",
+        403
+      );
+    }
+    if (response.status === 404) {
+      return errorResponse("NOT_FOUND", "Camera forms endpoint not found.", 404);
+    }
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      return errorResponse(
+        "RATE_LIMITED",
+        "Too many requests. Please wait before trying again.",
+        429,
+        retryAfter
+          ? { retryAfter: Number(retryAfter) || retryAfter }
+          : undefined
+      );
+    }
+
+    return errorResponse(
+      "UPSTREAM_ERROR",
+      `QA API returned an error (${response.status}).`,
+      502,
+      process.env.NODE_ENV === "development"
+        ? { upstreamStatus: response.status }
+        : undefined
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+
+    if (message.includes("timed out") || message.includes("abort")) {
+      return errorResponse(
+        "TIMEOUT",
+        `The QA API did not respond within ${UPSTREAM_TIMEOUT_MS / 1_000}s. Please try again.`,
+        504
+      );
+    }
+
+    return errorResponse(
+      "NETWORK_ERROR",
+      "Unable to reach the QA API. Please check your connection and try again.",
+      503
+    );
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
 /*  POST /api/qa/camera-forms                                               */
 /* ────────────────────────────────────────────────────────────────────────── */
 

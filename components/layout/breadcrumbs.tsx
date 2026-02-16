@@ -38,6 +38,8 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
       i > 0 && segments[i - 1] === "users" && segment !== "users" && segment !== "create";
     const isRoleId =
       i > 0 && segments[i - 1] === "roles" && segment !== "roles" && segment !== "create";
+    const isAuthRuleId =
+      i > 0 && segments[i - 1] === "auth-rules" && segment !== "auth-rules" && segment !== "create";
 
     const label = isStoreId
       ? "Store Details"
@@ -45,9 +47,11 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
       ? "User Details"
       : isRoleId
       ? "Role Details"
+      : isAuthRuleId
+      ? "Rule Details"
       : segment.charAt(0).toUpperCase() + segment.slice(1);
 
-    const key = isStoreId ? "store-details" : isUserId ? "user-details" : isRoleId ? "role-details" : segment;
+    const key = isStoreId ? "store-details" : isUserId ? "user-details" : isRoleId ? "role-details" : isAuthRuleId ? "rule-details" : segment;
 
     breadcrumbs.push({
       label,

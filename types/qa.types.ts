@@ -400,7 +400,183 @@ export interface CameraReportData {
   filters: CameraReportFilters;
 }
 
-// ── Camera Form types ────────────────────────────────────────────────
+// ── Camera Form List types (GET /camera-forms) ─────────────────────────
+
+/** Raw API types for GET /camera-forms (snake_case) */
+
+export interface ApiCameraFormAttachment {
+  id: number;
+  camera_form_note_id: number;
+  path: string;
+  url: string;
+}
+
+export interface ApiCameraFormNote {
+  id: number;
+  camera_form_id: number;
+  note: string;
+  attachments: ApiCameraFormAttachment[];
+}
+
+export interface ApiCameraFormEntityCategory {
+  id: number;
+  label: string;
+  sort_order: number;
+}
+
+export interface ApiCameraFormEntityDef {
+  id: number;
+  entity_label: string;
+  category: ApiCameraFormEntityCategory;
+}
+
+export interface ApiCameraFormRating {
+  id: number;
+  label: string;
+}
+
+export interface ApiCameraFormEntry {
+  id: number;
+  user_id: number;
+  entity_id: number;
+  audit_id: number;
+  rating_id: number;
+  entity: ApiCameraFormEntityDef;
+  rating: ApiCameraFormRating;
+  notes: ApiCameraFormNote[];
+}
+
+export interface ApiCameraFormStore {
+  id: number;
+  store: string;
+  group: number;
+}
+
+export interface ApiCameraFormUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface ApiCameraFormAudit {
+  id: number;
+  store_id: number;
+  user_id: number;
+  date: string;
+  created_at: string;
+  updated_at: string;
+  store: ApiCameraFormStore;
+  user: ApiCameraFormUser;
+  camera_forms: ApiCameraFormEntry[];
+}
+
+export interface ApiCameraFormsPaginatedData {
+  current_page: number;
+  data: ApiCameraFormAudit[];
+  per_page: number;
+  total: number;
+  first_page_url?: string;
+  from?: number | null;
+  last_page?: number;
+  last_page_url?: string;
+  links?: ApiQAPaginationLink[];
+  next_page_url?: string | null;
+  path?: string;
+  prev_page_url?: string | null;
+  to?: number | null;
+}
+
+export interface ApiCameraFormsListResponse {
+  status: string;
+  message: string;
+  data: ApiCameraFormsPaginatedData;
+  errors: unknown;
+}
+
+/** Frontend types for GET /camera-forms (camelCase) */
+
+export interface CameraFormAttachment {
+  id: number;
+  cameraFormNoteId: number;
+  path: string;
+  url: string;
+}
+
+export interface CameraFormNote {
+  id: number;
+  cameraFormId: number;
+  note: string;
+  attachments: CameraFormAttachment[];
+}
+
+export interface CameraFormEntityCategory {
+  id: number;
+  label: string;
+  sortOrder: number;
+}
+
+export interface CameraFormEntityDef {
+  id: number;
+  entityLabel: string;
+  category: CameraFormEntityCategory;
+}
+
+export interface CameraFormRatingInfo {
+  id: number;
+  label: string;
+}
+
+export interface CameraFormEntryItem {
+  id: number;
+  userId: number;
+  entityId: number;
+  auditId: number;
+  ratingId: number;
+  entity: CameraFormEntityDef;
+  rating: CameraFormRatingInfo;
+  notes: CameraFormNote[];
+}
+
+export interface CameraFormStore {
+  id: number;
+  store: string;
+  group: number;
+}
+
+export interface CameraFormUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface CameraFormAudit {
+  id: number;
+  storeId: number;
+  userId: number;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+  store: CameraFormStore;
+  user: CameraFormUser;
+  cameraForms: CameraFormEntryItem[];
+}
+
+export interface CameraFormsListResponse {
+  audits: CameraFormAudit[];
+  pagination: QAPaginationInfo;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface CameraFormsFilterParams {
+  page?: number;
+  dateRangeType?: "daily" | "weekly";
+  dateFrom?: string;
+  dateTo?: string;
+  storeId?: number;
+}
+
+// ── Camera Form Create types ────────────────────────────────────────
 
 /** Single entity rating entry for the camera form submission */
 export interface CameraFormEntityEntry {
@@ -415,6 +591,19 @@ export interface CreateCameraFormPayload {
   store_id: number;
   date: string;
   entities: CameraFormEntityEntry[];
+}
+
+/** Single entity rating entry for camera form update (supports edit-specific fields) */
+export interface CameraFormUpdateEntityEntry {
+  entity_id: number;
+  rating_id: number;
+  notes?: Array<{
+    id?: number;          // existing note id (to update)
+    note?: string;
+    images?: File[];      // new images
+    remove_attachment_ids?: number[];   // attachments to remove
+  }>;
+  remove_note_ids?: number[];          // notes to remove entirely
 }
 
 /** Rating option for the camera form */

@@ -1344,5 +1344,14 @@
       "loadStores": "Failed to load stores.",
       "submitFailed": "Failed to submit camera form."
     }
+  },
+  "editCameraForm": {
+    "title": "Edit Camera Form",
+    "description": "Update the ratings, notes, and attachments for this camera form",
+    "back": "Back",
+    "submit": "Update Camera Form",
+    "submitting": "Updating...",
+    "cancel": "Cancel",
+    "success": "Camera form updated successfully!"
   }
 }
