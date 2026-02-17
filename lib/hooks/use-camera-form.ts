@@ -251,26 +251,9 @@ export function useCameraFormDetail(formId: number | null): UseCameraFormDetailR
     setIsLoading(true);
     setError(null);
     try {
-      // Fetch camera forms and find the one matching the id
-      // We paginate through until we find it, or fail
-      let page = 1;
-      let found: CameraFormAudit | null = null;
-      while (!found) {
-        if (signal?.aborted) return;
-        const response = await qaService.getCameraForms({ page }, signal);
-        found = response.audits.find((a) => a.id === id) ?? null;
-        if (found) break;
-        if (!response.hasNextPage) break;
-        page++;
-      }
-
+      const found = await qaService.getCameraFormById(id, signal);
       if (signal?.aborted) return;
-
-      if (found) {
-        setAudit(found);
-      } else {
-        setError("Camera form not found.");
-      }
+      setAudit(found);
     } catch (err) {
       if (isCanceledError(err) || signal?.aborted) return;
       if (err instanceof QAError) {

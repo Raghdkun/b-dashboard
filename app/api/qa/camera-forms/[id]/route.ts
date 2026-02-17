@@ -76,10 +76,83 @@ async function fetchWithRetry(
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  PUT /api/qa/camera-forms/[id]                                           */
+/*  GET /api/qa/camera-forms/[id]                                           */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-export async function PUT(
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const startTime = Date.now();
+
+  const authError = requireAuthorization(request);
+  if (authError) return authError;
+
+  const authorization = getAuthorizationHeader(request);
+  const upstreamAuth = QA_API_TOKEN
+    ? `Bearer ${QA_API_TOKEN}`
+    : authorization ?? "";
+
+  const targetUrl = `${QA_BASE_URL}/camera-forms/${id}`;
+
+  try {
+    const response = await fetchWithRetry(
+      targetUrl,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(upstreamAuth && { Authorization: upstreamAuth }),
+        },
+      },
+      UPSTREAM_TIMEOUT_MS,
+      MAX_RETRIES
+    );
+
+    const elapsed = Date.now() - startTime;
+
+    if (response.ok) {
+      const body = await response.text();
+      return new NextResponse(body, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+          "X-Response-Time": `${elapsed}ms`,
+        },
+      });
+    }
+
+    if (response.status === 401) {
+      return errorResponse("UNAUTHORIZED", "Authentication failed.", 401);
+    }
+    if (response.status === 403) {
+      return errorResponse("FORBIDDEN", "Permission denied.", 403);
+    }
+    if (response.status === 404) {
+      return errorResponse("NOT_FOUND", "Camera form not found.", 404);
+    }
+
+    return errorResponse(
+      "UPSTREAM_ERROR",
+      `QA API returned an error (${response.status}).`,
+      502
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    if (message.includes("timed out") || message.includes("abort")) {
+      return errorResponse("TIMEOUT", "Request timed out.", 504);
+    }
+    return errorResponse("NETWORK_ERROR", "Unable to reach the QA API.", 503);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  POST /api/qa/camera-forms/[id]                                          */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -116,7 +189,7 @@ export async function PUT(
     const response = await fetchWithRetry(
       targetUrl,
       {
-        method: "PUT",
+        method: "POST",
         headers: {
           Accept: "application/json",
           ...(upstreamAuth && { Authorization: upstreamAuth }),

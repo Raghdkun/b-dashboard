@@ -14,8 +14,8 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   loading: () => <Skeleton className="h-87.5 w-full" />,
 });
 
-/** Day-name labels for the x-axis (Mon → Sun) */
-const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+/** Day-name labels for the x-axis (Tue → Mon) */
+const DAY_NAMES = ["Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"];
 
 interface SalesChartProps {
   sales: DsprSales;
