@@ -1384,6 +1384,112 @@ export const qaService = {
   },
 
   /**
+   * Fetch a single camera form audit by ID through the local API proxy.
+   */
+  async getCameraFormById(
+    id: number,
+    signal?: AbortSignal
+  ): Promise<CameraFormAudit> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to view camera forms.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const url = `/api/qa/camera-forms/${id}`;
+
+    try {
+      const response = await axios.get<{
+        status: string;
+        message: string;
+        data: ApiCameraFormAudit;
+        errors: unknown;
+      }>(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+        signal,
+      });
+
+      return transformCameraFormAudit(response.data.data);
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage ||
+              "You do not have permission to view camera forms.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "Camera form not found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage ||
+              "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
    * Create a camera form (audit) through the local API proxy.
    *
    * @param storeId  - Store ID (integer).
@@ -1634,7 +1740,7 @@ export const qaService = {
     }
 
     try {
-      const response = await axios.put(url, formData, {
+      const response = await axios.post(url, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",

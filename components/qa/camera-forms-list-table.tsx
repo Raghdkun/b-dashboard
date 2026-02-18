@@ -22,13 +22,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -45,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { CameraFormDetailsSheet } from "@/components/qa/camera-form-details-sheet";
 import { cn } from "@/lib/utils";
 import {
   ChevronLeft,
@@ -56,14 +49,12 @@ import {
   User,
   Calendar,
   Camera,
-  FileText,
-  Image as ImageIcon,
   MoreHorizontal,
   Pencil,
   Trash2,
   Loader2,
 } from "lucide-react";
-import type { CameraFormAudit, CameraFormEntryItem } from "@/types/qa.types";
+import type { CameraFormAudit } from "@/types/qa.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Rating color helper                                                     */
@@ -112,120 +103,6 @@ function extractUniqueEntities(audits: CameraFormAudit[]): UniqueEntity[] {
 }
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  Audit Detail Dialog                                                     */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-interface AuditDetailDialogProps {
-  audit: CameraFormAudit;
-  children: React.ReactNode;
-}
-
-function AuditDetailDialog({ audit, children }: AuditDetailDialogProps) {
-  // Group entries by category
-  const grouped = audit.cameraForms.reduce<
-    Record<string, CameraFormEntryItem[]>
-  >((acc, entry) => {
-    const catLabel = entry.entity.category.label;
-    if (!acc[catLabel]) acc[catLabel] = [];
-    acc[catLabel].push(entry);
-    return acc;
-  }, {});
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Camera Form #{audit.id}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2 text-sm">
-          <div className="flex flex-wrap gap-4">
-            <span className="flex items-center gap-1.5">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              {audit.store.store}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <User className="h-4 w-4 text-muted-foreground" />
-              {audit.user.name}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              {format(new Date(audit.date), "MMM dd, yyyy")}
-            </span>
-          </div>
-        </div>
-        <ScrollArea className="max-h-[55vh] pr-4">
-          <div className="space-y-4 pt-2">
-            {Object.entries(grouped).map(([category, entries]) => (
-              <div key={category} className="space-y-2">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  {category}
-                </h4>
-                <div className="space-y-2">
-                  {entries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="rounded-lg border p-3 space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium">
-                          {entry.entity.entityLabel}
-                        </span>
-                        <Badge variant={getRatingVariant(entry.rating.label)}>
-                          {entry.rating.label}
-                        </Badge>
-                      </div>
-                      {entry.notes.length > 0 && (
-                        <div className="space-y-1.5">
-                          {entry.notes.map((note) => (
-                            <div key={note.id} className="space-y-1">
-                              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                                <FileText className="h-3 w-3 mt-0.5 shrink-0" />
-                                {note.note}
-                              </p>
-                              {note.attachments.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 pl-4">
-                                  {note.attachments.map((att) => (
-                                    <a
-                                      key={att.id}
-                                      href={att.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                                    >
-                                      <ImageIcon className="h-3 w-3" />
-                                      View
-                                    </a>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {audit.cameraForms.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No entity entries in this form.
-              </p>
-            )}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
 /*  Table Component                                                         */
 /* ────────────────────────────────────────────────────────────────────────── */
 
@@ -254,6 +131,13 @@ export function CameraFormsListTable({
   const locale = (params?.locale as string) || "en";
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<CameraFormAudit | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedAuditId, setSelectedAuditId] = useState<number | null>(null);
+
+  const handleRowOpen = (auditId: number) => {
+    setSelectedAuditId(auditId);
+    setDetailsOpen(true);
+  };
 
   const handleDeleteClick = (e: React.MouseEvent, audit: CameraFormAudit) => {
     e.stopPropagation();
@@ -344,7 +228,7 @@ export function CameraFormsListTable({
                         </div>
                       </TableHead>
                     ))}
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-12.5"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -352,9 +236,18 @@ export function CameraFormsListTable({
                     <TableRow
                       key={audit.id}
                       className={cn(
-                        "hover:bg-muted/50 transition-colors",
+                        "cursor-pointer hover:bg-muted/50 transition-colors",
                         isRefreshing && "opacity-60"
                       )}
+                      tabIndex={0}
+                      role="button"
+                      onClick={() => handleRowOpen(audit.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleRowOpen(audit.id);
+                        }
+                      }}
                     >
                         <TableCell>
                           <div className="flex items-center gap-2 whitespace-nowrap">
@@ -398,7 +291,7 @@ export function CameraFormsListTable({
                             </TableCell>
                           );
                         })}
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -440,9 +333,18 @@ export function CameraFormsListTable({
                 <div
                   key={audit.id}
                   className={cn(
-                    "rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors",
+                    "cursor-pointer rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors",
                     isRefreshing && "opacity-60"
                   )}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleRowOpen(audit.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleRowOpen(audit.id);
+                    }
+                  }}
                 >
                   {/* Header with actions */}
                   <div className="flex items-center justify-between">
@@ -454,7 +356,12 @@ export function CameraFormsListTable({
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -613,6 +520,12 @@ export function CameraFormsListTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CameraFormDetailsSheet
+        auditId={selectedAuditId}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
     </Card>
   );
 }

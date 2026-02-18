@@ -60,6 +60,9 @@ const RATINGS = [
   { id: 6, key: "urgent" },
 ] as const;
 
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024; // Backend limit: 5MB
+const ALLOWED_IMAGE_MIME_PREFIX = "image/";
+
 const REPORT_TYPE_ALL = "__all__";
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -105,7 +108,7 @@ export function EditCameraForm({ formId }: EditCameraFormProps) {
   } = useUpdateCameraForm();
 
   // ── Filter state ───────────────────────────────────────────────────────
-  const [dateRangeType, setDateRangeType] = useState<string>("daily");
+  const [dateRangeType, setDateRangeType] = useState<string>("");
   const [reportType, setReportType] = useState<string>(REPORT_TYPE_ALL);
 
   // ── Form state ─────────────────────────────────────────────────────────
@@ -167,6 +170,23 @@ export function EditCameraForm({ formId }: EditCameraFormProps) {
     setExistingAttachments(attachments);
     setIsPrePopulated(true);
   }, [audit, isPrePopulated]);
+
+  // Ensure filters include the entities that belong to the loaded audit.
+  useEffect(() => {
+    if (!audit || entities.length === 0) return;
+
+    const auditEntityIds = new Set(audit.cameraForms.map((cf) => cf.entityId));
+    const matchedEntity = entities.find((entity) => auditEntityIds.has(entity.id));
+
+    if (matchedEntity) {
+      setDateRangeType((prev) => (prev ? prev : matchedEntity.dateRangeType));
+      setReportType((prev) =>
+        prev && prev !== REPORT_TYPE_ALL
+          ? prev
+          : matchedEntity.reportType || REPORT_TYPE_ALL
+      );
+    }
+  }, [audit, entities]);
 
   // ── Filtered entities ──────────────────────────────────────────────────
   const filteredEntities = useMemo(() => {
@@ -246,20 +266,67 @@ export function EditCameraForm({ formId }: EditCameraFormProps) {
   const handleFilesChange = useCallback(
     (entityId: number, files: FileList | null) => {
       if (!files || files.length === 0) return;
+
+      const incomingFiles = Array.from(files);
+      const validFiles: File[] = [];
+      let hasInvalid = false;
+
+      for (const file of incomingFiles) {
+        const isImage = file.type?.startsWith(ALLOWED_IMAGE_MIME_PREFIX);
+        const withinSize = file.size <= MAX_ATTACHMENT_BYTES;
+        if (isImage && withinSize) {
+          validFiles.push(file);
+        } else {
+          hasInvalid = true;
+        }
+      }
+
+      if (validFiles.length === 0 && hasInvalid) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          [`entity_${entityId}_files`]:
+            tCreate("entities.attachmentInvalid") ||
+            "Only image files up to 5MB are allowed.",
+        }));
+        return;
+      }
+
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        if (hasInvalid) {
+          next[`entity_${entityId}_files`] =
+            tCreate("entities.attachmentInvalid") ||
+            "Only image files up to 5MB are allowed.";
+        } else {
+          delete next[`entity_${entityId}_files`];
+        }
+        return next;
+      });
+
       setEntityFiles((prev) => ({
         ...prev,
-        [entityId]: [...(prev[entityId] || []), ...Array.from(files)],
+        [entityId]: [...(prev[entityId] || []), ...validFiles],
       }));
     },
-    []
+    [tCreate]
   );
 
   const handleRemoveFile = useCallback(
     (entityId: number, fileIndex: number) => {
-      setEntityFiles((prev) => ({
-        ...prev,
-        [entityId]: (prev[entityId] || []).filter((_, i) => i !== fileIndex),
-      }));
+      setEntityFiles((prev) => {
+        const nextFiles = (prev[entityId] || []).filter((_, i) => i !== fileIndex);
+        if (nextFiles.length === 0) {
+          setValidationErrors((prevErrors) => {
+            const nextErrors = { ...prevErrors };
+            delete nextErrors[`entity_${entityId}_files`];
+            return nextErrors;
+          });
+        }
+        return {
+          ...prev,
+          [entityId]: nextFiles,
+        };
+      });
     },
     []
   );
@@ -800,13 +867,18 @@ export function EditCameraForm({ formId }: EditCameraFormProps) {
                               id={`file-${entity.id}`}
                               type="file"
                               multiple
-                              accept="image/*,.pdf,.doc,.docx"
+                              accept="image/*"
                               className="hidden"
                               disabled={isSubmitting}
                               onChange={(e) =>
                                 handleFilesChange(entity.id, e.target.files)
                               }
                             />
+                          {validationErrors[`entity_${entity.id}_files`] && (
+                            <p className="text-xs text-destructive">
+                              {validationErrors[`entity_${entity.id}_files`]}
+                            </p>
+                          )}
                           </div>
 
                           {/* Existing attachments */}
