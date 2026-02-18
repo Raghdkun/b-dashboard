@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import type { MaintenanceResponse } from "@/types/maintenance.types";
+import { MaintenanceRequestDetailsSheet } from "@/components/maintenance/maintenance-request-details-sheet";
 import {
   Card,
   CardContent,
@@ -103,9 +105,16 @@ export function MaintenanceRequestsTable({
   onPageChange,
 }: MaintenanceRequestsTableProps) {
   const t = useTranslations("maintenance");
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const { pagination } = data;
   const hasNextPage = !!data.links?.next;
   const hasPrevPage = !!data.links?.prev;
+
+  const openDetails = (requestId: number) => {
+    setSelectedRequestId(requestId);
+    setIsDetailsOpen(true);
+  };
 
   return (
     <Card>
@@ -151,7 +160,19 @@ export function MaintenanceRequestsTable({
                 return (
                   <TableRow
                     key={request.id}
-                    className={cn(isRefreshing && "opacity-60")}
+                    className={cn(
+                      "cursor-pointer",
+                      isRefreshing && "opacity-60"
+                    )}
+                    onClick={() => openDetails(request.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openDetails(request.id);
+                      }
+                    }}
                   >
                     <TableCell className="font-mono text-sm">
                       #{request.id}
@@ -189,9 +210,18 @@ export function MaintenanceRequestsTable({
               <div
                 key={request.id}
                 className={cn(
-                  "rounded-lg border p-4 space-y-3",
+                  "rounded-lg border p-4 space-y-3 cursor-pointer",
                   isRefreshing && "opacity-60"
                 )}
+                onClick={() => openDetails(request.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openDetails(request.id);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-sm text-muted-foreground">
@@ -287,6 +317,12 @@ export function MaintenanceRequestsTable({
           </div>
         </div>
       )}
+
+      <MaintenanceRequestDetailsSheet
+        requestId={selectedRequestId}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </Card>
   );
 }

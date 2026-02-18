@@ -118,6 +118,12 @@ export function TopIngredientsList({
 }: TopIngredientsListProps) {
   const maxUsage = Math.max(...ingredients.map((i) => i.actual_usage), 1);
 
+  const formatVariance = (variance?: number) => {
+    if (variance == null || Number.isNaN(variance)) return null;
+
+    return `${variance > 0 ? "+" : ""}${variance.toFixed(2)}`;
+  };
+
   return (
     <Card className={cn("group hover:shadow-md transition-shadow", className)}>
       <CardHeader className="pb-3">
@@ -159,12 +165,27 @@ export function TopIngredientsList({
                     {ing.ingredient_description}
                   </span>
                 </div>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-mono shrink-0 px-2 py-0 h-5"
-                >
-                  {ing.actual_usage.toLocaleString()} units
-                </Badge>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-mono px-2 py-0 h-5"
+                  >
+                    {ing.actual_usage.toLocaleString()} units
+                  </Badge>
+                  {formatVariance(ing.variance_value) && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] font-mono px-2 py-0 h-5",
+                        (ing.variance_value ?? 0) < 0
+                          ? "text-red-600 dark:text-red-400 border-red-300 dark:border-red-800"
+                          : "text-green-600 dark:text-green-400 border-green-300 dark:border-green-800"
+                      )}
+                    >
+                      {formatVariance(ing.variance_value)} var
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           );

@@ -9,6 +9,7 @@ import {
   TopItemsList,
   TopIngredientsList,
   HourlyChannelsChart,
+  DailySalesByChannelChart,
   DaySummaryStats,
   HnrCard,
   PortalCard,
@@ -16,6 +17,7 @@ import {
   LaborGauge,
   DsprDashboardSkeleton,
   RecentMaintenanceTable,
+  TopQaRatingsCard,
 } from "@/components/dspr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -325,7 +327,7 @@ export function DsprDashboard() {
   const { filtering, sales, top, day } = data;
 
   return (
-    <div className={cn("space-y-6", isRefreshing && "relative")}>
+    <div className={cn("space-y-4", isRefreshing && "relative")}>
       {/* ── Refresh overlay bar ──────────────────────────────────── */}
       {isRefreshing && (
         <div className="absolute top-0 left-0 right-0 z-10">
@@ -336,7 +338,7 @@ export function DsprDashboard() {
       )}
 
       {/* ── Header bar ───────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1">
         {/* Store badge */}
         <Badge
           variant="secondary"
@@ -353,11 +355,11 @@ export function DsprDashboard() {
               variant="outline"
               size="sm"
               className={cn(
-                "h-7 gap-1.5 text-xs font-medium",
+                "h-6 gap-1 text-xs font-medium",
                 !selectedDate && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="h-3.5 w-3.5" />
+              <CalendarIcon className="h-3 w-3" />
               {format(selectedDate, "MMM d, yyyy")}
             </Button>
           </PopoverTrigger>
@@ -405,7 +407,7 @@ export function DsprDashboard() {
         )}
 
         {/* Status indicators */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Stale indicator */}
           {isStale && !isRefreshing && (
             <Tooltip>
@@ -449,14 +451,14 @@ export function DsprDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6"
                 onClick={() => refetch(toApiDate(selectedDate))}
                 disabled={isRefreshing}
               >
                 {isRefreshing ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
+                  <RefreshCw className="h-3 w-3" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -468,34 +470,49 @@ export function DsprDashboard() {
       </div>
 
       {/* ── Day summary + Weekly Sales side by side ──────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-2 lg:grid-cols-2">
         <DaySummaryStats day={day} />
-        <SalesChart sales={sales} height={320} toolbar={false} />
+        <SalesChart sales={sales} height={240} toolbar={false} />
       </div>
 
-      {/* ── Hourly Channels (full width) ────────────────────────── */}
-      <HourlyChannelsChart
-        hourlyData={day.hourly_sales_and_channels}
-        height={320}
-        toolbar={false}
-      />
+      
 
       {/* ── Portal · On Time · HNR · Labor gauges row ────────────── */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="flex flex-wrap gap-2 lg:flex-nowrap ">
+        <Card className="flex-row p-0 flex-wrap gap-2 lg:flex-nowrap">
         <PortalCard portal={day.portal} />
         <OnTimeCard portal={day.portal} />
+        </Card>
         <HnrCard hnr={day.hnr} />
         <LaborGauge value={day.labor} />
       </div>
 
+      {/* ── Hourly + Daily Channel Sales ────────────────────────── */}
+      <div className="grid gap-2 lg:grid-cols-3">
+        <HourlyChannelsChart
+          hourlyData={day.hourly_sales_and_channels}
+          height={240}
+          toolbar={false}
+          className="lg:col-span-2"
+        />
+        <DailySalesByChannelChart
+          totalSales={day.total_sales}
+          height={260}
+          toolbar={false}
+        />
+      </div>
+      
       {/* ── Top items + ingredients ───────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <TopItemsList items={top.top_5_items_sales_for_day} />
         <TopIngredientsList ingredients={top.top_3_ingredients_used} />
       </div>
 
-      {/* ── Recent Maintenance Requests ──────────────────────────────── */}
-      <RecentMaintenanceTable />
+      {/* ── Recent Maintenance + Top QA Ratings ─────────────────────── */}
+      <div className="grid gap-2 lg:grid-cols-2">
+        <RecentMaintenanceTable />
+        <TopQaRatingsCard />
+      </div>
     </div>
   );
 }

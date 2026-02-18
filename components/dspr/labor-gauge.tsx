@@ -12,8 +12,8 @@ import { Gauge } from "lucide-react";
 const LABOR_ZONES: SpeedZone[] = [
   { from: 0, to: 10, color: "#EF4444" },  // red – critical low
   { from: 10, to: 15, color: "#EAB308" }, // yellow – low
-  { from: 15, to: 18, color: "#F97316" }, // orange – below target
-  { from: 18, to: 24, color: "#22C55E" }, // green – on target
+  { from: 15, to: 19, color: "#F97316" }, // orange – below target
+  { from: 19, to: 24, color: "#22C55E" }, // green – on target
   { from: 24, to: 29, color: "#F97316" }, // orange – above target
   { from: 29, to: 39, color: "#EAB308" }, // yellow – high
   { from: 39, to: 50, color: "#EF4444" }, // red – critical high
@@ -22,7 +22,7 @@ const LABOR_ZONES: SpeedZone[] = [
 function getLaborColor(value: number): string {
   if (value <= 10) return "#EF4444";
   if (value <= 15) return "#EAB308";
-  if (value <= 18) return "#F97316";
+  if (value <= 19) return "#F97316";
   if (value <= 24) return "#22C55E";
   if (value <= 29) return "#F97316";
   if (value <= 39) return "#EAB308";
@@ -32,7 +32,7 @@ function getLaborColor(value: number): string {
 function getLaborLabel(value: number): string {
   if (value <= 10) return "Critical Low";
   if (value <= 15) return "Low";
-  if (value <= 18) return "Below Target";
+  if (value <= 19) return "Below Target";
   if (value <= 24) return "On Target";
   if (value <= 29) return "Above Target";
   if (value <= 39) return "High";
@@ -85,7 +85,7 @@ export function LaborGauge({
         <div className="text-center mt-1">
           <p className="text-[10px] text-muted-foreground font-medium">
             Target range:{" "}
-            <span className="text-emerald-500 font-semibold">19–24%</span>
+            <span className="text-emerald-500 font-semibold">20–24%</span>
           </p>
         </div>
       </CardContent>

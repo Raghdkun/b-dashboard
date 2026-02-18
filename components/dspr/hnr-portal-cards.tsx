@@ -43,6 +43,39 @@ function getPerformanceLabel(value: number): string {
   return "Critical";
 }
 
+
+//HNR zones and helpers 
+
+const LABOR_ZONES: SpeedZone[] = [
+  { from: 0, to: 35, color: "#EF4444" },  // red – critical low
+  { from: 35, to: 42, color: "#EAB308" }, // yellow – low
+  { from: 42, to: 50, color: "#F97316" }, // orange – below target
+  { from: 50, to: 70, color: "#22C55E" }, // green – on target
+  { from: 70, to: 77, color: "#F97316" }, // orange – above target
+  { from: 77, to: 85, color: "#EAB308" }, // yellow – high
+  { from: 85, to: 100, color: "#EF4444" }, // red – critical high
+];
+
+function getLaborColor(value: number): string {
+  if (value <= 35) return "#EF4444";
+  if (value <= 42) return "#EAB308";
+  if (value <= 50) return "#F97316";
+  if (value <= 70) return "#22C55E";
+  if (value <= 77) return "#F97316";
+  if (value <= 85) return "#EAB308";
+  return "#EF4444";
+}
+
+function getLaborLabel(value: number): string {
+  if (value <= 35) return "Critical Low";
+  if (value <= 42) return "Low";
+  if (value <= 50) return "Below Target";
+  if (value <= 70) return "On Target";
+  if (value <= 77) return "Above Target";
+  if (value <= 85) return "High";
+  return "Critical High";
+}
+
 // ============================================================================
 // HNR (Hot-N-Ready) Card
 // ============================================================================
@@ -76,10 +109,11 @@ export function HnrCard({ hnr, className }: HnrCardProps) {
       <CardContent className="pb-3">
         <SpeedometerGauge
           value={pct}
-          zones={PERFORMANCE_ZONES}
-          statusLabel={getPerformanceLabel(pct)}
-          statusColor={getPerformanceColor(pct)}
-          valueDisplay={`${pct.toFixed(1)}%`}
+          zones={LABOR_ZONES}
+          statusLabel={getLaborLabel(pct)}
+          statusColor={getLaborColor(pct)}
+          valueDisplay={`${pct}%`}
+          max={100}
         />
         <div className="grid grid-cols-3 gap-2 mt-1">
           <Metric
@@ -117,13 +151,13 @@ export function PortalCard({ portal, className }: PortalCardProps) {
   const pct = portal.put_into_portal_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
+    <Card className={cn("group hover:shadow-md transition-shadow border-transparent", className)}>
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
             <ShieldCheck className="h-4 w-4 text-blue-500" />
           </div>
-          Portal
+          Put Into Portal 
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
@@ -164,13 +198,13 @@ export function OnTimeCard({ portal, className }: OnTimeCardProps) {
   const pct = portal.in_portal_on_time_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
+    <Card className={cn("group hover:shadow-md transition-shadow border-transparent", className)}>
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <div className="rounded-lg p-1.5 bg-emerald-500/15 dark:bg-emerald-500/20">
             <Clock className="h-4 w-4 text-emerald-500" />
           </div>
-          On Time
+          Portal On Time 
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />

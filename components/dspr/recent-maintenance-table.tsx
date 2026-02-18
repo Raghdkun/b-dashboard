@@ -10,6 +10,7 @@ import {
   MaintenanceError,
 } from "@/lib/api/services/maintenance.service";
 import type { MaintenanceResponse } from "@/types/maintenance.types";
+import { MaintenanceRequestDetailsSheet } from "@/components/maintenance/maintenance-request-details-sheet";
 import {
   Card,
   CardContent,
@@ -135,8 +136,15 @@ export function RecentMaintenanceTable() {
   const [data, setData] = useState<MaintenanceResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const storeId = selectedStore?.storeId ?? null;
+
+  const openDetails = useCallback((requestId: number) => {
+    setSelectedRequestId(requestId);
+    setIsDetailsOpen(true);
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!storeId) return;
@@ -282,11 +290,11 @@ export function RecentMaintenanceTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Entry #</TableHead>
+                {/* <TableHead>ID</TableHead> */}
+                {/* <TableHead>Entry #</TableHead> */}
+                <TableHead>Submitted At</TableHead>
                 <TableHead>Broken Item</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Submitted At</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -297,13 +305,31 @@ export function RecentMaintenanceTable() {
                 return (
                   <TableRow
                     key={request.id}
-                    className={cn(isLoading && "opacity-60")}
+                    className={cn(
+                      "cursor-pointer",
+                      isLoading && "opacity-60"
+                    )}
+                    onClick={() => openDetails(request.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openDetails(request.id);
+                      }
+                    }}
                   >
-                    <TableCell className="font-mono text-xs">
+                    {/* <TableCell className="font-mono text-xs">
                       #{request.id}
-                    </TableCell>
-                    <TableCell className="font-medium text-sm">
+                    </TableCell> */}
+                    {/* <TableCell className="font-medium text-sm">
                       {request.entryNumber}
+                    </TableCell> */}
+                    <TableCell className="text-xs text-muted-foreground">
+                      {format(
+                        new Date(request.submittedAt),
+                        "MMM dd, yyyy HH:mm"
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       {request.brokenItem}
@@ -313,12 +339,6 @@ export function RecentMaintenanceTable() {
                         <StatusIcon className="h-3 w-3" />
                         {formatStatusLabel(request.status)}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {format(
-                        new Date(request.submittedAt),
-                        "MMM dd, yyyy HH:mm"
-                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -337,9 +357,18 @@ export function RecentMaintenanceTable() {
               <div
                 key={request.id}
                 className={cn(
-                  "rounded-lg border p-3 space-y-2",
+                  "rounded-lg border p-3 space-y-2 cursor-pointer",
                   isLoading && "opacity-60"
                 )}
+                onClick={() => openDetails(request.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openDetails(request.id);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs text-muted-foreground">
@@ -365,6 +394,12 @@ export function RecentMaintenanceTable() {
           })}
         </div>
       </CardContent>
+
+      <MaintenanceRequestDetailsSheet
+        requestId={selectedRequestId}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </Card>
   );
 }

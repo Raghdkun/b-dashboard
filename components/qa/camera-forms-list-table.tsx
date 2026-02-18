@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import type { CameraFormsListResponse } from "@/types/qa.types";
 import {
@@ -174,6 +174,19 @@ export function CameraFormsListTable({
     return entry ? entry.rating.label : "-";
   };
 
+  // Format ISO timestamp as a date in UTC (avoid local timezone shifts)
+  const formatDateUTC = (iso: string) => {
+    try {
+      const d = parseISO(iso);
+      const y = d.getUTCFullYear();
+      const m = d.getUTCMonth();
+      const dd = d.getUTCDate();
+      return format(new Date(y, m, dd), "MMM dd, yyyy");
+    } catch (e) {
+      return iso;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -214,7 +227,7 @@ export function CameraFormsListTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Store</TableHead>
-                    <TableHead>Auditor</TableHead>
+                    {/* <TableHead>Auditor</TableHead> */}
                     <TableHead>Date</TableHead>
                     {uniqueEntities.map((entity) => (
                       <TableHead key={entity.id} className="text-center min-w-25">
@@ -257,21 +270,21 @@ export function CameraFormsListTable({
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <div className="flex items-center gap-2 whitespace-nowrap">
                             <User className="h-4 w-4 text-muted-foreground shrink-0" />
                             <div className="flex flex-col">
-                              <span className="text-sm">{audit.user.name}</span>
+                              <span className="text-sm">{audit.user.id}</span>
                               <span className="text-xs text-muted-foreground">
                                 {audit.user.email}
                               </span>
                             </div>
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                            {format(new Date(audit.date), "MMM dd, yyyy")}
+                            {formatDateUTC(audit.date)} 
                           </div>
                         </TableCell>
                         {uniqueEntities.map((entity) => {
@@ -392,7 +405,7 @@ export function CameraFormsListTable({
                       </div>
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>{format(new Date(audit.date), "MMM dd, yyyy")}</span>
+                        <span>{formatDateUTC(audit.date)}</span>
                       </div>
                     </div>
 
