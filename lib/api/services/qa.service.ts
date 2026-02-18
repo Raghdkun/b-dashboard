@@ -1,8 +1,10 @@
 import axios from "axios";
 import type {
   ApiQAAuditsResponse,
+  ApiQARatingsSummaryResponse,
   QAAuditsResponse,
   QAAudit,
+  QARatingsSummaryItem,
   ApiQAAudit,
   QAStore,
   ApiQAStore,
@@ -128,6 +130,18 @@ function transformResponse(raw: ApiQAAuditsResponse): QAAuditsResponse {
   };
 }
 
+function transformRatingsSummaryResponse(
+  raw: ApiQARatingsSummaryResponse
+): QARatingsSummaryItem[] {
+  return (raw.data ?? []).map((item) => ({
+    entityId: item.entity_id,
+    entityLabel: item.entity_label,
+    autoFailCount: item.auto_fail_count,
+    urgentCount: item.urgent_count,
+    totalCount: item.total_count,
+  }));
+}
+
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Camera Forms List transform helpers                                     */
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -141,14 +155,14 @@ function transformCameraFormAudit(raw: ApiCameraFormAudit): CameraFormAudit {
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     store: {
-      id: raw.store.id,
-      store: raw.store.store,
-      group: raw.store.group,
+      id: raw.store?.id ?? raw.store_id,
+      store: raw.store?.store ?? "Unknown Store",
+      group: raw.store?.group ?? 0,
     },
     user: {
-      id: raw.user.id,
-      name: raw.user.name,
-      email: raw.user.email,
+      id: raw.user?.id ?? raw.user_id,
+      name: raw.user?.name ?? "Unknown User",
+      email: raw.user?.email ?? "",
     },
     cameraForms: (raw.camera_forms ?? []).map(
       (cf: ApiCameraFormEntry): CameraFormEntryItem => ({
@@ -158,17 +172,18 @@ function transformCameraFormAudit(raw: ApiCameraFormAudit): CameraFormAudit {
         auditId: cf.audit_id,
         ratingId: cf.rating_id,
         entity: {
-          id: cf.entity.id,
-          entityLabel: cf.entity.entity_label,
+          id: cf.entity?.id ?? cf.entity_id,
+          entityLabel:
+            cf.entity?.entity_label ?? `Entity ${cf.entity_id ?? "Unknown"}`,
           category: {
-            id: cf.entity.category.id,
-            label: cf.entity.category.label,
-            sortOrder: cf.entity.category.sort_order,
+            id: cf.entity?.category?.id ?? 0,
+            label: cf.entity?.category?.label ?? "Unknown",
+            sortOrder: cf.entity?.category?.sort_order ?? 0,
           },
         },
         rating: {
-          id: cf.rating.id,
-          label: cf.rating.label,
+          id: cf.rating?.id ?? cf.rating_id,
+          label: cf.rating?.label ?? "Unknown",
         },
         notes: (cf.notes ?? []).map(
           (n): CameraFormNote => ({
@@ -290,6 +305,107 @@ export const qaService = {
         if (status === 404 || serverCode === "NOT_FOUND") {
           throw new QAError(
             serverMessage || "No QA audits found.",
+            "NOT_FOUND"
+          );
+        }
+        if (status === 429 || serverCode === "RATE_LIMITED") {
+          const retryAfter = err.response?.headers?.["retry-after"];
+          throw new QAError(
+            serverMessage || "Too many requests. Please wait and try again.",
+            "RATE_LIMITED",
+            retryAfter ? Number(retryAfter) : undefined
+          );
+        }
+        if (serverCode === "TIMEOUT") {
+          throw new QAError(
+            serverMessage || "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+        if (!err.response || err.code === "ERR_NETWORK") {
+          throw new QAError(
+            "Unable to connect. Please check your internet connection.",
+            "NETWORK_ERROR"
+          );
+        }
+        if (err.code === "ECONNABORTED") {
+          throw new QAError(
+            "Request timed out. Please try again.",
+            "TIMEOUT"
+          );
+        }
+
+        throw new QAError(
+          serverMessage || `Server error (${status}).`,
+          "SERVER_ERROR"
+        );
+      }
+
+      throw new QAError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+        "UNKNOWN"
+      );
+    }
+  },
+
+  /**
+   * Fetch top QA ratings summary for a store and date range.
+   */
+  async getRatingsSummary(
+    storeId: string,
+    dateStart: string,
+    dateEnd: string,
+    signal?: AbortSignal
+  ): Promise<QARatingsSummaryItem[]> {
+    const token = getToken();
+    if (!token) {
+      throw new QAError(
+        "You must be logged in to view QA ratings summary.",
+        "NOT_AUTHENTICATED"
+      );
+    }
+
+    const encodedStoreId = encodeURIComponent(storeId);
+    const url = `/api/qa/audits/ratings-summary/${encodedStoreId}/${dateStart}/${dateEnd}`;
+
+    try {
+      const response = await axios.get<ApiQARatingsSummaryResponse>(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15_000,
+        signal,
+      });
+
+      return transformRatingsSummaryResponse(response.data);
+    } catch (err) {
+      if (axios.isCancel(err)) throw err;
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const errorData = err.response?.data as
+          | { error?: { code?: string; message?: string } }
+          | undefined;
+        const serverCode = errorData?.error?.code;
+        const serverMessage = errorData?.error?.message;
+
+        if (status === 401 || serverCode === "UNAUTHORIZED") {
+          throw new QAError(
+            serverMessage || "Authentication failed.",
+            "UNAUTHORIZED"
+          );
+        }
+        if (status === 403 || serverCode === "FORBIDDEN") {
+          throw new QAError(
+            serverMessage ||
+              "You do not have permission to view QA ratings summary.",
+            "FORBIDDEN"
+          );
+        }
+        if (status === 404 || serverCode === "NOT_FOUND") {
+          throw new QAError(
+            serverMessage || "QA ratings summary not found.",
             "NOT_FOUND"
           );
         }

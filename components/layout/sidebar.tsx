@@ -284,6 +284,17 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     ],
   };
 
+  const Reports: NavGroup = {
+    label: "Reports",
+    icon: Landmark,
+    items: [
+      {
+        title: t("maintenance"),
+        href: `/${locale}/dashboard/maintenance`,
+        icon: HardHat,
+      }
+    ],
+  };
   // Dev tools navigation (controlled by feature flags)
   const devToolsItems: NavItem[] = [];
   if (devToolsEnabled && process.env.NODE_ENV === "development") {
@@ -521,9 +532,9 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
             onNavigate={onNavigate}
           />
 
-          {/* 5. High Level MGMT */}
+          {/* 5. Reports */}
           <SidebarNavGroup
-            group={highLevelMgmtGroup}
+            group={Reports}
             pathname={pathname}
             locale={locale}
             collapsed={collapsed}
@@ -534,7 +545,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           {renderNavLink(employeesItem)}
 
           {/* 7. Maintenance */}
-          {renderNavLink(maintenanceItem)}
+          {/* {renderNavLink(maintenanceItem)} */}
 
           {/* 7. Settings */}
           {renderNavLink(settingsItem)}

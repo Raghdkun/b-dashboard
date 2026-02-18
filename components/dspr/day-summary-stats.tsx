@@ -104,7 +104,7 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       isNegative: true,
     },
     {
-      label: "Waste (Normal)",
+      label: "Waste (GW)",
       value: fmt(day.waste.normal),
       rawValue: day.waste.normal,
       icon: Trash2,

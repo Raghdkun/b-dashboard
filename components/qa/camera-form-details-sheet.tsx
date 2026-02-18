@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useMemo } from "react";
 import { useCameraFormDetail } from "@/lib/hooks/use-camera-form";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,12 @@ function attachmentLabel(url: string, path: string) {
   return pathFile || "Attachment";
 }
 
+function isImageUrl(url: string, path: string) {
+  const candidate = (url || path || "").split(/[?#]/)[0];
+  const ext = candidate.split(".").pop()?.toLowerCase() || "";
+  return ["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"].includes(ext);
+}
+
 interface CameraFormDetailsSheetProps {
   auditId: number | null;
   open: boolean;
@@ -74,6 +80,18 @@ function CameraFormDetailsContent({ audit }: { audit: CameraFormAudit }) {
     [audit.cameraForms]
   );
 
+  // Format ISO timestamp as a date in UTC (avoid local timezone shifts)
+  const formatDateUTC = (iso: string) => {
+    try {
+      const d = parseISO(iso);
+      const y = d.getUTCFullYear();
+      const m = d.getUTCMonth();
+      const dd = d.getUTCDate();
+      return format(new Date(y, m, dd), "MMM dd, yyyy");
+    } catch (e) {
+      return iso;
+    }
+  };
   return (
     <>
       <div className="grid grid-cols-1 gap-2 px-4 text-sm sm:grid-cols-2">
@@ -83,15 +101,16 @@ function CameraFormDetailsContent({ audit }: { audit: CameraFormAudit }) {
             {audit.store.store}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        {/* <div className="flex items-center gap-2 text-muted-foreground">
           <User className="h-4 w-4 shrink-0" />
           <span className="truncate" title={audit.user.email}>
             {audit.user.name}
           </span>
-        </div>
+        </div> */}
         <div className="flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-4 w-4 shrink-0" />
-          <span>{format(new Date(audit.date), "MMM dd, yyyy")}</span>
+          {/* <span>{format(new Date(audit.date), "MMM dd, yyyy")}</span> */}
+          <span>{formatDateUTC(audit.date)}</span>
         </div>
       </div>
 
@@ -139,12 +158,23 @@ function CameraFormDetailsContent({ audit }: { audit: CameraFormAudit }) {
                                       href={attachment.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                      className="inline-flex max-w-full items-center gap-2 rounded-md border px-2 py-1 text-xs hover:bg-muted"
                                     >
-                                      <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-                                      <span className="truncate">
-                                        {attachmentLabel(attachment.url, attachment.path)}
-                                      </span>
+                                      {isImageUrl(attachment.url, attachment.path) ? (
+                                        <img
+                                          src={attachment.url}
+                                          alt={attachmentLabel(attachment.url, attachment.path)}
+                                          className="h-8 w-8 rounded object-cover"
+                                          loading="lazy"
+                                          onError={(e) => {
+                                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                                          }}
+                                        />
+                                      ) : (
+                                        <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                                      )}
+
+                                      <span className="truncate">{attachmentLabel(attachment.url, attachment.path)}</span>
                                     </a>
                                   ))}
                                 </div>

@@ -60,6 +60,21 @@ export interface ApiQAAuditsResponse {
   errors: unknown;
 }
 
+export interface ApiQARatingsSummaryItem {
+  entity_id: number;
+  entity_label: string;
+  auto_fail_count: number;
+  urgent_count: number;
+  total_count: number;
+}
+
+export interface ApiQARatingsSummaryResponse {
+  status: string;
+  message: string;
+  data: ApiQARatingsSummaryItem[];
+  errors: unknown;
+}
+
 // ── Frontend types (camelCase) ─────────────────────────────────────────
 
 export interface QAStore {
@@ -103,6 +118,14 @@ export interface QAAuditsResponse {
   pagination: QAPaginationInfo;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+}
+
+export interface QARatingsSummaryItem {
+  entityId: number;
+  entityLabel: string;
+  autoFailCount: number;
+  urgentCount: number;
+  totalCount: number;
 }
 
 export interface QAErrorState {
