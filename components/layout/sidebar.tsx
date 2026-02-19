@@ -31,6 +31,7 @@ import {
   List,
   Landmark,
   Camera,
+  Database,
 } from "lucide-react";
 import {
   Dialog,
@@ -250,14 +251,14 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         icon: ClipboardCheck,
       },
       {
-        title: t("entitiesAndCategories"),
-        href: `/${locale}/dashboard/entities-and-categories`,
-        icon: List,
-      },
-      {
         title: t("cameraReport"),
         href: `/${locale}/dashboard/camera-report`,
         icon: Camera,
+      },
+      {
+        title: t("entitiesAndCategories"),
+        href: `/${locale}/dashboard/entities-and-categories`,
+        icon: List,
       },
     ],
   };
@@ -284,9 +285,26 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     ],
   };
 
+  const dataManagementGroup: NavGroup = {
+    label: t("dataManagement"),
+    icon: Database,
+    items: [
+      {
+        title: t("keys"),
+        href: `/${locale}/dashboard/keys`,
+        icon: Key,
+      },
+      {
+        title: t("dueKeys"),
+        href: `/${locale}/dashboard/due-keys`,
+        icon: Database,
+      },
+    ],
+  };
+
   const Reports: NavGroup = {
     label: "Reports",
-    icon: Landmark,
+    icon: FileText,
     items: [
       {
         title: t("maintenance"),
@@ -532,9 +550,26 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
             onNavigate={onNavigate}
           />
 
-          {/* 5. Reports */}
+          {/* 5. Data Management */}
+          <SidebarNavGroup
+            group={dataManagementGroup}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+
+          {/* 6. Reports */}
           <SidebarNavGroup
             group={Reports}
+            pathname={pathname}
+            locale={locale}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+          {/* 5. highLevelMgmtGroup */}
+          <SidebarNavGroup
+            group={highLevelMgmtGroup}
             pathname={pathname}
             locale={locale}
             collapsed={collapsed}

@@ -6,3 +6,4 @@ export * from "./role.types";
 export * from "./auth-rule.types";
 export * from "./assignment.types";
 export * from "./hierarchy.types";
+export * from "./due-key.types";
