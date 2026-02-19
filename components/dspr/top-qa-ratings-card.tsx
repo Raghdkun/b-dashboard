@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { format, subDays } from "date-fns";
@@ -30,6 +32,7 @@ import {
   RefreshCw,
   ShieldAlert,
   Star,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +77,13 @@ export function TopQaRatingsCard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const pathname = usePathname();
+  const locale = useMemo(() => {
+    if (!pathname) return "en";
+    const parts = pathname.split("/").filter(Boolean);
+    return parts[0] ?? "en";
+  }, [pathname]);
 
   const storeId = selectedStore?.storeId ?? selectedStore?.id ?? null;
   const { dateStart, dateEnd } = useMemo(() => getDefaultDateRange(), []);
@@ -206,6 +216,17 @@ export function TopQaRatingsCard() {
               disabled={isLoading}
             >
               <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              asChild
+            >
+              <Link href={`/${locale}/dashboard/camera-report`}>
+                View All
+                <ExternalLink className="h-3 w-3 ms-1.5" />
+              </Link>
             </Button>
           </div>
         </div>

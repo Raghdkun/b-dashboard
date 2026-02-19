@@ -85,6 +85,17 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       isNegative: day.refunded_orders.count > 0,
     },
     {
+      label: "Waste (GW)",
+      value: fmt(day.waste.normal),
+      rawValue: day.waste.normal,
+      icon: Trash2,
+      color: "text-amber-600 dark:text-amber-400",
+      iconBg: "bg-amber-500/15 dark:bg-amber-500/20",
+      tooltip: "Normal waste value",
+      isNegative: true,
+    },
+    
+    {
       label: "Customer Count",
       value: day.customer_count.toLocaleString(),
       rawValue: day.customer_count,
@@ -101,16 +112,6 @@ export function DaySummaryStats({ day, className }: DaySummaryStatsProps) {
       color: "text-red-600 dark:text-red-400",
       iconBg: "bg-red-500/15 dark:bg-red-500/20",
       tooltip: "Alta inventory waste value",
-      isNegative: true,
-    },
-    {
-      label: "Waste (GW)",
-      value: fmt(day.waste.normal),
-      rawValue: day.waste.normal,
-      icon: Trash2,
-      color: "text-amber-600 dark:text-amber-400",
-      iconBg: "bg-amber-500/15 dark:bg-amber-500/20",
-      tooltip: "Normal waste value",
       isNegative: true,
     },
     {

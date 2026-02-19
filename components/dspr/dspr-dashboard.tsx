@@ -478,13 +478,14 @@ export function DsprDashboard() {
       
 
       {/* ── Portal · On Time · HNR · Labor gauges row ────────────── */}
-      <div className="flex flex-wrap gap-2 lg:flex-nowrap ">
-        <Card className="flex-row p-0 flex-wrap gap-2 lg:flex-nowrap">
+      <div className="flex flex-wrap gap-2 lg:flex-nowrap sm:justify-center ">
+        <Card className="flex-row p-0 flex-wrap gap-2 lg:flex-nowrap ">
         <PortalCard portal={day.portal} />
         <OnTimeCard portal={day.portal} />
         </Card>
         <HnrCard hnr={day.hnr} />
-        <LaborGauge value={day.labor} />
+        <LaborGauge value={22} />
+        {/* <LaborGauge value={day.labor} /> */}
       </div>
 
       {/* ── Hourly + Daily Channel Sales ────────────────────────── */}
