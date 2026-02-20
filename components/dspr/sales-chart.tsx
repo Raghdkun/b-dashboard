@@ -85,7 +85,7 @@ export function SalesChart({
     // Build categories from actual day names (use index → DAY_NAMES)
     const cats = thisWeekValues.map((_, i) => DAY_NAMES[i] || `Day ${i + 1}`);
 
-    const s: ApexAxisChartSeries = [];
+    const s: { name: string; type: "column" | "line"; data: number[] }[] = [];
     if (showThisWeek) {
       s.push({ name: "This Week", type: "column", data: thisWeekValues });
     }
