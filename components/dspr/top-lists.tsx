@@ -33,54 +33,53 @@ export function TopItemsList({
   const maxSales = Math.max(...items.map((i) => i.gross_sales), 1);
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-orange-500/15 dark:bg-orange-500/20">
-            <Pizza className="h-4 w-4 text-orange-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0.5 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-orange-500/15 dark:bg-orange-500/20">
+            <Pizza className="h-3 w-3 text-orange-500" />
           </div>
           {title}
-          <Badge variant="secondary" className="ms-auto text-[10px] font-mono">
-            {items.length} items
+          <Badge variant="secondary" className="ms-auto text-[8px] font-mono px-1 py-0">
+            {items.length}
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-0 px-3 pb-1">
         {items.map((item, idx) => {
           const barWidth = (item.gross_sales / maxSales) * 100;
           return (
             <div
               key={item.item_id}
-              className="group/item relative rounded-lg p-2.5 hover:bg-muted/50 transition-colors"
+              className="group/item relative rounded p-1 hover:bg-muted/50 transition-colors"
             >
               {/* Background bar */}
-              <div
-                className="absolute inset-y-0 left-0 rounded-lg bg-orange-500/5 dark:bg-orange-500/10 transition-all"
+              <div className="absolute inset-y-0 left-0 rounded-md bg-orange-500/5 dark:bg-orange-500/10 transition-all"
                 style={{ width: `${barWidth}%` }}
               />
 
-              <div className="relative flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="relative flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span
                     className={cn(
-                      "text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+                      "text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0",
                       rankColors[idx] ?? rankColors[3]
                     )}
                   >
                     {idx + 1}
                   </span>
-                  <span className="text-sm font-medium truncate">
+                  <span className="text-[11px] font-medium truncate">
                     {item.menu_item_name}
                   </span>
                 </div>
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Badge
                     variant="outline"
-                    className="text-[10px] font-mono px-1.5 py-0 h-5"
+                    className="text-[8px] font-mono px-1 py-0 h-3.5"
                   >
                     {item.quantity_sold} sold
                   </Badge>
-                  <span className="text-sm font-bold tabular-nums min-w-17.5 text-end">
+                  <span className="text-[11px] font-bold tabular-nums min-w-15 text-end">
                     ${item.gross_sales.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}
@@ -91,9 +90,9 @@ export function TopItemsList({
           );
         })}
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-            <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">No data available</p>
+          <div className="flex flex-col items-center justify-center py-5 text-center gap-1.5">
+            <TrendingUp className="h-5 w-5 text-muted-foreground/50" />
+            <p className="text-[11px] text-muted-foreground">No data available</p>
           </div>
         )}
       </CardContent>
@@ -125,50 +124,50 @@ export function TopIngredientsList({
   };
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
-            <Package className="h-4 w-4 text-blue-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0.5 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-blue-500/15 dark:bg-blue-500/20">
+            <Package className="h-3 w-3 text-blue-500" />
           </div>
           {title}
-          <Badge variant="secondary" className="ms-auto text-[10px] font-mono">
-            {ingredients.length} items
+          <Badge variant="secondary" className="ms-auto text-[8px] font-mono px-1 py-0">
+            {ingredients.length}
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-0 px-3 pb-1">
         {ingredients.map((ing, idx) => {
           const barWidth = (ing.actual_usage / maxUsage) * 100;
           return (
             <div
               key={ing.ingredient_id}
-              className="relative rounded-lg p-2.5 hover:bg-muted/50 transition-colors"
+              className="relative rounded p-1 hover:bg-muted/50 transition-colors"
             >
               {/* Background bar */}
               <div
-                className="absolute inset-y-0 left-0 rounded-lg bg-blue-500/5 dark:bg-blue-500/10 transition-all"
+                className="absolute inset-y-0 left-0 rounded-md bg-blue-500/5 dark:bg-blue-500/10 transition-all"
                 style={{ width: `${barWidth}%` }}
               />
 
-              <div className="relative flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="relative flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span
                     className={cn(
-                      "text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+                      "text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0",
                       rankColors[idx] ?? rankColors[3]
                     )}
                   >
                     {idx + 1}
                   </span>
-                  <span className="text-sm font-medium truncate">
+                  <span className="text-[11px] font-medium truncate">
                     {ing.ingredient_description}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <Badge
                     variant="outline"
-                    className="text-[10px] font-mono px-2 py-0 h-5"
+                    className="text-[8px] font-mono px-1 py-0 h-3.5"
                   >
                     {ing.actual_usage.toLocaleString()} units
                   </Badge>
@@ -176,7 +175,7 @@ export function TopIngredientsList({
                     <Badge
                       variant="outline"
                       className={cn(
-                        "text-[10px] font-mono px-2 py-0 h-5",
+                        "text-[8px] font-mono px-1 py-0 h-3.5",
                         (ing.variance_value ?? 0) < 0
                           ? "text-red-600 dark:text-red-400 border-red-300 dark:border-red-800"
                           : "text-green-600 dark:text-green-400 border-green-300 dark:border-green-800"
@@ -191,9 +190,9 @@ export function TopIngredientsList({
           );
         })}
         {ingredients.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-            <Package className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">No data available</p>
+          <div className="flex flex-col items-center justify-center py-5 text-center gap-1.5">
+            <Package className="h-5 w-5 text-muted-foreground/50" />
+            <p className="text-[11px] text-muted-foreground">No data available</p>
           </div>
         )}
       </CardContent>

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-  loading: () => <Skeleton className="h-75 w-full" />,
+  loading: () => <Skeleton className="h-48 w-full" />,
 });
 
 const CHANNEL_KEYS: { key: keyof DsprChannelSales; label: string; color: string }[] = [
@@ -77,12 +77,12 @@ export function DailySalesByChannelChart({
       legend: {
         position: "bottom",
         horizontalAlign: "left",
-        fontSize: "12px",
+        fontSize: "8px",
         labels: { colors: isDark ? "#a1a1aa" : "#71717a" },
       },
       tooltip: {
         theme: isDark ? "dark" : "light",
-        style: { fontSize: "12px" },
+        style: { fontSize: "8px" },
         y: {
           formatter: (val: number) =>
             `$${val.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
@@ -96,27 +96,27 @@ export function DailySalesByChannelChart({
         enabled: true,
         formatter: (value: number) => `${value.toFixed(1)}%`,
         style: {
-          fontSize: "10px",
+          fontSize: "7px",
           fontWeight: 400,
         },
       },
       plotOptions: {
         pie: {
             donut: {
-              size: "62%",
+              size: "58%",
               labels: {
                 show: true,
-                name: { show: true, fontSize: "10px" },
+                name: { show: true, fontSize: "7px" },
                 value: {
                   show: true,
                   formatter: (val: any) =>
                     `$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-                  fontSize: "11px",
+                  fontSize: "8px",
                 },
                 total: {
                   show: true,
                   label: "Total",
-                  fontSize: "15px",
+                  fontSize: "9px",
                   formatter: () =>
                     `$${series
                       .reduce((sum, value) => sum + value, 0)
@@ -134,16 +134,16 @@ export function DailySalesByChannelChart({
   );
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-violet-500/15 dark:bg-violet-500/20">
-            <svg className="h-4 w-4 text-violet-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12A9 9 0 1 1 12 3"/><path d="M21 3v9h-9"/></svg>
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-violet-500/15 dark:bg-violet-500/20">
+            <svg className="h-3 w-3 text-violet-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12A9 9 0 1 1 12 3"/><path d="M21 3v9h-9"/></svg>
           </div>
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-0">
         <ReactApexChart options={options} series={series} type="donut" height={height} />
       </CardContent>
     </Card>

@@ -100,23 +100,23 @@ function formatStatusLabel(status: string): string {
 
 function RecentMaintenanceSkeleton() {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-5 w-40" />
+    <Card className="py-1.5 gap-0">
+      <CardHeader className="pb-1 px-3">
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-4 w-4 rounded" />
+          <Skeleton className="h-4 w-36" />
         </div>
-        <Skeleton className="h-4 w-56 mt-1" />
+        <Skeleton className="h-3 w-48 mt-0.5" />
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="px-3">
+        <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="h-4 w-10" />
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 flex-1" />
-              <Skeleton className="h-5 w-20 rounded-full" />
-              <Skeleton className="h-4 w-28" />
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="h-3.5 w-10" />
+              <Skeleton className="h-3.5 w-14" />
+              <Skeleton className="h-3.5 flex-1" />
+              <Skeleton className="h-4 w-18 rounded-full" />
+              <Skeleton className="h-3.5 w-24" />
             </div>
           ))}
         </div>
@@ -200,17 +200,17 @@ export function RecentMaintenanceTable() {
   // ── Error state ──────────────────────────────────────────────────────
   if (error && !data) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wrench className="h-4 w-4" />
+      <Card className="py-1.5 gap-0">
+        <CardHeader className="pb-1 px-3">
+          <CardTitle className="flex items-center gap-1 text-[11px]">
+            <Wrench className="h-3 w-3" />
             Recent Maintenance Requests
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <AlertCircle className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{error}</p>
+        <CardContent className="px-3">
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            <AlertCircle className="h-6 w-6 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">{error}</p>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="h-3.5 w-3.5 me-1.5" />
               Retry
@@ -224,17 +224,17 @@ export function RecentMaintenanceTable() {
   // ── Empty state ──────────────────────────────────────────────────────
   if (!data || data.data.length === 0) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wrench className="h-4 w-4" />
+      <Card className="py-1.5 gap-0">
+        <CardHeader className="pb-1 px-3">
+          <CardTitle className="flex items-center gap-1 text-[11px]">
+            <Wrench className="h-3 w-3" />
             Recent Maintenance Requests
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-2 py-6 text-center">
-            <CheckCircle2 className="h-8 w-8 text-green-500" />
-            <p className="text-sm text-muted-foreground">
+        <CardContent className="px-3">
+          <div className="flex flex-col items-center gap-1.5 py-4 text-center">
+            <CheckCircle2 className="h-6 w-6 text-green-500" />
+            <p className="text-xs text-muted-foreground">
               No maintenance requests found.
             </p>
           </div>
@@ -245,15 +245,15 @@ export function RecentMaintenanceTable() {
 
   // ── Data table ───────────────────────────────────────────────────────
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="py-1.5 gap-0">
+      <CardHeader className="pb-1 px-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Wrench className="h-4 w-4" />
-              Recent Maintenance Requests
+            <CardTitle className="flex items-center gap-1 text-[11px]">
+              <Wrench className="h-3 w-3" />
+              Recent Maintenance
             </CardTitle>
-            <CardDescription className="text-xs mt-1">
+            <CardDescription className="text-[9px] mt-0.5">
               Latest {data.data.length}{data.pagination?.total ? ` of ${data.pagination.total}` : data.count ? ` of ${data.count}` : ""} requests
             </CardDescription>
           </div>
@@ -264,27 +264,27 @@ export function RecentMaintenanceTable() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-6 w-6"
               onClick={fetchData}
               disabled={isLoading}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="h-3 w-3" />
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-xs"
+              className="h-6 text-[10px]"
               asChild
             >
               <Link href={`/${locale}/dashboard/maintenance`}>
                 View All
-                <ExternalLink className="h-3 w-3 ms-1.5" />
+                <ExternalLink className="h-2.5 w-2.5 ms-1" />
               </Link>
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-1">
         {/* Desktop table */}
         <div className="hidden md:block">
           <Table>
@@ -348,7 +348,7 @@ export function RecentMaintenanceTable() {
         </div>
 
         {/* Mobile cards */}
-        <div className="space-y-3 md:hidden">
+        <div className="space-y-2 md:hidden">
           {data.data.map((request) => {
             const config = getStatusConfig(request.status);
             const StatusIcon = config.icon;
@@ -357,7 +357,7 @@ export function RecentMaintenanceTable() {
               <div
                 key={request.id}
                 className={cn(
-                  "rounded-lg border p-3 space-y-2 cursor-pointer",
+                  "rounded-md border p-2 space-y-1.5 cursor-pointer",
                   isLoading && "opacity-60"
                 )}
                 onClick={() => openDetails(request.id)}

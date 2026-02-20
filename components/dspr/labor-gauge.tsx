@@ -59,21 +59,21 @@ export function LaborGauge({
   className,
 }: LaborGaugeProps) {
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-0">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-violet-500/15 dark:bg-violet-500/20">
-            <Gauge className="h-4 w-4 text-violet-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-violet-500/15 dark:bg-violet-500/20">
+            <Gauge className="h-3 w-3 text-violet-500" />
           </div>
           {title}
           {target !== undefined && (
-            <span className="text-xs font-normal text-muted-foreground ml-auto">
+            <span className="text-[9px] font-normal text-muted-foreground ml-auto">
               Target: {target}%
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className="pb-1 px-3">
         <SpeedometerGauge
           value={value}
           max={50}
@@ -82,8 +82,8 @@ export function LaborGauge({
           statusColor={getLaborColor(value)}
           valueDisplay={`${value}%`}
         />
-        <div className="text-center mt-1">
-          <p className="text-[10px] text-muted-foreground font-medium">
+        <div className="text-center mt-0">
+          <p className="text-[9px] text-muted-foreground font-medium">
             Target range:{" "}
             <span className="text-emerald-500 font-semibold">20–24%</span>
           </p>

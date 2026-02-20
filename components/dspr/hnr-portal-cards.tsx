@@ -89,16 +89,16 @@ export function HnrCard({ hnr, className }: HnrCardProps) {
   const pct = hnr.hnr_promise_met_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-0">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-orange-500/15 dark:bg-orange-500/20">
-            <Timer className="h-4 w-4 text-orange-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-orange-500/15 dark:bg-orange-500/20">
+            <Timer className="h-3 w-3 text-orange-500" />
           </div>
           Hot-N-Ready
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
+              <Info className="h-3 w-3 text-muted-foreground ms-auto cursor-help" />
             </TooltipTrigger>
             <TooltipContent className="max-w-50">
               Tracks how well HNR promises are being met
@@ -106,7 +106,7 @@ export function HnrCard({ hnr, className }: HnrCardProps) {
           </Tooltip>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className="pb-1 px-3">
         <SpeedometerGauge
           value={pct}
           zones={LABOR_ZONES}
@@ -115,19 +115,19 @@ export function HnrCard({ hnr, className }: HnrCardProps) {
           valueDisplay={`${pct}%`}
           max={100}
         />
-        <div className="grid grid-cols-3 gap-2 mt-1">
+        <div className="grid grid-cols-3 gap-1 mt-0">
           <Metric
-            icon={<Timer className="h-3 w-3 text-muted-foreground" />}
+            icon={<Timer className="h-2.5 w-2.5 text-muted-foreground" />}
             value={hnr.hnr_transactions}
             label="Trans."
           />
           <Metric
-            icon={<CheckCircle2 className="h-3 w-3 text-emerald-500" />}
+            icon={<CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />}
             value={hnr.hnr_promise_met}
             label="Kept"
           />
           <Metric
-            icon={<XCircle className="h-3 w-3 text-red-500" />}
+            icon={<XCircle className="h-2.5 w-2.5 text-red-500" />}
             value={hnr.hnr_broken_promises}
             label="Broken"
             highlight={hnr.hnr_broken_promises > 0}
@@ -151,16 +151,16 @@ export function PortalCard({ portal, className }: PortalCardProps) {
   const pct = portal.put_into_portal_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow border-transparent", className)}>
-      <CardHeader className="pb-0">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
-            <ShieldCheck className="h-4 w-4 text-blue-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-blue-500/15 dark:bg-blue-500/20">
+            <ShieldCheck className="h-3 w-3 text-blue-500" />
           </div>
           Put Into Portal 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
+              <Info className="h-3 w-3 text-muted-foreground ms-auto cursor-help" />
             </TooltipTrigger>
             <TooltipContent className="max-w-50">
               Measures portal usage rate for eligible orders
@@ -168,7 +168,7 @@ export function PortalCard({ portal, className }: PortalCardProps) {
           </Tooltip>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className="pb-1 px-3">
         <SpeedometerGauge
           value={pct}
           zones={PERFORMANCE_ZONES}
@@ -176,7 +176,7 @@ export function PortalCard({ portal, className }: PortalCardProps) {
           statusColor={getPerformanceColor(pct)}
           valueDisplay={`${pct.toFixed(1)}%`}
         />
-        <div className="grid grid-cols-2 gap-2 mt-1">
+        <div className="grid grid-cols-2 gap-1 mt-0">
           <Metric value={portal.portal_eligible_orders} label="Eligible" />
           <Metric value={portal.portal_used_orders} label="Used" />
         </div>
@@ -198,16 +198,16 @@ export function OnTimeCard({ portal, className }: OnTimeCardProps) {
   const pct = portal.in_portal_on_time_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow border-transparent", className)}>
-      <CardHeader className="pb-0">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-emerald-500/15 dark:bg-emerald-500/20">
-            <Clock className="h-4 w-4 text-emerald-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-emerald-500/15 dark:bg-emerald-500/20">
+            <Clock className="h-3 w-3 text-emerald-500" />
           </div>
           Portal On Time 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
+              <Info className="h-3 w-3 text-muted-foreground ms-auto cursor-help" />
             </TooltipTrigger>
             <TooltipContent className="max-w-50">
               On-time completion rate for portal orders
@@ -215,7 +215,7 @@ export function OnTimeCard({ portal, className }: OnTimeCardProps) {
           </Tooltip>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
+      <CardContent className="pb-1 px-3">
         <SpeedometerGauge
           value={pct}
           zones={PERFORMANCE_ZONES}
@@ -223,7 +223,7 @@ export function OnTimeCard({ portal, className }: OnTimeCardProps) {
           statusColor={getPerformanceColor(pct)}
           valueDisplay={`${pct.toFixed(1)}%`}
         />
-        <div className="grid grid-cols-2 gap-2 mt-1">
+        <div className="grid grid-cols-2 gap-1 mt-0">
           <Metric value={portal.portal_on_time_orders} label="On Time" />
           <Metric value={portal.portal_used_orders} label="Total" />
         </div>
@@ -248,19 +248,19 @@ function Metric({
   highlight?: boolean;
 }) {
   return (
-    <div className="text-center space-y-0.5">
-      <div className="flex items-center justify-center gap-1">
+    <div className="text-center space-y-0">
+      <div className="flex items-center justify-center gap-0.5">
         {icon}
         <p
           className={cn(
-            "text-base font-bold tabular-nums",
+            "text-xs font-bold tabular-nums",
             highlight && "text-red-600 dark:text-red-400",
           )}
         >
           {value.toLocaleString()}
         </p>
       </div>
-      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+      <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-wider">
         {label}
       </p>
     </div>

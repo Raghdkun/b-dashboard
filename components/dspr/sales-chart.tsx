@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-  loading: () => <Skeleton className="h-87.5 w-full" />,
+  loading: () => <Skeleton className="h-50 w-full" />,
 });
 
 /** Day-name labels for the x-axis (Tue → Mon) */
@@ -142,7 +142,7 @@ export function SalesChart({
       xaxis: {
         categories,
         labels: {
-          style: { fontSize: "12px", colors: isDark ? "#a1a1aa" : "#71717a" },
+          style: { fontSize: "10px", colors: isDark ? "#a1a1aa" : "#71717a" },
         },
         axisBorder: { color: isDark ? "#3f3f46" : "#e4e4e7" },
         axisTicks: { color: isDark ? "#3f3f46" : "#e4e4e7" },
@@ -150,7 +150,7 @@ export function SalesChart({
       yaxis: {
         labels: {
           formatter: (val: number) => `${currencyPrefix}${val.toLocaleString()}`,
-          style: { fontSize: "12px", colors: isDark ? "#a1a1aa" : "#71717a" },
+          style: { fontSize: "10px", colors: isDark ? "#a1a1aa" : "#71717a" },
         },
         title: { text: "Sales", style: { color: isDark ? "#a1a1aa" : "#71717a" } },
       },
@@ -168,7 +168,7 @@ export function SalesChart({
         position: legendPosition,
         horizontalAlign: legendAlign,
         offsetX: 0,
-        fontSize: "13px",
+        fontSize: "10px",
         labels: { colors: isDark ? "#a1a1aa" : "#71717a" },
       },
       grid: {
@@ -199,16 +199,16 @@ export function SalesChart({
   if (series.length === 0) return null;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
-            <svg className="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-blue-500/15 dark:bg-blue-500/20">
+            <svg className="h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
           </div>
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-0">
         <ReactApexChart
           options={options}
           series={series}

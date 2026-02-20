@@ -38,15 +38,15 @@ import { cn } from "@/lib/utils";
 
 function TopQaRatingsSkeleton() {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-5 w-36" />
+    <Card className="py-1.5 gap-0">
+      <CardHeader className="pb-1 px-3">
+        <div className="flex items-center gap-1">
+          <Skeleton className="h-3 w-3 rounded" />
+          <Skeleton className="h-3 w-32" />
         </div>
-        <Skeleton className="h-4 w-52 mt-1" />
+        <Skeleton className="h-2.5 w-44 mt-0.5" />
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3">
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -143,20 +143,20 @@ export function TopQaRatingsCard() {
 
   if (error && !data) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Star className="h-4 w-4" />
+      <Card className="py-1.5 gap-0">
+        <CardHeader className="pb-1 px-3">
+          <CardTitle className="flex items-center gap-1 text-[11px]">
+            <Star className="h-3 w-3" />
             Top 5 QA Ratings
           </CardTitle>
-          <CardDescription className="text-xs mt-1">
+          <CardDescription className="text-[9px] mt-0.5">
             Last 7 days ({dateStart} → {dateEnd})
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <ShieldAlert className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{error}</p>
+        <CardContent className="px-3">
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            <ShieldAlert className="h-6 w-6 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">{error}</p>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="h-3.5 w-3.5 me-1.5" />
               Retry
@@ -169,20 +169,20 @@ export function TopQaRatingsCard() {
 
   if (!data || data.length === 0) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Star className="h-4 w-4" />
+      <Card className="py-1.5 gap-0">
+        <CardHeader className="pb-1 px-3">
+          <CardTitle className="flex items-center gap-1 text-[11px]">
+            <Star className="h-3 w-3" />
             Top 5 QA Ratings
           </CardTitle>
-          <CardDescription className="text-xs mt-1">
+          <CardDescription className="text-[9px] mt-0.5">
             Last 7 days ({dateStart} → {dateEnd})
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-2 py-6 text-center">
-            <CheckCircle2 className="h-8 w-8 text-green-500" />
-            <p className="text-sm text-muted-foreground">
+        <CardContent className="px-3">
+          <div className="flex flex-col items-center gap-1.5 py-4 text-center">
+            <CheckCircle2 className="h-6 w-6 text-green-500" />
+            <p className="text-xs text-muted-foreground">
               No QA rating issues found for this period.
             </p>
           </div>
@@ -192,15 +192,15 @@ export function TopQaRatingsCard() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="py-1.5 gap-0">
+      <CardHeader className="pb-1 px-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Star className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-1 text-[11px]">
+              <Star className="h-3 w-3" />
               Top 5 QA Ratings
             </CardTitle>
-            <CardDescription className="text-xs mt-1">
+            <CardDescription className="text-[9px] mt-0.5">
               Last 7 days ({dateStart} → {dateEnd})
             </CardDescription>
           </div>
@@ -211,27 +211,27 @@ export function TopQaRatingsCard() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-6 w-6"
               onClick={fetchData}
               disabled={isLoading}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="h-3 w-3" />
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-xs"
+              className="h-6 text-[10px]"
               asChild
             >
               <Link href={`/${locale}/dashboard/camera-report`}>
                 View All
-                <ExternalLink className="h-3 w-3 ms-1.5" />
+                <ExternalLink className="h-2.5 w-2.5 ms-1" />
               </Link>
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-1">
         <div className="hidden md:block">
           <Table>
             <TableHeader>
@@ -245,7 +245,7 @@ export function TopQaRatingsCard() {
             <TableBody>
               {data.map((item) => (
                 <TableRow key={item.entityId} className={cn(isLoading && "opacity-60")}>
-                  <TableCell className="text-sm font-medium">{item.entityLabel}</TableCell>
+                  <TableCell className="text-xs font-medium">{item.entityLabel}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant="secondary">{item.autoFailCount}</Badge>
                   </TableCell>
@@ -261,19 +261,19 @@ export function TopQaRatingsCard() {
           </Table>
         </div>
 
-        <div className="space-y-3 md:hidden">
+        <div className="space-y-2 md:hidden">
           {data.map((item, index) => (
             <div
               key={item.entityId}
-              className={cn("rounded-lg border p-3 space-y-2", isLoading && "opacity-60")}
+              className={cn("rounded-md border p-2 space-y-1.5", isLoading && "opacity-60")}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium line-clamp-2">{item.entityLabel}</p>
+                <p className="text-xs font-medium line-clamp-2">{item.entityLabel}</p>
                 <Badge variant="outline" className="shrink-0">#{index + 1}</Badge>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Badge variant="secondary" className="gap-1">
-                  <AlertCircle className="h-3 w-3" />
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <Badge variant="secondary" className="gap-0.5">
+                  <AlertCircle className="h-2.5 w-2.5" />
                   Auto Fail: {item.autoFailCount}
                 </Badge>
                 <Badge variant="outline">Urgent: {item.urgentCount}</Badge>

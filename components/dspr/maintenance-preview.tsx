@@ -75,16 +75,16 @@ function formatStatus(status: string): string {
 function MaintenancePreviewSkeleton() {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Wrench className="h-4 w-4" />
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-1.5 text-xs">
+          <Wrench className="h-3.5 w-3.5" />
           Recent Maintenance
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <div key={i} className="flex items-center justify-between gap-2 rounded-md border p-2">
               <div className="min-w-0 flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
@@ -129,10 +129,10 @@ export function MaintenancePreview() {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wrench className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-1.5 text-xs">
+            <Wrench className="h-3.5 w-3.5" />
             Recent Maintenance
             {isRefreshing && (
               <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -141,16 +141,16 @@ export function MaintenancePreview() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs gap-1"
+            className="text-[10px] gap-1 h-6"
             onClick={() => router.push(`/${locale}/dashboard/maintenance`)}
           >
             View All
-            <ArrowRight className="h-3 w-3" />
+            <ArrowRight className="h-2.5 w-2.5" />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-3">
+        <div className="space-y-2">
           {previewItems.map((request) => {
             const config = getConfig(request.status);
             const StatusIcon = config.icon;
@@ -159,21 +159,21 @@ export function MaintenancePreview() {
               <div
                 key={request.id}
                 className={cn(
-                  "flex items-center justify-between gap-3 rounded-lg border p-3",
+                  "flex items-center justify-between gap-2 rounded-md border p-2",
                   isRefreshing && "opacity-60"
                 )}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-xs font-medium truncate">
                     {request.brokenItem}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] text-muted-foreground">
                     #{request.id} &middot;{" "}
                     {format(new Date(request.submittedAt), "MMM dd, yyyy")}
                   </p>
                 </div>
-                <Badge className={cn("gap-1 shrink-0", config.className)}>
-                  <StatusIcon className="h-3 w-3" />
+                <Badge className={cn("gap-1 shrink-0 text-[10px]", config.className)}>
+                  <StatusIcon className="h-2.5 w-2.5" />
                   {formatStatus(request.status)}
                 </Badge>
               </div>

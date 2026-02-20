@@ -37,11 +37,11 @@ interface SpeedometerGaugeProps {
 
 const CX = 110;       // center X
 const CY = 80;        // center Y
-const R = 65;         // arc radius
-const ARC_W = 10;     // arc stroke width
+const R = 60;         // arc radius
+const ARC_W = 9;      // arc stroke width
 const START = 135;    // gauge start angle (SVG deg, bottom-left)
 const SWEEP = 270;    // total sweep degrees
-const NEEDLE = 50;    // needle length
+const NEEDLE = 46;    // needle length
 
 /* ─── Geometry helpers ──────────────────────────────────────── */
 
@@ -119,7 +119,7 @@ export function SpeedometerGauge({
 
   return (
     <div className={cn("w-full", className)}>
-      <svg viewBox="0 0 220 128" className="w-full h-auto">
+      <svg viewBox="0 0 220 120" className="w-full h-auto">
         {/* Background track */}
         <path
           d={arcPath(R, START, START + SWEEP)}
@@ -176,10 +176,10 @@ export function SpeedometerGauge({
         {/* Value display */}
         <text
           x={CX}
-          y={CY + 38}
+          y={CY + 34}
           textAnchor="middle"
           fill={valueTextColor}
-          fontSize="13"
+          fontSize="10"
           fontWeight="700"
           style={{ filter: "drop-shadow(0 0.5px 1px rgba(0,0,0,0.4))" }}
         >
