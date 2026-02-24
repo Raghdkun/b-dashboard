@@ -296,7 +296,7 @@ export function DsprDashboard() {
         imageTimeout: 5000,
       });
 
-      // Restore hidden elements
+      // Restore hidden elements .
       if (btn) btn.style.display = "";
       ignored.forEach((el) => (el.style.display = ""));
 
