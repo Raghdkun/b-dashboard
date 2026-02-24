@@ -78,6 +78,7 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
   fetchCount: 0,
 
   fetchReport: async (storeId?: string, date?: string) => {
+    // console.log("[DsprStore] fetchReport called with:", { storeId, date });
     const state = get();
 
     // Cancel any in-flight request
@@ -103,6 +104,8 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
           date,
           _abortController?.signal
         );
+
+        // console.log("[DsprStore] Data received:", { store: data.filtering?.store, date: data.filtering?.date, cashSales: data.day?.total_cash_sales, customers: data.day?.customer_count });
 
         set({
           data,
@@ -131,13 +134,15 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
                 "UNKNOWN"
               );
 
+        //console.error("[DsprStore] Error:", { code: dsprErr.code, message: dsprErr.message, retryable: dsprErr.retryable });
+
         // Auto-retry for retryable errors (exclude auth errors — those need manual intervention)
         const isAuthError = dsprErr.code === "UNAUTHORIZED" || dsprErr.code === "NOT_AUTHENTICATED" || dsprErr.code === "FORBIDDEN";
         if (dsprErr.retryable && !isAuthError && _retryCount < MAX_AUTO_RETRIES) {
           _retryCount++;
-          console.warn(
-            `🔄 DSPR: Auto-retry ${_retryCount}/${MAX_AUTO_RETRIES} in ${RETRY_DELAY_MS}ms`
-          );
+          // console.warn(
+          //   `🔄 DSPR: Auto-retry ${_retryCount}/${MAX_AUTO_RETRIES} in ${RETRY_DELAY_MS}ms`
+          // );
           await new Promise<void>((resolve) => {
             _retryTimer = setTimeout(resolve, RETRY_DELAY_MS);
             // Cancel the retry if the request was aborted while waiting
@@ -155,7 +160,7 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
           return performFetch();
         }
 
-        console.error(`❌ DSPR Store: [${dsprErr.code}] ${dsprErr.message}`);
+        // console.error(`❌ DSPR Store: [${dsprErr.code}] ${dsprErr.message}`);
 
         set({
           isLoading: false,

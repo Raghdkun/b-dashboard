@@ -16,14 +16,13 @@ export type HttpMethod =
   | "PUT"
   | "PATCH"
   | "DELETE"
-  | "OPTIONS"
-  | "HEAD";
+  | "ANY";
 
 /**
  * Core AuthRule entity
  */
 export interface AuthRule {
-  id: string;
+  id: string | number;
   service: string;
   method: HttpMethod;
   /** Alias for method - for backward compatibility */

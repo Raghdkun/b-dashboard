@@ -24,9 +24,9 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle, X, Plus } from "lucide-react";
-import { useCreateAuthRule } from "@/lib/hooks/use-auth-rules";
+import { useCreateAuthRule, useUpdateAuthRule } from "@/lib/hooks/use-auth-rules";
 import { useRoles } from "@/lib/hooks/use-roles";
-import type { AuthRule, HttpMethod, CreateAuthRulePayload } from "@/types/auth-rule.types";
+import type { AuthRule, HttpMethod, CreateAuthRulePayload, UpdateAuthRulePayload } from "@/types/auth-rule.types";
 
 const HTTP_METHODS: HttpMethod[] = [
   "GET",
@@ -34,8 +34,7 @@ const HTTP_METHODS: HttpMethod[] = [
   "PUT",
   "PATCH",
   "DELETE",
-  "OPTIONS",
-  "HEAD",
+  "ANY",
 ];
 
 // Local form state type that allows both pathDsl and routeName
@@ -52,51 +51,62 @@ interface AuthRuleFormData {
 }
 
 interface AuthRuleFormProps {
+  /** Existing rule data for edit mode */
   rule?: AuthRule;
+  /** If true, form operates in edit mode */
+  mode?: "create" | "edit";
   onSuccess?: (rule: AuthRule) => void;
 }
 
-export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
+export function AuthRuleForm({ rule, mode = "create", onSuccess }: AuthRuleFormProps) {
   const t = useTranslations("authRules");
   const tCommon = useTranslations("common");
   const router = useRouter();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
 
-  const { createRule, isCreating, error } = useCreateAuthRule();
+  const { createRule, isCreating, error: createError } = useCreateAuthRule();
+  const { updateRule, isUpdating, updateError } = useUpdateAuthRule(
+    mode === "edit" && rule ? String(rule.id) : null
+  );
   const { roles } = useRoles();
+
+  const isEditMode = mode === "edit" && !!rule;
+  const isBusy = isEditMode ? isUpdating : isCreating;
+  const error = isEditMode ? updateError : createError;
 
   const [formData, setFormData] = useState<AuthRuleFormData>({
     service: rule?.service || "",
     method: rule?.method || "GET",
-    pathDsl: rule?.pathDsl || "",
-    routeName: rule?.routeName || "",
-    rolesAny: rule?.rolesAny || [],
-    permissionsAny: rule?.permissionsAny || [],
-    permissionsAll: rule?.permissionsAll || [],
+    pathDsl: rule?.pathDsl || rule?.path_dsl || "",
+    routeName: rule?.routeName || rule?.route_name || "",
+    rolesAny: rule?.rolesAny || rule?.roles_any || [],
+    permissionsAny: rule?.permissionsAny || rule?.permissions_any || [],
+    permissionsAll: rule?.permissionsAll || rule?.permissions_all || [],
     priority: rule?.priority || 1,
-    isActive: rule?.isActive ?? true,
+    isActive: rule?.isActive ?? rule?.is_active ?? true,
   });
 
   const [newPermission, setNewPermission] = useState("");
+  const [validationError, setValidationError] = useState<string>("");
 
   const handleChange = (field: keyof AuthRuleFormData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddRole = (roleId: string) => {
-    if (!formData.rolesAny?.includes(roleId)) {
+  const handleAddRole = (roleName: string) => {
+    if (!formData.rolesAny?.includes(roleName)) {
       setFormData((prev) => ({
         ...prev,
-        rolesAny: [...(prev.rolesAny || []), roleId],
+        rolesAny: [...(prev.rolesAny || []), roleName],
       }));
     }
   };
 
-  const handleRemoveRole = (roleId: string) => {
+  const handleRemoveRole = (roleName: string) => {
     setFormData((prev) => ({
       ...prev,
-      rolesAny: prev.rolesAny?.filter((id) => id !== roleId) || [],
+      rolesAny: prev.rolesAny?.filter((name) => name !== roleName) || [],
     }));
   };
 
@@ -122,30 +132,66 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.service?.trim()) {
+      setValidationError("Service is required");
+      return;
+    }
+    if (!formData.method) {
+      setValidationError("HTTP Method is required");
+      return;
+    }
+    if (!formData.pathDsl?.trim() && !formData.routeName?.trim()) {
+      setValidationError("Either Path DSL or Route Name is required");
+      return;
+    }
+    
+    setValidationError("");
+
     try {
-      // Build payload based on whether pathDsl or routeName is provided
-      const payload: CreateAuthRulePayload = formData.pathDsl
-        ? {
-            service: formData.service,
-            method: formData.method,
-            pathDsl: formData.pathDsl,
-            rolesAny: formData.rolesAny,
-            permissionsAny: formData.permissionsAny,
-            permissionsAll: formData.permissionsAll,
-            priority: formData.priority,
-            isActive: formData.isActive,
-          }
-        : {
-            service: formData.service,
-            method: formData.method,
-            routeName: formData.routeName,
-            rolesAny: formData.rolesAny,
-            permissionsAny: formData.permissionsAny,
-            permissionsAll: formData.permissionsAll,
-            priority: formData.priority,
-            isActive: formData.isActive,
-          };
-      const result = await createRule(payload);
+      let result: AuthRule;
+
+      if (isEditMode) {
+        // Edit mode — send update payload
+        const updatePayload: UpdateAuthRulePayload = {
+          service: formData.service.trim(),
+          method: formData.method,
+          pathDsl: formData.pathDsl?.trim() || undefined,
+          routeName: formData.routeName?.trim() || undefined,
+          rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+          permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+          permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
+          priority: formData.priority,
+          isActive: formData.isActive,
+        };
+        result = await updateRule(updatePayload);
+      } else {
+        // Create mode
+        const payload: CreateAuthRulePayload = formData.pathDsl?.trim()
+          ? {
+              service: formData.service.trim(),
+              method: formData.method,
+              pathDsl: formData.pathDsl.trim(),
+              rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+              permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+              permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
+              priority: formData.priority,
+              isActive: formData.isActive,
+            }
+          : {
+              service: formData.service.trim(),
+              method: formData.method,
+              routeName: formData.routeName!.trim(),
+              rolesAny: formData.rolesAny && formData.rolesAny.length > 0 ? formData.rolesAny : [],
+              permissionsAny: formData.permissionsAny && formData.permissionsAny.length > 0 ? formData.permissionsAny : [],
+              permissionsAll: formData.permissionsAll && formData.permissionsAll.length > 0 ? formData.permissionsAll : [],
+              priority: formData.priority,
+              isActive: formData.isActive,
+            };
+        result = await createRule(payload);
+      }
+
       if (onSuccess) {
         onSuccess(result);
       } else {
@@ -158,10 +204,10 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
+      {(error || validationError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error || validationError}</AlertDescription>
         </Alert>
       )}
 
@@ -202,6 +248,7 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">Required field</p>
             </div>
           </div>
 
@@ -226,6 +273,9 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
               onChange={(e) => handleChange("routeName", e.target.value)}
               placeholder={t("form.routeNamePlaceholder")}
             />
+            <p className="text-sm text-muted-foreground">
+              Either Path DSL or Route Name is required
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -271,21 +321,18 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
               {t("form.rolesAnyHint")}
             </p>
             <div className="flex flex-wrap gap-2">
-              {formData.rolesAny?.map((roleId) => {
-                const role = roles.find((r) => r.id === roleId);
-                return (
-                  <Badge key={roleId} variant="secondary">
-                    {role?.name || roleId}
+              {formData.rolesAny?.map((roleName) => (
+                  <Badge key={roleName} variant="secondary">
+                    {roleName}
                     <button
                       type="button"
-                      onClick={() => handleRemoveRole(roleId)}
+                      onClick={() => handleRemoveRole(roleName)}
                       className="ms-1 hover:text-destructive"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
-                );
-              })}
+              ))}
             </div>
             <Select onValueChange={handleAddRole}>
               <SelectTrigger className="w-50">
@@ -293,9 +340,9 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
               </SelectTrigger>
               <SelectContent>
                 {roles
-                  .filter((r) => !formData.rolesAny?.includes(r.id))
+                  .filter((r) => !formData.rolesAny?.includes(r.name))
                   .map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
+                    <SelectItem key={role.id} value={role.name}>
                       {role.name}
                     </SelectItem>
                   ))}
@@ -391,9 +438,9 @@ export function AuthRuleForm({ rule, onSuccess }: AuthRuleFormProps) {
         >
           {tCommon("cancel")}
         </Button>
-        <Button type="submit" disabled={isCreating}>
-          {isCreating && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-          {rule ? tCommon("save") : t("form.create")}
+        <Button type="submit" disabled={isBusy}>
+          {isBusy && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+          {isEditMode ? tCommon("save") : t("form.create")}
         </Button>
       </div>
     </form>

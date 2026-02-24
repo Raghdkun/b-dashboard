@@ -133,10 +133,10 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
       if (response.success) {
         set((state) => ({
           rules: state.rules.map((r) =>
-            r.id === id ? { ...r, ...response.data } : r
+            String(r.id) === String(id) ? { ...r, ...response.data } : r
           ),
           currentRule:
-            state.currentRule?.id === id
+            String(state.currentRule?.id) === String(id)
               ? { ...state.currentRule, ...response.data }
               : state.currentRule,
           isUpdating: false,
@@ -157,8 +157,8 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
     try {
       await authRuleService.deleteAuthRule(id);
       set((state) => ({
-        rules: state.rules.filter((r) => r.id !== id),
-        currentRule: state.currentRule?.id === id ? null : state.currentRule,
+        rules: state.rules.filter((r) => String(r.id) !== String(id)),
+        currentRule: String(state.currentRule?.id) === String(id) ? null : state.currentRule,
         isDeleting: false,
       }));
     } catch (error) {

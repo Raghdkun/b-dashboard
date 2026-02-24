@@ -53,10 +53,10 @@ export default function StoresPage() {
 
   const columns = [
     {
-      key: "id",
+      key: "storeId",
       header: t("columns.id") || "Store ID",
       cell: (store: Store) => (
-        <span className="font-medium">{store.id}</span>
+        <span className="font-medium">{store.storeId}</span>
       ),
     },
     {

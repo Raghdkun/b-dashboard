@@ -28,6 +28,7 @@ export interface UserStore {
   store: {
     id: string;
     name: string;
+    storeId?: string;
   };
   roles: Array<{
     id: string;
@@ -80,7 +81,7 @@ export interface CreateUserPayload {
   name: string;
   email: string;
   password: string;
-  passwordConfirmation?: string;
+  passwordConfirmation: string;
   roles?: string[];
   permissions?: string[];
 }

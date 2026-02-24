@@ -9,7 +9,7 @@ function Skeleton({ className, shimmer = true, ...props }: SkeletonProps) {
     <div
       data-slot="skeleton"
       className={cn(
-        "rounded-(--radius-md) bg-muted",
+        "rounded-[var(--skeleton-border-radius)] bg-muted",
         shimmer && "skeleton-shimmer",
         className
       )}

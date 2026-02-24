@@ -5,3 +5,5 @@ export { roleService, permissionService } from "./role.service";
 export { authRuleService } from "./auth-rule.service";
 export { assignmentService } from "./assignment.service";
 export { hierarchyService } from "./hierarchy.service";
+export { serviceClientService } from "./service-client.service";
+export { manualImportService } from "./manual-import.service";

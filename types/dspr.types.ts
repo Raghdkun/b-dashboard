@@ -44,11 +44,16 @@ export interface TopIngredient {
   ingredient_id: string;
   ingredient_description: string;
   actual_usage: number;
+  variance_value?: number;
 }
 
 export interface DsprTop {
   top_5_items_sales_for_day: TopMenuItem[];
-  top_3_ingredients_used: TopIngredient[];
+  ingredients: {
+    top_3_ingredients_used: TopIngredient[],
+    main_5_ingredients_usage: [],
+    top_paper_5_ingredients_usage: [];
+  };
 }
 
 // ============================================================================
@@ -66,6 +71,18 @@ export interface HourlySalesChannel {
   doordash_sales: string;
   ubereats_sales: string;
   grubhub_sales: string;
+}
+
+export interface DsprChannelSales {
+  royalty_obligation: number | string;
+  phone_sales: number | string;
+  call_center_sales: number | string;
+  drive_thru_sales: number | string;
+  website_sales: number | string;
+  mobile_sales: number | string;
+  doordash_sales: number | string;
+  ubereats_sales: number | string;
+  grubhub_sales: number | string;
 }
 
 export interface DsprRefundedOrders {
@@ -95,6 +112,7 @@ export interface DsprPortal {
 
 export interface DsprDay {
   hourly_sales_and_channels: HourlySalesChannel[];
+  total_sales: DsprChannelSales;
   total_cash_sales: number;
   total_deposit: number;
   over_short: number;
