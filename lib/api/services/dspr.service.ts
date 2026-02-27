@@ -47,7 +47,7 @@ function getToken(): string | null {
     return parsed?.state?.token ?? null;
   } catch (e) {
     if (process.env.NODE_ENV === "development") {
-      console.warn("[DSPR] Failed to read auth token from localStorage:", e);
+      // console.warn("[DSPR] Failed to read auth token from localStorage:", e);
     }
     return null;
   }
@@ -202,6 +202,8 @@ export const dsprService = {
     const resolvedStore = storeId || getSelectedStoreId();
     const resolvedDate = date || getYesterday();
 
+    // console.log("[DsprService] getReport:", { storeId, date, resolvedStore, resolvedDate });
+
     if (!resolvedStore) {
       throw new DsprError(
         "No store selected. Please select a store first.",
@@ -222,6 +224,7 @@ export const dsprService = {
     }
 
     const url = `/api/dspr/${encodeURIComponent(resolvedStore)}/${encodeURIComponent(resolvedDate)}`;
+    // console.log("[DsprService] Fetching URL:", url);
 
     try {
       const { data } = await axios.get<DsprResponse>(url, {
@@ -232,6 +235,8 @@ export const dsprService = {
         timeout: CLIENT_TIMEOUT_MS,
         signal,
       });
+
+      // console.log("[DsprService] Response received:", { filtering: data?.filtering, hasDay: !!data?.day, hasSales: !!data?.sales });
 
       // Basic response shape validation
       if (!data || !data.filtering || !data.sales || !data.day) {

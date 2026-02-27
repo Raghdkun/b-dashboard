@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-  loading: () => <Skeleton className="h-100 w-full" />,
+  loading: () => <Skeleton className="h-50 w-full" />,
 });
 
 /** Channel keys from HourlySalesChannel (everything except hour & royalty_obligation) */
@@ -125,7 +125,7 @@ export function HourlyChannelsChart({
       xaxis: {
         categories,
         labels: {
-          style: { fontSize: "11px", colors: isDark ? "#a1a1aa" : "#71717a" },
+          style: { fontSize: "9px", colors: isDark ? "#a1a1aa" : "#71717a" },
           rotate: -45,
           rotateAlways: false,
         },
@@ -135,7 +135,7 @@ export function HourlyChannelsChart({
       yaxis: {
         labels: {
           formatter: (val: number) => `${currencyPrefix}${val.toFixed(0)}`,
-          style: { fontSize: "11px", colors: isDark ? "#a1a1aa" : "#71717a" },
+          style: { fontSize: "9px", colors: isDark ? "#a1a1aa" : "#71717a" },
         },
       },
       tooltip: {
@@ -148,9 +148,10 @@ export function HourlyChannelsChart({
         },
       },
       legend: {
+        show: false,
         position: legendPosition,
         horizontalAlign: "left",
-        fontSize: "12px",
+        fontSize: "10px",
         labels: { colors: isDark ? "#a1a1aa" : "#71717a" },
       },
       fill: { opacity: 1 },
@@ -171,16 +172,16 @@ export function HourlyChannelsChart({
   );
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-violet-500/15 dark:bg-violet-500/20">
-            <svg className="h-4 w-4 text-violet-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 16V8l4 4 4-4v8"/></svg>
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0 bg-linear-to-r from-violet-50/50 via-violet-100/40 to-violet-200/30 dark:from-violet-950/20 dark:via-violet-900/20 dark:to-violet-800/20", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-violet-500/15 dark:bg-violet-500/20">
+            <svg className="h-3 w-3 text-violet-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 16V8l4 4 4-4v8"/></svg>
           </div>
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0 pb-0">
         <ReactApexChart
           options={options}
           series={series}

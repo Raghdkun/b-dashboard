@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,12 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
   const locale = (params?.locale as string) || "en";
 
   const { createUser, isCreating, error } = useCreateUser();
-  const { roles, isLoading: isLoadingRoles } = useRoles();
-  const { permissions, isLoading: isLoadingPermissions } = usePermissions();
+
+  // Fetch all roles and permissions (use large perPage to get all in one page)
+  const rolesParams = useMemo(() => ({ perPage: 100 }), []);
+  const { roles, isLoading: isLoadingRoles } = useRoles(rolesParams);
+  const { permissions, isLoading: isLoadingPermissions } = usePermissions({ perPage: 100 });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -44,8 +48,8 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
     email: user?.email || "",
     password: "",
     passwordConfirmation: "",
-    roles: user?.roles?.map((r) => r.id) || [],
-    permissions: user?.permissions?.map((p) => p.id) || [],
+    roles: user?.roles?.map((r) => r.name) || [],
+    permissions: user?.permissions?.map((p) => p.name) || [],
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -71,7 +75,9 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
         errors.password = t("form.validation.passwordMinLength");
       }
 
-      if (formData.password !== formData.passwordConfirmation) {
+      if (!formData.passwordConfirmation) {
+        errors.passwordConfirmation = t("form.validation.passwordMismatch");
+      } else if (formData.password !== formData.passwordConfirmation) {
         errors.passwordConfirmation = t("form.validation.passwordMismatch");
       }
     }
@@ -81,7 +87,7 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
   };
 
   const handleChange = (field: keyof CreateUserPayload, value: unknown) => {
-    setFormData((prev: CreateUserPayload) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear validation error when field is modified
     if (validationErrors[field]) {
       setValidationErrors((prev) => {
@@ -92,34 +98,45 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
     }
   };
 
-  const handleRoleChange = (checked: boolean, roleId: string) => {
-    let newRoles: string[];
+  const handleRoleChange = (checked: boolean, roleName: string) => {
     const currentRoles = formData.roles ?? [];
-    
+    let newRoles: string[];
+
     if (checked) {
-      newRoles = [...currentRoles, roleId];
+      newRoles = [...currentRoles, roleName];
     } else {
-      newRoles = currentRoles.filter(id => id !== roleId);
+      newRoles = currentRoles.filter((name) => name !== roleName);
     }
 
-    // Find the role to check if it's super-admin
-    const selectedRole = roles?.find(r => r.id === roleId);
-    const isSuperAdmin = selectedRole?.name?.toLowerCase() === "super-admin" || selectedRole?.name?.toLowerCase() === "super admin";
+    // Check if it's super-admin
+    const isSuperAdmin =
+      roleName.toLowerCase() === "super-admin" ||
+      roleName.toLowerCase() === "super admin";
 
     let newPermissions = formData.permissions ?? [];
 
     if (checked && isSuperAdmin && permissions) {
       // If super-admin is being added, check all permissions
-      newPermissions = permissions.map(p => p.id);
-    } else if (!checked && isSuperAdmin && permissions) {
+      newPermissions = permissions.map((p) => p.name);
+    } else if (!checked && isSuperAdmin) {
       // If super-admin is being removed, uncheck all permissions
       newPermissions = [];
     }
 
-    handleChange("roles", newRoles);
-    if (newPermissions !== formData.permissions) {
-      handleChange("permissions", newPermissions);
-    }
+    setFormData((prev) => ({
+      ...prev,
+      roles: newRoles,
+      permissions: newPermissions,
+    }));
+  };
+
+  const handlePermissionChange = (checked: boolean, permissionName: string) => {
+    const currentPermissions = formData.permissions ?? [];
+    const newPermissions = checked
+      ? [...currentPermissions, permissionName]
+      : currentPermissions.filter((name) => name !== permissionName);
+
+    handleChange("permissions", newPermissions);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -287,12 +304,15 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
           ) : roles && roles.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {roles.map((role) => (
-                <div key={role.id} className="flex items-start space-x-3 p-3 rounded-lg border border-input hover:bg-muted/50 transition-colors cursor-pointer">
+                <div
+                  key={role.id}
+                  className="flex items-start space-x-3 p-3 rounded-lg border border-input hover:bg-muted/50 transition-colors cursor-pointer"
+                >
                   <Checkbox
                     id={`role-${role.id}`}
-                    checked={(formData.roles ?? []).includes(role.id)}
+                    checked={(formData.roles ?? []).includes(role.name)}
                     onCheckedChange={(checked) => {
-                      handleRoleChange(checked as boolean, role.id);
+                      handleRoleChange(checked as boolean, role.name);
                     }}
                     className="mt-1"
                   />
@@ -303,7 +323,8 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
                     <p className="font-medium text-sm">{role.name}</p>
                     {role.permissions && role.permissions.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {role.permissions.length} permission{role.permissions.length !== 1 ? 's' : ''}
+                        {role.permissions.length} permission
+                        {role.permissions.length !== 1 ? "s" : ""}
                       </p>
                     )}
                   </label>
@@ -336,19 +357,15 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
           ) : permissions && permissions.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {permissions.map((permission) => (
-                <div 
-                  key={permission.id} 
+                <div
+                  key={permission.id}
                   className="flex items-center space-x-3 p-3 rounded-lg border border-input hover:bg-muted/50 transition-colors cursor-pointer"
                 >
                   <Checkbox
                     id={`permission-${permission.id}`}
-                    checked={(formData.permissions ?? []).includes(permission.id)}
+                    checked={(formData.permissions ?? []).includes(permission.name)}
                     onCheckedChange={(checked) => {
-                      if (checked) {
-                        handleChange("permissions", [...(formData.permissions ?? []), permission.id]);
-                      } else {
-                        handleChange("permissions", (formData.permissions ?? []).filter(id => id !== permission.id));
-                      }
+                      handlePermissionChange(checked as boolean, permission.name);
                     }}
                     className="mt-0.5"
                   />
@@ -356,7 +373,9 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
                     htmlFor={`permission-${permission.id}`}
                     className="flex-1 cursor-pointer"
                   >
-                    <p className="text-sm font-medium leading-tight">{permission.name}</p>
+                    <p className="text-sm font-medium leading-tight">
+                      {permission.name}
+                    </p>
                   </label>
                 </div>
               ))}

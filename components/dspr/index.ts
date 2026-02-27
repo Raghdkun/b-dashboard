@@ -1,8 +1,13 @@
 export { SalesChart } from "./sales-chart";
 export { TopItemsList, TopIngredientsList } from "./top-lists";
 export { HourlyChannelsChart } from "./hourly-channels-chart";
+export { DailySalesByChannelChart } from "./daily-sales-by-channel-chart";
 export { DaySummaryStats } from "./day-summary-stats";
-export { HnrCard, PortalCard } from "./hnr-portal-cards";
+export { HnrCard, PortalCard, OnTimeCard } from "./hnr-portal-cards";
+export { PortalOnTimeDualGauge } from "./portal-ontime-dual-gauge";
 export { LaborGauge } from "./labor-gauge";
 export { DsprDashboardSkeleton } from "./dspr-skeleton";
 export { DsprDashboard } from "./dspr-dashboard";
+export { RecentMaintenanceTable } from "./recent-maintenance-table";
+export { TopQaRatingsCard } from "./top-qa-ratings-card";
+export { StoreScoreCard } from "./store-score-card";

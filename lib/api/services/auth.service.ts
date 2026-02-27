@@ -40,7 +40,7 @@ function transformRole(apiRole: ApiAuthRole) {
 function transformUserStore(apiStore: ApiAuthUserStore) {
   return {
     store: {
-      id: apiStore.store.id,
+      id: apiStore.store.store_id,
       name: apiStore.store.name,
       metadata: apiStore.store.metadata,
       isActive: apiStore.store.is_active,

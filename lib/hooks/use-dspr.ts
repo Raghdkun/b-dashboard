@@ -30,11 +30,16 @@ export function useDspr() {
   const storeIdRef = useRef(selectedStore?.id);
   storeIdRef.current = selectedStore?.id;
 
+  // console.log("[useDspr] selectedStore:", selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null);
+
   /** Fetch for a specific date (or re-fetch current) */
   const refetch = useCallback(
     (date?: string) => {
+      // console.log("[useDspr] refetch called with:", { storeId: storeIdRef.current, date });
       if (storeIdRef.current) {
         fetchReport(storeIdRef.current, date);
+      } else {
+        // console.warn("[useDspr] refetch skipped — no storeId");
       }
     },
     [fetchReport]

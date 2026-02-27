@@ -25,7 +25,7 @@ interface ApiUser {
   }>;
   permissions?: Array<{ id: number | string; name: string }>;
   stores?: Array<{
-    store: { id: string; name: string };
+    store: { id: string; name: string; store_id?: string; storeId?: string };
     roles: Array<{
       id: number | string;
       name: string;
@@ -51,7 +51,11 @@ function transformUser(apiUser: ApiUser): User {
     })),
     permissions: apiUser.permissions?.map(p => ({ id: String(p.id), name: p.name })),
     stores: apiUser.stores?.map(s => ({
-      store: { id: s.store.id, name: s.store.name },
+      store: {
+        id: s.store.id,
+        name: s.store.name,
+        storeId: s.store.store_id ?? s.store.storeId,
+      },
       roles: s.roles.map(r => ({
         id: String(r.id),
         name: r.name,

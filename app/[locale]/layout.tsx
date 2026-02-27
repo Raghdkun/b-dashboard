@@ -26,7 +26,7 @@ const notoSansArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "B-Dashboard",
+  title: "Pizza Dashboard",
   description: "Enterprise-grade dashboard foundation",
 };
 

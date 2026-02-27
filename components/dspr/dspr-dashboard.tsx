@@ -3,17 +3,22 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import { format, subDays, formatDistanceToNow } from "date-fns";
+import html2canvas from "html2canvas-pro";
 import { useDspr } from "@/lib/hooks/use-dspr";
 import {
   SalesChart,
   TopItemsList,
   TopIngredientsList,
   HourlyChannelsChart,
+  DailySalesByChannelChart,
   DaySummaryStats,
   HnrCard,
-  PortalCard,
+  PortalOnTimeDualGauge,
+  StoreScoreCard,
   LaborGauge,
   DsprDashboardSkeleton,
+  RecentMaintenanceTable,
+  TopQaRatingsCard,
 } from "@/components/dspr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +48,9 @@ import {
   Loader2,
   CheckCircle2,
   AlertTriangle,
+  Camera,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -140,14 +148,14 @@ function ErrorDisplay({
 
   return (
     <Card className={cn("border-2", errorConfig.borderColor, errorConfig.bgColor)}>
-      <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-5">
-        <div className={cn("rounded-full p-4", errorConfig.bgColor)}>
-          <Icon className={cn("h-10 w-10", errorConfig.color)} />
+        <CardContent className="flex flex-col items-center justify-center py-6 text-center gap-2">
+        <div className={cn("rounded-full p-2.5", errorConfig.bgColor)}>
+          <Icon className={cn("h-6 w-6", errorConfig.color)} />
         </div>
 
-        <div className="space-y-2 max-w-md">
-          <h3 className="text-lg font-semibold">{errorConfig.title}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+        <div className="space-y-1 max-w-md">
+          <h3 className="text-xs font-semibold">{errorConfig.title}</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {error.message}
           </p>
           {error.retryAfter && (
@@ -237,6 +245,7 @@ export function DsprDashboard() {
 
   // Re-fetch when the selected store changes
   const storeId = selectedStore?.id ?? null;
+  // console.log("[DsprDashboard] render:", { storeId, selectedStore: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null, hasData: !!data, isLoading, error });
   const selectedDateRef = useRef(selectedDate);
 
   useEffect(() => {
@@ -255,6 +264,92 @@ export function DsprDashboard() {
     return formatDistanceToNow(lastFetchedAt, { addSuffix: true });
   }, [lastFetchedAt]);
 
+  // ── Screenshot ref & handler ───────────────────────────────────────────
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  // Toggle to remove section backgrounds (persisted in localStorage)
+  const [hideSectionBackgrounds, setHideSectionBackgrounds] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("dspr.hideSectionBackgrounds");
+      if (v !== null) setHideSectionBackgrounds(JSON.parse(v));
+    } catch (err) {
+      // ignore
+    }
+  }, []);
+
+  const handleScreenshot = useCallback(async () => {
+    if (!dashboardRef.current || isCapturing) return;
+    setIsCapturing(true);
+
+    const node = dashboardRef.current;
+
+    // Hide the screenshot button & refresh shimmer during capture
+    const btn = node.querySelector<HTMLElement>("[data-screenshot-btn]");
+    const ignored = node.querySelectorAll<HTMLElement>("[data-screenshot-ignore]");
+    if (btn) btn.style.display = "none";
+    ignored.forEach((el) => (el.style.display = "none"));
+
+    try {
+      // Resolve the background color
+      const isDark = document.documentElement.classList.contains("dark");
+      const bgColor = isDark ? "#09090b" : "#ffffff";
+
+      // Wait for animations / chart reflows to settle
+      await new Promise((r) => setTimeout(r, 400));
+
+      const canvas = await html2canvas(node, {
+        scale: 4,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: bgColor,
+        logging: false,
+        removeContainer: true,
+        imageTimeout: 5000,
+      });
+
+      // Restore hidden elements .
+      if (btn) btn.style.display = "";
+      ignored.forEach((el) => (el.style.display = ""));
+
+      // Download the image
+      const storeName = selectedStore?.name ?? selectedStore?.id ?? "dashboard";
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const link = document.createElement("a");
+      link.download = `DSPR-${storeName}-${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err: unknown) {
+      // Restore hidden elements on failure
+      if (btn) btn.style.display = "";
+      ignored.forEach((el) => (el.style.display = ""));
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : JSON.stringify(err);
+      console.error("Screenshot failed:", message, err);
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [isCapturing, selectedStore, selectedDate]);
+
+  const toggleHideBackgrounds = useCallback(() => {
+    setHideSectionBackgrounds((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("dspr.hideSectionBackgrounds", JSON.stringify(next));
+      } catch (err) {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
+
   // ── Initial loading (no data yet) ──────────────────────────────────────
   if (isLoading && !data) {
     return <DsprDashboardSkeleton />;
@@ -264,13 +359,13 @@ export function DsprDashboard() {
   if (!selectedStore) {
     return (
       <Card className="border-2 border-dashed border-muted-foreground/25">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center gap-4">
-          <div className="rounded-full bg-muted p-4">
-            <Store className="h-10 w-10 text-muted-foreground" />
+        <CardContent className="flex flex-col items-center justify-center py-8 text-center gap-2">
+          <div className="rounded-full bg-muted p-2.5">
+            <Store className="h-6 w-6 text-muted-foreground" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No Store Selected</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold">No Store Selected</h3>
+            <p className="text-[11px] text-muted-foreground max-w-sm">
               Select a store from the sidebar to view its Daily Store Performance Report.
             </p>
           </div>
@@ -295,13 +390,13 @@ export function DsprDashboard() {
   if (!data) {
     return (
       <Card className="border-2 border-dashed border-muted-foreground/25">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center gap-4">
-          <div className="rounded-full bg-muted p-4">
-            <CalendarIcon className="h-10 w-10 text-muted-foreground" />
+        <CardContent className="flex flex-col items-center justify-center py-8 text-center gap-2">
+          <div className="rounded-full bg-muted p-2.5">
+            <CalendarIcon className="h-6 w-6 text-muted-foreground" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No Report Data</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold">No Report Data</h3>
+            <p className="text-[11px] text-muted-foreground max-w-sm">
               No data is available for this store. Select a date to load the report.
             </p>
           </div>
@@ -322,10 +417,17 @@ export function DsprDashboard() {
   const { filtering, sales, top, day } = data;
 
   return (
-    <div className={cn("space-y-6", isRefreshing && "relative")}>
+    <div
+      ref={dashboardRef}
+      className={cn(
+        "space-y-1",
+        isRefreshing && "relative",
+        hideSectionBackgrounds && "no-section-backgrounds"
+      )}
+    >
       {/* ── Refresh overlay bar ──────────────────────────────────── */}
       {isRefreshing && (
-        <div className="absolute top-0 left-0 right-0 z-10">
+        <div className="absolute top-0 left-0 right-0 z-10" data-screenshot-ignore="true">
           <div className="h-0.5 bg-primary/30 rounded-full overflow-hidden">
             <div className="h-full w-1/3 bg-primary rounded-full animate-[shimmer_1.5s_ease-in-out_infinite]" />
           </div>
@@ -333,7 +435,7 @@ export function DsprDashboard() {
       )}
 
       {/* ── Header bar ───────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1">
         {/* Store badge */}
         <Badge
           variant="secondary"
@@ -350,11 +452,11 @@ export function DsprDashboard() {
               variant="outline"
               size="sm"
               className={cn(
-                "h-7 gap-1.5 text-xs font-medium",
+                "h-6 gap-1 text-xs font-medium",
                 !selectedDate && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="h-3.5 w-3.5" />
+              <CalendarIcon className="h-3 w-3" />
               {format(selectedDate, "MMM d, yyyy")}
             </Button>
           </PopoverTrigger>
@@ -402,7 +504,7 @@ export function DsprDashboard() {
         )}
 
         {/* Status indicators */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Stale indicator */}
           {isStale && !isRefreshing && (
             <Tooltip>
@@ -446,14 +548,14 @@ export function DsprDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6"
                 onClick={() => refetch(toApiDate(selectedDate))}
                 disabled={isRefreshing}
               >
                 {isRefreshing ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
+                  <RefreshCw className="h-3 w-3" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -461,33 +563,105 @@ export function DsprDashboard() {
               {isRefreshing ? "Refreshing…" : "Refresh report"}
             </TooltipContent>
           </Tooltip>
+
+          {/* Screenshot button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                data-screenshot-btn
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handleScreenshot}
+                disabled={isCapturing}
+              >
+                {isCapturing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Camera className="h-3 w-3" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isCapturing ? "Capturing…" : "Screenshot (Ultra HD)"}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Toggle remove section backgrounds */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={toggleHideBackgrounds}
+                aria-pressed={hideSectionBackgrounds}
+                title={hideSectionBackgrounds ? "Show section backgrounds" : "Hide section backgrounds"}
+              >
+                {hideSectionBackgrounds ? (
+                  <EyeOff className="h-3 w-3" />
+                ) : (
+                  <Eye className="h-3 w-3" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {hideSectionBackgrounds ? "Show section backgrounds" : "Hide section backgrounds"}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
-      {/* ── Day summary stat cards ───────────────────────────────────── */}
+      {/* ── Day summary stats ribbon ────────────────────────────── */}
       <DaySummaryStats day={day} />
 
-      {/* ── Charts row (Sales + Hourly Channels) ────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SalesChart sales={sales} height={320} toolbar={false} />
+      {/* ── Weekly Sales + Portal gauges ─────────────────────────── */}
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-4">
+        <SalesChart sales={sales} height={190} toolbar={false} className="lg:col-span-2" />
+        {/* <div className="flex flex-row lg:col-span-2 rounded-xl border shadow-sm gap-0 overflow-hidden "> */}
+        <StoreScoreCard daily={88} weekly={70} monthly={80} className="lg:col-span-1" />
+        <PortalOnTimeDualGauge portal={day.portal} className="lg:col-span-1" />
+        {/* </div> */}
+      </div>
+
+      {/* ── HNR · Labor · Top 5 Menu Items ───────────────────────── */}
+      {/* <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3"> */}
+             <div className="grid grid-cols-1 gap-1 lg:grid-cols-4">
+
+        {/* <LaborGauge value={day.labor} /> */}
+        
         <HourlyChannelsChart
           hourlyData={day.hourly_sales_and_channels}
-          height={320}
+          height={190}
+          toolbar={false}
+          className=""
+        />
+        <DailySalesByChannelChart
+          totalSales={day.total_sales}
+          height={190}
           toolbar={false}
         />
+         <HnrCard hnr={day.hnr} />
+        <LaborGauge value={22} />
       </div>
 
-      {/* ── HNR · Portal · Labor row ─────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <HnrCard hnr={day.hnr} />
-        <PortalCard portal={day.portal} />
-        <LaborGauge value={day.labor} />
+      {/* ── Hourly + Daily Channel Sales ────────────────────────── */}
+      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4">
+        <TopItemsList items={top.top_5_items_sales_for_day} className="sm:col-span-2 lg:col-span-1" />
+        <TopIngredientsList
+          mainIngredients={top?.ingredients?.main_5_ingredients_usage ?? []}
+          paperIngredients={top?.ingredients?.top_paper_5_ingredients_usage ?? []}
+          usedIngredients={top?.ingredients?.top_3_ingredients_used ?? []}
+          className="sm:col-span-2 lg:col-span-1"
+        />
+        <RecentMaintenanceTable />
+        <TopQaRatingsCard />
       </div>
 
-      {/* ── Top items + ingredients ───────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <TopItemsList items={top.top_5_items_sales_for_day} />
-        <TopIngredientsList ingredients={top.top_3_ingredients_used} />
+      {/* ── Ingredients + Maintenance + QA ────────────────────────── */}
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
+        {/* <RecentMaintenanceTable />
+        <TopQaRatingsCard /> */}
       </div>
     </div>
   );

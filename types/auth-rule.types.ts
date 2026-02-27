@@ -16,14 +16,13 @@ export type HttpMethod =
   | "PUT"
   | "PATCH"
   | "DELETE"
-  | "OPTIONS"
-  | "HEAD";
+  | "ANY";
 
 /**
  * Core AuthRule entity
  */
 export interface AuthRule {
-  id: string;
+  id: string | number;
   service: string;
   method: HttpMethod;
   /** Alias for method - for backward compatibility */
@@ -46,8 +45,22 @@ export interface AuthRule {
   permissions_any?: string[] | null;
   permissions_all?: string[] | null;
   is_active?: boolean;
+  // Store-scoped rule fields (snake_case from API)
+  store_scope_mode?: string | null;
+  store_id_sources?: string[] | null;
+  store_match_policy?: string | null;
+  store_allows_empty?: boolean;
+  store_all_access_roles_any?: string[] | null;
+  store_all_access_permissions_any?: string[] | null;
   created_at?: string;
   updated_at?: string;
+  // CamelCase aliases for convenience
+  storeScopeMode?: string | null;
+  storeIdSources?: string[] | null;
+  storeMatchPolicy?: string | null;
+  storeAllowsEmpty?: boolean;
+  storeAllAccessRolesAny?: string[] | null;
+  storeAllAccessPermissionsAny?: string[] | null;
 }
 
 // ============================================================================
@@ -75,6 +88,12 @@ interface CreateAuthRuleBase {
   rolesAny?: string[];
   permissionsAny?: string[];
   permissionsAll?: string[];
+  storeScopeMode?: string;
+  storeIdSources?: string[];
+  storeMatchPolicy?: string;
+  storeAllowsEmpty?: boolean;
+  storeAllAccessRolesAny?: string[];
+  storeAllAccessPermissionsAny?: string[];
 }
 
 /**
@@ -113,6 +132,12 @@ export interface UpdateAuthRulePayload {
   rolesAny?: string[];
   permissionsAny?: string[];
   permissionsAll?: string[];
+  storeScopeMode?: string;
+  storeIdSources?: string[];
+  storeMatchPolicy?: string;
+  storeAllowsEmpty?: boolean;
+  storeAllAccessRolesAny?: string[];
+  storeAllAccessPermissionsAny?: string[];
 }
 
 /**
