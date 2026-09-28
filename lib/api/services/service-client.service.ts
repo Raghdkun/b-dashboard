@@ -33,16 +33,16 @@ function transformPaginatedResponse<T>(response: LaravelPaginatedResponse<T>): O
  * Transform API response to camelCase
  */
 const transformServiceClient = (data: Record<string, unknown>): ServiceClient => ({
-  id: String(data.id),
-  name: data.name as string,
-  tokenHash: data.token_hash as string,
-  isActive: data.is_active as boolean,
-  expiresAt: data.expires_at as string | null,
-  notes: data.notes as string | null,
-  createdAt: data.created_at as string,
-  updatedAt: data.updated_at as string,
-  lastUsedAt: data.last_used_at as string | null,
-  useCount: data.use_count as number,
+  id: String(data.id || ""),
+  name: (data.name as string) || "",
+  tokenHash: (data.token_hash as string) || "",
+  isActive: data.is_active !== undefined ? Boolean(data.is_active) : true,
+  expiresAt: (data.expires_at as string | null) ?? null,
+  notes: (data.notes as string | null) ?? null,
+  createdAt: (data.created_at as string) || new Date().toISOString(),
+  updatedAt: (data.updated_at as string) || new Date().toISOString(),
+  lastUsedAt: (data.last_used_at as string | null) ?? null,
+  useCount: (data.use_count as number) || 0,
 });
 
 export const serviceClientService = {
@@ -88,7 +88,7 @@ export const serviceClientService = {
   createServiceClient: async (
     payload: CreateServiceClientPayload
   ): Promise<ApiResponse<ServiceClientWithToken>> => {
-    const { data } = await axiosClient.post<ApiResponse<{ service: Record<string, unknown>; token: string }>>(
+    const { data } = await axiosClient.post<ApiResponse<Record<string, unknown>>>(
       "/service-clients",
       {
         name: payload.name,
@@ -97,11 +97,18 @@ export const serviceClientService = {
         notes: payload.notes,
       }
     );
+    // API may return { service: {...}, token } or flat { id, name, ..., token }
+    const responseData = data.data;
+    const hasServiceKey = responseData.service && typeof responseData.service === "object";
+    const serviceData = hasServiceKey
+      ? responseData.service as Record<string, unknown>
+      : responseData;
+    const token = (responseData.token as string) || "";
     return {
       ...data,
       data: {
-        service: transformServiceClient(data.data.service),
-        token: data.data.token,
+        service: transformServiceClient(serviceData),
+        token,
       },
     };
   },
@@ -143,17 +150,25 @@ export const serviceClientService = {
     id: string,
     payload?: RotateTokenPayload
   ): Promise<ApiResponse<ServiceClientWithToken>> => {
-    const { data } = await axiosClient.post<ApiResponse<{ service: Record<string, unknown>; token: string }>>(
-      `/service-clients/${id}/rotate`,
+    const { data } = await axiosClient.post<ApiResponse<Record<string, unknown>>>(
+      `/service-clients/${id}/rotate-token`,
       {
         expires_at: payload?.expiresAt,
+        never_expires: true,
       }
     );
+    // API may return { service: {...}, token } or flat { id, name, ..., token }
+    const responseData = data.data;
+    const hasServiceKey = responseData.service && typeof responseData.service === "object";
+    const serviceData = hasServiceKey
+      ? responseData.service as Record<string, unknown>
+      : responseData;
+    const token = (responseData.token as string) || "";
     return {
       ...data,
       data: {
-        service: transformServiceClient(data.data.service),
-        token: data.data.token,
+        service: transformServiceClient(serviceData),
+        token,
       },
     };
   },
@@ -162,12 +177,18 @@ export const serviceClientService = {
    * Toggle service client active status
    */
   toggleStatus: async (id: string): Promise<ApiResponse<ServiceClient>> => {
-    const { data } = await axiosClient.post<ApiResponse<{ service: Record<string, unknown> }>>(
-      `/service-clients/${id}/toggle`
+    const { data } = await axiosClient.post<ApiResponse<Record<string, unknown>>>(
+      `/service-clients/${id}/toggle-status`
     );
+    // API may return { service: {...} } or flat { id, name, ... }
+    const responseData = data.data;
+    const hasServiceKey = responseData.service && typeof responseData.service === "object";
+    const serviceData = hasServiceKey
+      ? responseData.service as Record<string, unknown>
+      : responseData;
     return {
       ...data,
-      data: transformServiceClient(data.data.service),
+      data: transformServiceClient(serviceData),
     };
   },
 };

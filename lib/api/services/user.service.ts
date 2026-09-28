@@ -5,6 +5,7 @@ import type { User, CreateUserPayload, UpdateUserPayload } from "@/types/user.ty
 export interface GetUsersParams {
   page?: number;
   pageSize?: number;
+  perPage?: number;
   search?: string;
   role?: string;
   status?: string;
@@ -25,7 +26,7 @@ interface ApiUser {
   }>;
   permissions?: Array<{ id: number | string; name: string }>;
   stores?: Array<{
-    store: { id: string; name: string };
+    store: { id: string; name: string; store_id?: string; storeId?: string };
     roles: Array<{
       id: number | string;
       name: string;
@@ -51,7 +52,11 @@ function transformUser(apiUser: ApiUser): User {
     })),
     permissions: apiUser.permissions?.map(p => ({ id: String(p.id), name: p.name })),
     stores: apiUser.stores?.map(s => ({
-      store: { id: s.store.id, name: s.store.name },
+      store: {
+        id: s.store.id,
+        name: s.store.name,
+        storeId: s.store.store_id ?? s.store.storeId,
+      },
       roles: s.roles.map(r => ({
         id: String(r.id),
         name: r.name,
@@ -81,7 +86,7 @@ export const userService = {
     const { data } = await axiosClient.get<LaravelPaginatedResponse<ApiUser>>("/users", {
       params: {
         page: params?.page,
-        per_page: params?.pageSize,
+        per_page: params?.perPage ?? params?.pageSize,
         search: params?.search,
         role: params?.role,
         status: params?.status,
@@ -129,7 +134,7 @@ export const userService = {
     if (userData.roles) payload.roles = userData.roles;
     if (userData.permissions) payload.permissions = userData.permissions;
     
-    const { data } = await axiosClient.patch<ApiResponse<ApiUser>>(
+    const { data } = await axiosClient.put<ApiResponse<ApiUser>>(
       `/users/${id}`,
       payload
     );

@@ -1,29 +1,72 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Menu, Search } from "lucide-react";
+import { Menu, PanelLeft, Search, Megaphone } from "lucide-react";
+import { useUIStore } from "@/lib/store/ui.store";
+// import { useAnnouncementStore } from "@/lib/store/announcement.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { ThemeToggleAnimated as ThemeToggle } from "@/components/shared/ThemeToggleAnimated";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { DriveThruButton } from "@/components/screen-project/drive-thru/drive-thru-button";
+import { TopbarToolsCluster } from "./topbar-tools-cluster";
+import { LuminaEmbed } from "@/components/shared/lumina-embed";
 import { Breadcrumbs } from "./breadcrumbs";
+import { SoundToggle } from "@/components/uisfx/sound-toggle";
 import { Feature } from "@/lib/config";
 
 interface TopbarProps {
   onMenuClick?: () => void;
+  /** Show the logo in the topbar (used by topnav layout) */
+  showLogo?: boolean;
+  /** Always show the hamburger menu, even on desktop (topnav layout) */
+  alwaysShowMenu?: boolean;
 }
 
-export function Topbar({ onMenuClick }: TopbarProps) {
+export function Topbar({ onMenuClick, showLogo, alwaysShowMenu }: TopbarProps) {
   const pathname = usePathname();
   const t = useTranslations("common");
+  const { toggleSidebar } = useUIStore();
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
-      {/* Mobile menu button */}
+    <header
+      data-font-scope="primary"
+      className="font-heading flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6"
+    >
+      {/* Logo — shown only in topnav layout */}
+      {showLogo && (
+        <div className="flex items-center gap-2 me-1">
+          <Image
+            src="/logo.svg"
+            alt="Pizza Dashboard"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+          />
+          <span className="hidden sm:inline text-sm font-semibold">Pizza Dashboard</span>
+        </div>
+      )}
+
+      {/* Desktop collapse toggle — hidden in topnav layout */}
+      {!alwaysShowMenu && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden md:flex"
+          onClick={toggleSidebar}
+        >
+          <PanelLeft className="h-5 w-5" />
+          <span className="sr-only">Toggle sidebar</span>
+        </Button>
+      )}
+
+      {/* Menu button — always shown if alwaysShowMenu, otherwise mobile only */}
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden"
+        className={alwaysShowMenu ? "flex" : "md:hidden"}
         onClick={onMenuClick}
       >
         <Menu className="h-5 w-5" />
@@ -41,10 +84,10 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       <div className="flex-1" />
 
       {/* Search (stub) - conditionally rendered */}
-      <Feature name="search">
+      {/* <Feature name="search">
         <div className="hidden w-full max-w-sm md:block">
           <div className="relative">
-            <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute inset-s-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder={t("search")}
@@ -53,7 +96,20 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             />
           </div>
         </div>
-      </Feature>
+      </Feature> */}
+
+      {/* AI assistant + Notifications */}
+      <div className="flex items-center gap-1">
+        {/* <LuminaEmbed /> */}
+        <TopbarToolsCluster />
+        <DriveThruButton />
+        <NotificationBell />
+      </div>
+
+      {/* Sound toggle - conditionally rendered */}
+      {/* <Feature name="soundFx">
+        <SoundToggle />
+      </Feature> */}
 
       {/* Theme toggle - conditionally rendered */}
       <Feature name="darkMode">
@@ -61,4 +117,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </Feature>
     </header>
   );
+  
 }
+

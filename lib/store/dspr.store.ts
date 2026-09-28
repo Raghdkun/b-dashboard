@@ -1,16 +1,17 @@
 import { create } from "zustand";
 import { dsprService, DsprError, type DsprErrorCode } from "@/lib/api/services/dspr.service";
 import type { DsprResponse } from "@/types/dspr.types";
+import type { DashboardReportExtras } from "@/types/dashboard-report.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Constants                                                               */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-/** Data is considered fresh for 5 minutes */
-const STALE_AFTER_MS = 5 * 60 * 1000;
+/** Data is considered fresh for 2.5 hours */
+const STALE_AFTER_MS = 2.5 * 60 * 60 * 1000;
 
-/** Auto-refresh interval (5 min) */
-const AUTO_REFRESH_MS = 5 * 60 * 1000;
+/** Auto-refresh interval (2.5 hours) */
+const AUTO_REFRESH_MS = 2.5 * 60 * 60 * 1000;
 
 /** Max retries for retryable errors (client-level) */
 const MAX_AUTO_RETRIES = 2;
@@ -32,6 +33,7 @@ interface DsprErrorState {
 interface DsprState {
   // Data
   data: DsprResponse | null;
+  wbrData: DashboardReportExtras | null;
   isLoading: boolean;
   isRefreshing: boolean; // background refresh (data already loaded)
   error: DsprErrorState | null;
@@ -58,10 +60,10 @@ interface DsprState {
 /*  Internal state (not in Zustand — avoids serialization issues)           */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-let _autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
 let _abortController: AbortController | null = null;
 let _retryTimer: ReturnType<typeof setTimeout> | null = null;
 let _retryCount = 0;
+let _autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Store                                                                   */
@@ -69,6 +71,7 @@ let _retryCount = 0;
 
 export const useDsprStore = create<DsprState>()((set, get) => ({
   data: null,
+  wbrData: null,
   isLoading: false,
   isRefreshing: false,
   error: null,
@@ -78,6 +81,7 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
   fetchCount: 0,
 
   fetchReport: async (storeId?: string, date?: string) => {
+    // console.log("[DsprStore] fetchReport called with:", { storeId, date });
     const state = get();
 
     // Cancel any in-flight request
@@ -98,20 +102,23 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
 
     const performFetch = async (): Promise<void> => {
       try {
-        const data = await dsprService.getReport(
+        const result = await dsprService.getReport(
           storeId,
           date,
           _abortController?.signal
         );
 
+        // console.log("[DsprStore] Data received:", { store: result.dspr.filtering?.store, date: result.dspr.filtering?.date, cashSales: result.dspr.day?.total_cash_sales, customers: result.dspr.day?.customer_count });
+
         set({
-          data,
+          data: result.dspr,
+          wbrData: result.extras,
           isLoading: false,
           isRefreshing: false,
           error: null,
           lastFetchedAt: Date.now(),
-          lastStoreId: storeId ?? data.filtering?.store ?? null,
-          lastDate: date ?? data.filtering?.date ?? null,
+          lastStoreId: storeId ?? result.dspr.filtering?.store ?? null,
+          lastDate: date ?? result.dspr.filtering?.date ?? null,
           fetchCount: get().fetchCount + 1,
         });
       } catch (err: unknown) {
@@ -131,13 +138,15 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
                 "UNKNOWN"
               );
 
+        //console.error("[DsprStore] Error:", { code: dsprErr.code, message: dsprErr.message, retryable: dsprErr.retryable });
+
         // Auto-retry for retryable errors (exclude auth errors — those need manual intervention)
         const isAuthError = dsprErr.code === "UNAUTHORIZED" || dsprErr.code === "NOT_AUTHENTICATED" || dsprErr.code === "FORBIDDEN";
         if (dsprErr.retryable && !isAuthError && _retryCount < MAX_AUTO_RETRIES) {
           _retryCount++;
-          console.warn(
-            `🔄 DSPR: Auto-retry ${_retryCount}/${MAX_AUTO_RETRIES} in ${RETRY_DELAY_MS}ms`
-          );
+          // console.warn(
+          //   `🔄 DSPR: Auto-retry ${_retryCount}/${MAX_AUTO_RETRIES} in ${RETRY_DELAY_MS}ms`
+          // );
           await new Promise<void>((resolve) => {
             _retryTimer = setTimeout(resolve, RETRY_DELAY_MS);
             // Cancel the retry if the request was aborted while waiting
@@ -155,7 +164,7 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
           return performFetch();
         }
 
-        console.error(`❌ DSPR Store: [${dsprErr.code}] ${dsprErr.message}`);
+        // console.error(`❌ DSPR Store: [${dsprErr.code}] ${dsprErr.message}`);
 
         set({
           isLoading: false,
@@ -186,14 +195,13 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
 
   reset: () => {
     if (_abortController) _abortController.abort();
-    if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
     if (_retryTimer) clearTimeout(_retryTimer);
-    _autoRefreshTimer = null;
     _retryTimer = null;
     _retryCount = 0;
 
     set({
       data: null,
+      wbrData: null,
       isLoading: false,
       isRefreshing: false,
       error: null,
@@ -211,13 +219,11 @@ export const useDsprStore = create<DsprState>()((set, get) => ({
   },
 
   startAutoRefresh: () => {
-    if (_autoRefreshTimer) return; // already running
-
+    if (_autoRefreshTimer) return;
     _autoRefreshTimer = setInterval(() => {
-      const { isLoading, isRefreshing, refreshReport } = get();
-      // Only refresh if not already fetching
-      if (!isLoading && !isRefreshing) {
-        refreshReport();
+      const { lastStoreId, isStale } = get();
+      if (lastStoreId && isStale()) {
+        get().refreshReport();
       }
     }, AUTO_REFRESH_MS);
   },

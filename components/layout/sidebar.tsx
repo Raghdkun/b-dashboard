@@ -4,26 +4,52 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   LayoutDashboard,
   Users,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Languages,
   Wrench,
   Shield,
   Building2,
   UserCog,
   Lock,
-  UserPlus,
   GitBranch,
   Key,
   ShieldCheck,
   Check,
   ChevronDown,
+  ChevronsUpDown,
   Briefcase,
+  ClipboardList,
+  HardHat,
+  ClipboardCheck,
+  FolderPlus,
+  List,
+  Landmark,
+  Camera,
+  Database,
+  Gauge,
+  Tag,
+  BarChart3,
+  CalendarDays,
+  Megaphone,
+  Monitor,
+  Target,
+  LifeBuoy,
+  Ticket,
+  Wallet,
+  Warehouse,
+  Package,
+  Boxes,
+  Ruler,
+  Link2,
+  LogOut,
+  UserSearch,
+  Sparkles,
+  Coffee,
+  Table2,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,28 +59,201 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { UserMenu } from "./user-menu";
+import { ImpersonateDialog } from "./impersonate-dialog";
 import { useUIStore } from "@/lib/store/ui.store";
 import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
 import { useFeature, Feature } from "@/lib/config";
-import { authService } from "@/lib/api/services/auth.service";
-import type { Store } from "@/types/store.types";
+import { useAuthStore } from "@/lib/auth/auth.store";
+import { useAuth } from "@/lib/auth/use-auth";
+import type { CanAccessParams } from "@/lib/auth/can-access";
+import type { Store, StoreMetadata } from "@/types/store.types";
+import type { LucideIcon } from "lucide-react";
+import { useNotificationStore } from "@/lib/store/notification.store";
+import { getNotificationPageSegment } from "@/lib/notifications/notification-routing";
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  /**
+   * Rule-based requirements (API-driven pages).
+   * At least one must satisfy canAccessRoute().
+   */
+  requirements?: CanAccessParams[];
+  /**
+   * Direct permission check (management UI pages).
+   * Checked against globalPermissions via hasPermission().
+   * Used for pages that have no corresponding auth rule.
+   * e.g. "manage users", "manage roles"
+   */
+  requiredPermission?: string;
+  /**
+   * Match the pathname exactly instead of by prefix.
+   * Needed for hrefs that are a prefix of sibling routes — e.g. the dashboard
+   * root `/{locale}/dashboard`, which prefixes every other dashboard page.
+   */
+  exact?: boolean;
+}
+
+interface NavGroup {
+  label: string;
+  icon: LucideIcon;
+  items: NavItem[];
+}
 
 interface SidebarProps {
   collapsed?: boolean;
   onNavigate?: () => void;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Small numbered badge for unread-notification counts               */
+/* ------------------------------------------------------------------ */
+function NotificationCountBadge({
+  count,
+  variant = "inline",
+}: {
+  count: number;
+  variant?: "inline" | "corner";
+}) {
+  if (count <= 0) return null;
+  const label = count > 9 ? "9+" : String(count);
+  if (variant === "corner") {
+    return (
+      <span className="absolute -top-1 -end-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-destructive px-0.5 text-[8px] font-bold leading-none text-destructive-foreground">
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold leading-none text-destructive-foreground">
+      {label}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Collapsible nav‑group rendered inside the sidebar                 */
+/* ------------------------------------------------------------------ */
+function SidebarNavGroup({
+  group,
+  pathname,
+  locale,
+  collapsed,
+  onNavigate,
+  getUnreadCount,
+}: {
+  group: NavGroup;
+  pathname: string;
+  locale: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+  getUnreadCount: (item: NavItem) => number;
+}) {
+  const isItemActive = (item: NavItem) =>
+    item.exact
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(item.href);
+  const hasActiveChild = group.items.some(isItemActive);
+  const groupUnreadCount = group.items.reduce((sum, item) => sum + getUnreadCount(item), 0);
+  const [open, setOpen] = useState(hasActiveChild);
+  const { setSidebarCollapsed } = useUIStore();
+
+  // Auto-open when a child becomes active (e.g. direct URL navigation)
+  useEffect(() => {
+    if (hasActiveChild) setOpen(true);
+  }, [hasActiveChild]);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          onClick={(e) => {
+            // While collapsed, a click should expand the sidebar and open
+            // this dropdown so the user can pick an item, instead of just
+            // toggling `open` on content that isn't rendered yet.
+            if (collapsed) {
+              e.preventDefault();
+              setSidebarCollapsed(false);
+              setOpen(true);
+            }
+          }}
+          className={cn(
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            hasActiveChild
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "justify-center px-2"
+          )}
+        >
+          <div className="relative shrink-0">
+            <group.icon className="h-5 w-5" />
+            {collapsed && <NotificationCountBadge count={groupUnreadCount} variant="corner" />}
+          </div>
+          {!collapsed && (
+            <>
+              <span className="truncate inline-flex items-center gap-2.5">
+                {group.label}
+                <NotificationCountBadge count={groupUnreadCount} />
+              </span>
+              <ChevronDown
+                className={cn(
+                  "ms-auto h-4 w-4 shrink-0 transition-transform duration-200",
+                  open && "rotate-180"
+                )}
+              />
+            </>
+          )}
+        </button>
+      </CollapsibleTrigger>
+
+      {!collapsed && (
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+          <div className="ms-4 border-s ps-2 mt-1 space-y-0.5">
+            {group.items.map((item) => {
+              const isActive = isItemActive(item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                    isActive
+                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate inline-flex items-center gap-2.5">
+                    {item.title}
+                    <NotificationCountBadge count={getUnreadCount(item)} />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      )}
+    </Collapsible>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Sidebar component                  /                           */
+/* ------------------------------------------------------------------ */
 export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const params = useParams();
@@ -62,81 +261,443 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const isRtl = locale === "ar";
   const t = useTranslations("nav");
   const { toggleSidebar } = useUIStore();
+  const { canAccessRoute, hasPermission, overviewStores, isSuperAdmin, user } =
+    useAuthStore();
+  const { isImpersonating, isImpersonationLoading, stopImpersonating } = useAuth();
+  const [isImpersonateDialogOpen, setIsImpersonateDialogOpen] = useState(false);
+
+  // Zustand store selection (must be declared before nav items that reference it)
+  const { selectedStore: zustandSelectedStore, setSelectedStore } =
+    useSelectedStoreStore();
+
+  // Effective store id: prefer the user's explicit selection, fall back to the
+  // first store from /auth/general-overview. Uses the same numeric string id
+  // that keys storePermissions, so canAccessRoute lookups always match.
+  const effectiveStoreId = zustandSelectedStore?.id ?? overviewStores?.[0]?.id;
 
   // Check feature flags
   const devToolsEnabled = useFeature("devTools");
   const i18nIntelligenceEnabled = useFeature("i18nIntelligence");
   const securityMonitorEnabled = useFeature("securityMonitor");
 
-  const navItems = [
-    {
-      title: t("dashboard"),
-      href: `/${locale}/dashboard`,
-      icon: LayoutDashboard,
-    },
-    {
-      title: t("stores"),
-      href: `/${locale}/dashboard/stores`,
-      icon: Building2,
-    },
-    {
-      title: t("employees"),
-      href: `/${locale}/dashboard/employees`,
-      icon: Briefcase,
-    },
-    {
-      title: t("authRules"),
-      href: `/${locale}/dashboard/auth-rules`,
-      icon: Lock,
-    },
-    {
-      title: t("assignments"),
-      href: `/${locale}/dashboard/assignments`,
-      icon: UserPlus,
-    },
-    {
-      title: t("hierarchy"),
-      href: `/${locale}/dashboard/hierarchy`,
-      icon: GitBranch,
-    },
-    {
-      title: t("serviceClients"),
-      href: `/${locale}/dashboard/service-clients`,
-      icon: Key,
-    },
-    {
-      title: t("settings"),
-      href: `/${locale}/dashboard/settings`,
-      icon: Settings,
-    },
-  ];
+  /* ---- Unread-notification → sidebar count mapping ----
+   * Derived from the same `notifications` array the bell's badge count and
+   * popover list render, so the sidebar badge can never disagree with the bell. */
+  const notifications = useNotificationStore((s) => s.notifications);
+  const unreadPageCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const notification of notifications) {
+      if (notification.read_at !== null) continue;
+      const segment = getNotificationPageSegment(notification);
+      if (segment) counts.set(segment, (counts.get(segment) ?? 0) + 1);
+    }
+    return counts;
+  }, [notifications]);
 
-  // User Management dropdown items
-  const userManagementItems = [
-    {
-      title: t("users"),
-      href: `/${locale}/dashboard/users`,
-      icon: Users,
-    },
-    {
-      title: t("roles"),
-      href: `/${locale}/dashboard/roles`,
-      icon: UserCog,
-    },
-    {
-      title: t("permissions"),
-      href: `/${locale}/dashboard/permissions`,
-      icon: ShieldCheck,
-    },
-  ];
+  /** First path segment after `/dashboard/` in a nav item's href, e.g.
+   * `/${locale}/dashboard/hiring-request` → "hiring-request". */
+  const getHrefPageSegment = (href: string): string =>
+    href.split("/dashboard/")[1]?.split("/")[0] ?? "";
 
+  const getUnreadCount = (item: NavItem): number =>
+    unreadPageCounts.get(getHrefPageSegment(item.href)) ?? 0;
+
+  /* ---- Flat nav items ---- */
+  const screenProjectItem: NavItem = {
+    title: t("screenProject"),
+    href: `/${locale}/dashboard/screen-project`,
+    icon: Monitor,
+    requirements: [
+      { service: "Screens", method: "POST", path: `/*/tokens/supervisor`, storeId: effectiveStoreId },
+    ],
+  };
+
+  const dashboardItem: NavItem = {
+    title: t("dashboard"),
+    href: `/${locale}/dashboard`,
+    icon: LayoutDashboard,
+    requirements: [
+          { service: "Data", method: "GET", path: "/reports/dspr/", storeId: effectiveStoreId },
+        ],
+    // Dashboard is always accessible — no requirements
+  };
+
+  const dashboardV1Item: NavItem = {
+    title: "Dashboard V1",
+    href: `/${locale}/dashboard/v1`,
+    icon: LayoutDashboard,
+    requirements: [
+      { service: "Data", method: "GET", path: "/reports/dspr/", storeId: effectiveStoreId },
+    ],
+  };
+
+  const businessReportsItem: NavItem = {
+    title: "Business Reports",
+    href: `/${locale}/dashboard/business-reports`,
+    icon: BarChart3,
+    // No auth rule defined yet — always visible for stores the user can access.
+  };
+
+  // const maintenanceItem: NavItem = {
+  //   title: t("maintenance"),
+  //   href: `/${locale}/dashboard/maintenance`,
+  //   icon: HardHat,
+  // };
+
+  const settingsItem: NavItem = {
+    title: t("settings"),
+    href: `/${locale}/dashboard/settings`,
+    icon: Settings,
+    // Settings is always accessible — no requirements
+  };
+
+  const announcementsItem: NavItem = {
+    title: "Announcements",
+    href: `/${locale}/dashboard/announcements`,
+    icon: Megaphone,
+  };
+
+  // Self-service break timer — every user manages only their own breaks, so
+  // there is nothing to gate on.
+  const breaksItem: NavItem = {
+    title: t("breaks"),
+    href: `/${locale}/dashboard/break-logger`,
+    icon: Coffee,
+  };
+
+  /* ---- Collapsible groups ---- */
+  // Dashboards — the DSPR dashboard keeps its existing `/dashboard` URL, so its
+  // entry is marked `exact` (that href prefixes every other dashboard route).
+  const dashboardsGroup: NavGroup = {
+    label: "Dashboards",
+    icon: LayoutDashboard,
+    items: [
+      { ...dashboardItem, title: "DSPR Dashboard", exact: true },
+      {
+        title: "Labor Dashboard",
+        href: `/${locale}/dashboard/labor`,
+        icon: Users,
+        // No auth rule defined upstream yet — visible for any store the user
+        // can access, same as the Business Reports item.
+      },
+    ],
+  };
+
+  const storeManagementGroup: NavGroup = {
+    label: t("storeManagement"),
+    icon: Building2,
+    items: [
+      {
+        title: t("stores"),
+        href: `/${locale}/dashboard/stores`,
+        icon: Building2,
+        requiredPermission: "manage stores",
+
+      },
+      {
+        title: t("userStoreAssignment"),
+        href: `/${locale}/dashboard/user-store-assignment`,
+        icon: ClipboardList,
+        requiredPermission: "manage user role assignments",
+
+      },
+      // {
+      //   title: t("scheduling"),
+      //   href: `/${locale}/dashboard/scheduling`,
+      //   icon: CalendarDays,
+      // },
+    ],
+  };
+
+  // const employeesItem: NavItem = {
+  //   title: t("employees"),
+  //   href: `/${locale}/dashboard/employees`,
+  //   icon: Briefcase,
+  //   // No rule or management permission defined yet — always visible
+  // };
+
+  const userManagementGroup: NavGroup = {
+    label: t("userManagement"),
+    icon: Users,
+    items: [
+      {
+        title: t("users"),
+        href: `/${locale}/dashboard/users`,
+        icon: Users,
+        requiredPermission: "manage users",
+      },
+      {
+        title: t("roles"),
+        href: `/${locale}/dashboard/roles`,
+        icon: UserCog,
+        requiredPermission: "manage roles",
+      },
+      {
+        title: t("permissions"),
+        href: `/${locale}/dashboard/permissions`,
+        icon: ShieldCheck,
+        requiredPermission: "manage permissions",
+      },
+    ],
+  };
+
+  const qaManagementGroup: NavGroup = {
+    label: t("qaManagement"),
+    icon: ClipboardCheck,
+    items: [
+      // {
+      //   title: t("cameraForms"),
+      //   href: `/${locale}/dashboard/quality-assurance`,
+      //   icon: ClipboardCheck,
+      //   requirements: [
+      //     { service: "QA", method: "GET", path: "/camera-forms", storeId: effectiveStoreId },
+      //   ],
+      // },
+      // {
+      //   title: t("cameraReport"),
+      //   href: `/${locale}/dashboard/camera-report`,
+      //   icon: Camera,
+      //   requirements: [
+      //     {
+      //       service: "QA",
+      //       method: "GET",
+      //       path: "/audits/ratings-summary/{store_id}",
+      //       storeId: effectiveStoreId,
+      //     },
+      //   ],
+      // },
+      // {
+      //   title: t("entitiesAndCategories"),
+      //   href: `/${locale}/dashboard/entities-and-categories`,
+      //   icon: List,
+      //   requirements: [
+      //     { service: "QA", method: "POST", path: "/entities", storeId: effectiveStoreId },
+      //     { service: "QA", method: "POST", path: "/categories", storeId: effectiveStoreId },
+      //   ],
+      // },
+      {
+        title: t("cleaningChart"),
+        href: `/${locale}/dashboard/cleaning-chart`,
+        icon: Sparkles,
+        // Role/permission gating deferred — visible to all for now.
+      },
+    ],
+  };
+
+  const highLevelMgmtGroup: NavGroup = {
+    label: t("highLevelMgmt"),
+    icon: Landmark,
+    items: [
+      {
+        title: t("authRules"),
+        href: `/${locale}/dashboard/auth-rules`,
+        icon: Lock,
+        requiredPermission: "manage auth rules",
+
+        // auth-rules management page — no rule in mock data yet; always visible for admins
+        // TODO: add requiredPermission once backend defines one
+      },
+      {
+        title: t("hierarchy"),
+        href: `/${locale}/dashboard/hierarchy`,
+        icon: GitBranch,
+        requiredPermission: "manage role hierarchy",
+      },
+      {
+        title: t("serviceClients"),
+        href: `/${locale}/dashboard/service-clients`,
+        icon: Key,
+        requiredPermission: "manage service clients",
+      },
+    ],
+  };
+
+  const dataManagementGroup: NavGroup = {
+    label: t("dataManagement"),
+    icon: Database,
+    items: [
+      {
+        title: t("keys"),
+        href: `/${locale}/dashboard/keys`,
+        icon: Key,
+        requirements: [
+          { service: "Data", method: "GET", path: "/engine/keys", storeId: effectiveStoreId },
+        ],
+      },
+      {
+        title: t("dueKeys"),
+        href: `/${locale}/dashboard/due-keys`,
+        icon: Database,
+        requirements: [
+          { service: "Data", method: "GET", path: "/engine/stores/{store_id}", storeId: effectiveStoreId },
+        ],
+      },
+      {
+        title: t("exportImport"),
+        href: `/${locale}/dashboard/export-import`,
+        icon: FolderPlus,
+        requirements: [
+          { service: "Data", method: "GET", path: "/export/list", storeId: effectiveStoreId },
+          { service: "Data", method: "GET", path: "/manual-import", storeId: effectiveStoreId },
+        ],
+      },
+      {
+        title: t("tags"),
+        href: `/${locale}/dashboard/tags`,
+        icon: Tag,
+        requirements: [
+          { service: "Data", method: "GET", path: "/tags", storeId: effectiveStoreId }
+        ],
+      },
+      {
+        title: t("goals"),
+        href: `/${locale}/dashboard/goals`,
+        icon: Target,
+        requirements: [
+          { service: "Data", method: "GET", path: "/stores/*/goals", storeId: effectiveStoreId }
+        ],
+      },
+      // {
+      //   title: t("employeeDebriefHistory"),
+      //   href: `/${locale}/dashboard/employee-debrief-history`,
+      //   icon: UserSearch,
+      //   requirements: [
+      //     { service: "Data", method: "GET", path: "/stores/*/employee-debriefs/employee/*", storeId: effectiveStoreId },
+      //   ],
+      // },
+    ],
+  };
+
+  const hiringManagementGroup: NavGroup = {
+    label: "Employee Management",
+    icon: Briefcase,
+    items: [
+      {
+        title: t("manageRequests"),
+        href: `/${locale}/dashboard/hiring-request`,
+        icon: ClipboardList,
+        requirements: [
+          { service: "Hiring", method: "GET", path: "/v1/stores/*/requests", storeId: effectiveStoreId },
+          { service: "Hiring", method: "GET", path: "/v1/shirt-milestones" },
+        ],
+      },
+      // {
+      //   title: t("separationRequest"),
+      //   href: `/${locale}/dashboard/hiring-management/separation-request`,
+      //   icon: FileText,
+      // },
+      {
+        title: t("employees"),
+        href: `/${locale}/dashboard/employees`,
+        icon: Users,
+        requirements: [
+          { service: "Hiring", method: "GET", path: "/v1/stores/*/employees", storeId: effectiveStoreId },
+        ],
+      },
+    ],
+  };
+
+  // Inventory Management — all four items are gated. Units/Items use non-scoped
+  // Inventory GET rules; Links and Entries use store-scoped rules (so they stay
+  // visible to store_manager on their store).
+  const inventoryManagementGroup: NavGroup = {
+    label: t("inventoryManagement"),
+    icon: Package,
+    items: [
+      {
+        title: t("inventoryUnits"),
+        href: `/${locale}/dashboard/inventory/units`,
+        icon: Ruler,
+        requirements: [
+          { service: "Inventory", method: "GET", path: "/inventory/units" },
+        ],
+      },
+      {
+        title: t("inventoryItems"),
+        href: `/${locale}/dashboard/inventory/items`,
+        icon: Boxes,
+        requirements: [
+          { service: "Inventory", method: "GET", path: "/inventory/items", storeId: effectiveStoreId },
+        ],
+      },
+      {
+        title: t("inventoryLinks"),
+        href: `/${locale}/dashboard/inventory/links`,
+        icon: Link2,
+        requirements: [
+          { service: "Inventory", method: "POST", path: "/inventory/links", storeId: effectiveStoreId },
+          { service: "Inventory", method: "GET", path: "/inventory/links/*", storeId: effectiveStoreId },
+        ],
+      },
+      {
+        title: t("inventoryEntries"),
+        href: `/${locale}/dashboard/inventory/entries`,
+        icon: ClipboardList,
+        requirements: [
+          { service: "Inventory", method: "GET", path: "/inventory/entries/*", storeId: effectiveStoreId },
+        ],
+      },
+    ],
+  };
+
+  const Maintenance: NavGroup = {
+    label: "Maintenance",
+    icon: Wrench,
+    items: [
+     
+      {
+        title: t("maintenanceTickets"),
+        href: `/${locale}/dashboard/maintenance-tickets`,
+        icon: Ticket,
+        requirements: [
+          { service: "Maintenance", method: "GET", path: "/stores/*/tickets", storeId: effectiveStoreId }
+        ],
+      },
+      {
+        title: "Daily Pay",
+        href: `/${locale}/dashboard/daily-pay`,
+        icon: Wallet,
+        requirements: [
+          { service: "Maintenance", method: "GET", path: "/daily-pay-entries", storeId: effectiveStoreId }
+        ],
+      },
+      {
+        title: t("storage"),
+        href: `/${locale}/dashboard/storage`,
+        icon: Warehouse,
+        requirements: [
+          // NO storeId on purpose — storage endpoints are GLOBAL, and a
+          // store-scoped probe would be wrong. Same as inventoryUnits above.
+          { service: "Maintenance", method: "GET", path: "/storage-locations" }
+        ],
+      },
+      {
+        title: t("sensors"),
+        href: `/${locale}/dashboard/sensors`,
+        icon: Gauge,
+        requirements: [
+          { service: "Sensors", method: "GET", path: "/stores/*/reports", storeId: effectiveStoreId }
+        ],
+      },
+    ],
+  };
+  // Toolbox (ToolboxPizza). Workbooks is SUPER-ADMIN ONLY for now — gated
+  // here by role, not by an auth rule, because the pizzasys rules for the
+  // toolbox are not seeded yet. Once they are, swap the role gate for a
+  // requirement such as { service: "Toolbox", method: "GET", path: "/workbook-options" }.
+  // Breaks is self-service, so it is shown to everyone.
+  const workbooksItem: NavItem = {
+    title: t("workbooks"),
+    href: `/${locale}/dashboard/workbooks`,
+    icon: Table2,
+  };
+  const toolboxGroup: NavGroup = {
+    label: t("toolbox"),
+    icon: Boxes,
+    items: [...(isSuperAdmin() ? [workbooksItem] : []), breaksItem],
+  };
   // Dev tools navigation (controlled by feature flags)
-  const devToolsItems: Array<{
-    title: string;
-    href: string;
-    icon: typeof Languages;
-  }> = [];
-
+  const devToolsItems: NavItem[] = [];
   if (devToolsEnabled && process.env.NODE_ENV === "development") {
     if (i18nIntelligenceEnabled) {
       devToolsItems.push({
@@ -154,114 +715,171 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     }
   }
 
-  // For RTL, swap chevron icons
-  const CollapseIcon = collapsed
-    ? isRtl ? ChevronLeft : ChevronRight
-    : isRtl ? ChevronRight : ChevronLeft;
-
   // Store selection state
-  const { selectedStore: zustandSelectedStore, setSelectedStore } = useSelectedStoreStore();
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
   const [selectedStore, setLocalSelectedStore] = useState<Store | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
-  const [userStores, setUserStores] = useState<Store[]>([]);
 
-  // Initialize from Zustand store
+  // Derive the store list for the picker from the auth store's overviewStores
+  // (loaded from /auth/general-overview during login/checkAuth — no extra API call).
+  const userStores: Store[] = (overviewStores ?? []).map((s) => ({
+    id: s.id,
+    storeId: s.storeId ?? s.id,
+    name: s.name,
+    metadata: (s.metadata ?? {}) as StoreMetadata,
+    isActive: s.isActive,
+    createdAt: "",
+    updatedAt: "",
+  }));
+
+  // Auto-select the first store from overviewStores when no store is selected.
+  // This runs synchronously with the auth data — no async delay.
+  useEffect(() => {
+    if (!zustandSelectedStore && userStores.length > 0) {
+      setSelectedStore(userStores[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overviewStores]);
+
+  // Sync local state with the Zustand-persisted selection
   useEffect(() => {
     if (zustandSelectedStore) {
       setLocalSelectedStore(zustandSelectedStore);
-      console.log("🔄 Sidebar: Synced with Zustand store:", zustandSelectedStore.name);
     }
     setIsMounted(true);
   }, [zustandSelectedStore]);
 
-  useEffect(() => {
-    let isActive = true;
-
-    const loadStores = async () => {
-      try {
-        const response = await authService.me();
-        if (!isActive || !response.success) {
-          return;
-        }
-
-        const stores: Store[] = response.data.stores?.map((userStore) => ({
-          id: userStore.store.id,
-          name: userStore.store.name,
-          metadata: (userStore.store.metadata || {}) as any,
-          isActive: userStore.store.isActive ?? true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })) || [];
-
-        setUserStores(stores);
-        // console.log(response)
-      } catch {
-        if (isActive) {
-          setUserStores([]);
-        }
-      }
-    };
-
-    loadStores();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
   const currentStoreName = selectedStore?.name || "Select Store";
+  const currentStoreId = selectedStore?.storeId || ""; // Default to 'N/A' if no store is selected
 
+  /* ---- Authorization filtering ---- */
+
+  /**
+   * Returns true if the nav item should be rendered.
+   * - No requirements → always visible (fail-open for items without rules yet)
+   * - Requirements present → at least one must pass canAccessRoute()
+   */
+  const isNavItemVisible = (item: NavItem): boolean => {
+    // 1. Direct management permission check (no auth-rule required)
+    if (item.requiredPermission) {
+      return hasPermission(item.requiredPermission);
+    }
+    // 2. Rule-driven check via auth-rules
+    if (item.requirements && item.requirements.length > 0) {
+      return item.requirements.some((req) => canAccessRoute(req));
+    }
+    // 3. No restrictions — always visible
+    return true;
+  };
+
+  /**
+   * Returns a copy of the group with only visible items.
+   * If the resulting group has no items, returns null (hide the group).
+   */
+  const filterGroup = (group: NavGroup): NavGroup | null => {
+    const visibleItems = group.items.filter(isNavItemVisible);
+    if (visibleItems.length === 0) return null;
+    return { ...group, items: visibleItems };
+  };
+
+  // Pre-filter all groups and flat items
+  const visibleDashboardsGroup = filterGroup(dashboardsGroup);
+  const visibleStoreManagementGroup = filterGroup(storeManagementGroup);
+  const visibleUserManagementGroup = filterGroup(userManagementGroup);
+  const visibleQaManagementGroup = filterGroup(qaManagementGroup);
+  const visibleDataManagementGroup = filterGroup(dataManagementGroup);
+  const visibleMaintenance = filterGroup(Maintenance);
+  const visibleHighLevelMgmtGroup = filterGroup(highLevelMgmtGroup);
+  const visibleHiringManagementGroup = filterGroup(hiringManagementGroup);
+  const visibleInventoryManagementGroup = filterGroup(inventoryManagementGroup);
+  const visibleToolboxGroup = filterGroup(toolboxGroup);
+
+  /* ---- Helper: render a single flat nav link ---- */
+  const renderNavLink = (item: NavItem) => {
+    const basePath = `/${locale}/dashboard`;
+    const isActive =
+      pathname === item.href ||
+      (item.href !== basePath && pathname.startsWith(item.href));
+    const unreadCount = getUnreadCount(item);
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          isActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          collapsed && "justify-center px-2"
+        )}
+      >
+        <div className="relative shrink-0">
+          <item.icon className="h-5 w-5" />
+          {collapsed && <NotificationCountBadge count={unreadCount} variant="corner" />}
+        </div>
+        {!collapsed && (
+          <span className="truncate inline-flex items-center gap-2.5">
+            {item.title}
+            <NotificationCountBadge count={unreadCount} />
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <div
+      data-font-scope="primary"
       className={cn(
-        "flex h-full flex-col border-r bg-sidebar transition-all duration-300",
+        "font-heading flex h-full flex-col border-r bg-sidebar transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
-      {/* Logo */}
-      <div
-        className={cn(
-          "flex h-14 items-center border-b px-2 sm:px-3  sm:py-3",
-          collapsed ? "justify-center" : "justify-between"
-        )}
-      >
-        {!collapsed && (
-          <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-            <Image 
-              src="/logo.svg" 
-              alt="Pizza Dashboard Logo" 
-              width={32} 
+      {/* Unified logo + store selector header */}
+      <div className="flex h-14 items-center border-b px-2 sm:px-3">
+        {collapsed ? (
+          <button
+            className="flex w-full items-center justify-center rounded-md p-1 hover:bg-sidebar-accent transition-colors"
+            onClick={() => setIsStoreModalOpen(true)}
+            aria-label="Select store"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Pizza Dashboard Logo"
+              width={32}
               height={32}
               className="h-8 w-8"
             />
-            <span className="font-semibold text-sidebar-foreground">
-              Pizza Dashboard
-            </span>
-          </Link>
+          </button>
+        ) : (
+          <button
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-sidebar-accent transition-colors text-start"
+            onClick={() => setIsStoreModalOpen(true)}
+          >
+            <Image
+              src="/logo.svg"
+              alt="Pizza Dashboard Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-sidebar-foreground leading-none truncate">
+                Pizza Dashboard
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                {currentStoreName}
+                {currentStoreId ? ` – ${currentStoreId}` : ""}
+              </p>
+            </div>
+            {/* Hidden below md: on mobile this sidebar renders inside the
+                Sheet drawer, where the fixed top-4 end-4 close button
+                overlaps this icon. */}
+            <ChevronsUpDown className="hidden h-4 w-4 shrink-0 text-muted-foreground md:block" />
+          </button>
         )}
-        {collapsed && (
-          <Image 
-            src="/logo.svg" 
-            alt="Pizza Dashboard Logo" 
-            width={32} 
-            height={32}
-            className="h-8 w-8"
-          />
-        )}
-      </div>
-      {/* Store selection */}
-      <div className="px-3 pt-2 pb-0">
-        <Button
-          variant="outline"
-          className="w-full justify-start text-xs sm:text-sm"
-          onClick={() => setIsStoreModalOpen(true)}
-        >
-          <Building2 className="me-2 h-4 w-4" />
-          {!collapsed && <span className="truncate">{currentStoreName}</span>}
-        </Button>
       </div>
 
       {/* Store Selection Modal */}
@@ -279,22 +897,26 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                 {userStores.map((store) => (
                   <Button
                     key={store.id}
-                    variant={selectedStore?.id === store.id ? "default" : "outline"}
+                    variant={
+                      selectedStore?.id === store.id ? "default" : "outline"
+                    }
                     className="w-full justify-start"
                     onClick={() => {
                       setLocalSelectedStore(store);
-                      setSelectedStore(store); // Update Zustand store
-                      console.log("✅ Store selected from sidebar:", store.name);
+                      setSelectedStore(store);
                       setIsStoreModalOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
                         "me-2 h-4 w-4",
-                        selectedStore?.id === store.id ? "opacity-100" : "opacity-0"
+                        selectedStore?.id === store.id
+                          ? "opacity-100"
+                          : "opacity-0"
                       )}
                     />
-                    <span className="truncate">{store.name}</span>
+                    <span className="truncate">{store.name} - <span className="text-xs">{store.storeId}</span></span>
+
                   </Button>
                 ))}
               </div>
@@ -307,135 +929,233 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         </DialogContent>
       </Dialog>
 
+      {/* Navigation — scrollable when content overflows */}
+      <ScrollArea className="flex-1 overflow-y-auto">
+        <nav className="font-heading space-y-1 px-2 sm:px-3 py-2 sm:py-3">
+          {/* 1. Dashboards (DSPR Dashboard + Labor Dashboard) */}
+          {visibleDashboardsGroup && (
+            <SidebarNavGroup
+              group={visibleDashboardsGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-2 sm:px-3 py-2 sm:py-3">
-        {navItems.map((item, index) => {
-          const basePath = `/${locale}/dashboard`;
-          const isActive =
-            pathname === item.href ||
-            (item.href !== basePath && pathname.startsWith(item.href));
+          {/* 1a·1. Business Reports (flat link, right under Dashboard) */}
+           {/* {isNavItemVisible(businessReportsItem) && renderNavLink(businessReportsItem)}  */}
 
-          return (
-            <div key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span>{item.title}</span>}
-              </Link>
+          {/* 1·V1. Dashboard V1 (optimized) */}
+           {/* {isNavItemVisible(dashboardV1Item) && renderNavLink(dashboardV1Item)} */}
 
-              {/* User Management Dropdown - Show after Stores */}
-              {item.href === `/${locale}/dashboard/stores` && (
-                <DropdownMenu open={isUserManagementOpen} onOpenChange={setIsUserManagementOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                        userManagementItems.some(item => 
-                          pathname === item.href || pathname.startsWith(item.href)
-                        )
-                          ? "text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground hover:text-sidebar-accent-foreground",
-                        collapsed && "justify-center px-2"
-                      )}
-                    >
-                      <Users className="h-5 w-5 shrink-0" />
-                      {!collapsed && (
-                        <>
-                          <span>User Management</span>
-                          <ChevronDown className={cn("h-4 w-4 ms-auto transition-transform", isUserManagementOpen && "rotate-180")} />
-                        </>
-                      )}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align={isRtl ? "end" : "start"} className="w-56">
-                    <DropdownMenuLabel>User Management</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {userManagementItems.map((item) => (
-                      <DropdownMenuItem key={item.href} asChild>
-                        <Link href={item.href} onClick={onNavigate} className="cursor-pointer flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          );
-        })}
+          {/* 1a. Announcements */}
+          {renderNavLink(announcementsItem)}
 
-        {/* Dev Tools Section */}
-        {/* {devToolsItems.length > 0 && (
-          <>
-            <Separator className="my-2" />
-            {!collapsed && (
-              <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <Wrench className="h-3 w-3" />
-                <span>{t("devTools.title")}</span>
-              </div>
+          {/* 1b. Screen Project */}
+          {isNavItemVisible(screenProjectItem) && renderNavLink(screenProjectItem)}
+
+          {/* 2. Store Management */}
+          {visibleStoreManagementGroup && (
+            <SidebarNavGroup
+              group={visibleStoreManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 3. User Management */}
+          {visibleUserManagementGroup && (
+            <SidebarNavGroup
+              group={visibleUserManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 4. QA Management */}
+          {visibleQaManagementGroup && (
+            <SidebarNavGroup
+              group={visibleQaManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 5. Data Management */}
+          {visibleDataManagementGroup && (
+            <SidebarNavGroup
+              group={visibleDataManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+{/* 6. Maintenance */}
+          {visibleMaintenance && (
+            <SidebarNavGroup
+              group={visibleMaintenance }
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+          {/* 7. Hiring Management */}
+          {visibleHiringManagementGroup && (
+            <SidebarNavGroup
+              group={visibleHiringManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 7b. Inventory Management */}
+          {visibleInventoryManagementGroup && (
+            <SidebarNavGroup
+              group={visibleInventoryManagementGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 7c. Toolbox (Workbooks super-admin only for now) — detached from
+              the sidebar for now; the break timer stays reachable from the topbar. */}
+          {/* {visibleToolboxGroup && (
+            <SidebarNavGroup
+              group={visibleToolboxGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )} */}
+
+          {/* 8. High Level Management */}
+          {visibleHighLevelMgmtGroup && (
+            <SidebarNavGroup
+              group={visibleHighLevelMgmtGroup}
+              pathname={pathname}
+              locale={locale}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+              getUnreadCount={getUnreadCount}
+            />
+          )}
+
+          {/* 8. Employees */}
+          {/* {isNavItemVisible(employeesItem) && renderNavLink(employeesItem)} */}
+
+          {/* 9. Maintenance */}
+          {/* {renderNavLink(maintenanceItem)} */}
+
+          {/* 10. Settings */}
+          {/* {isNavItemVisible(settingsItem) && renderNavLink(settingsItem)} */}
+        </nav>
+      </ScrollArea>
+
+      <Separator />
+
+      {/* Support Button */}
+      <div className={cn("px-2 sm:px-3 py-2", collapsed && "flex justify-center")}>
+        <a
+          href="https://tasks.rdexperts.tech/support-ticket"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full",
+            "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "justify-center px-2"
+          )}
+        >
+          <LifeBuoy className="h-5 w-5 shrink-0 text-muted-foreground" />
+          {!collapsed && <span className="truncate">Support</span>}
+        </a>
+      </div>
+
+      <Separator />
+
+      {/* Impersonate User — super admin only, or while impersonating (so
+          the "exit" control stays available even after roles/menus have
+          switched to the impersonated user's own permissions). */}
+      {(isSuperAdmin() || isImpersonating) && (
+        <div className={cn("px-2 sm:px-3 py-2", collapsed && "flex justify-center")}>
+          <button
+            type="button"
+            disabled={isImpersonationLoading}
+            onClick={() =>
+              isImpersonating ? stopImpersonating() : setIsImpersonateDialogOpen(true)
+            }
+            title={
+              isImpersonating
+                ? `Exit Impersonation${user?.name ? ` (${user.name})` : ""}`
+                : "Impersonate User"
+            }
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full",
+              isImpersonating
+                ? "text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              collapsed && "justify-center px-2",
+              isImpersonationLoading && "opacity-60 cursor-not-allowed"
             )}
-            {devToolsItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    collapsed && "justify-center px-2"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && <span>{item.title}</span>}
-                </Link>
-              );
-            })}
-          </>
-        )} */}
-      </nav>
+          >
+            {isImpersonating ? (
+              <LogOut className="h-5 w-5 shrink-0" />
+            ) : (
+              <UserCog className="h-5 w-5 shrink-0" />
+            )}
+            {!collapsed && (
+              <span className="truncate">
+                {isImpersonating
+                  ? `Exit Impersonation${user?.name ? ` (${user.name})` : ""}`
+                  : "Impersonate User"}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      <ImpersonateDialog
+        open={isImpersonateDialogOpen}
+        onOpenChange={setIsImpersonateDialogOpen}
+      />
 
       <Separator />
 
       {/* User Menu - conditionally rendered */}
       <Feature name="userMenu">
-        <div className={cn("px-2 sm:px-3 py-2 sm:py-3", collapsed && "flex justify-center")}>
+        <div
+          className={cn(
+            "px-2 sm:px-3 py-2 sm:py-3",
+            collapsed && "flex justify-center"
+          )}
+        >
           <UserMenu collapsed={collapsed} />
         </div>
       </Feature>
 
-      {/* Collapse Toggle (desktop only) */}
-      <div className="hidden border-t px-2 sm:px-3 py-2 md:block">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn("w-full", collapsed && "px-2")}
-          onClick={toggleSidebar}
-        >
-          {collapsed ? (
-            <CollapseIcon className="h-4 w-4" />
-          ) : (
-            <>
-              <CollapseIcon className="me-2 h-4 w-4" />
-              {t("collapse")}
-            </>
-          )}
-        </Button>
-      </div>
     </div>
   );
 }

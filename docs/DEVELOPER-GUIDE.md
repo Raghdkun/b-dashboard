@@ -1,5 +1,7 @@
 # B-Dashboard Developer Guide
 
+_Last updated: 2026-09-25 (bump this whenever you substantively edit this file)_
+
 > **⚠️ IMPORTANT: This document defines what parts of the codebase are considered CORE infrastructure and should NOT be modified by developers or AI agents who want to maintain sync compatibility with upstream.**
 
 ## Table of Contents
@@ -56,9 +58,9 @@ These files form the foundation and MUST NOT be modified to maintain GitHub sync
 | `lib/dashboard/registry/widget-registry.ts` | Base widget registry (only ADD, don't modify existing) |
 | `lib/dashboard/registry/skeleton-registry.ts` | Skeleton component mapping |
 | `components/ui/**` | shadcn/ui base components |
-| `components/layout/app-shell.tsx` | Main shell structure |
+| `components/layout/app-shell.tsx` | Main shell structure — ⚠️ global overlay mounts only, see carve-out below |
 | `components/layout/sidebar.tsx` | Sidebar navigation (structure only) |
-| `components/layout/topbar.tsx` | Top navigation bar |
+| `components/layout/topbar.tsx` | Top navigation bar — ⚠️ indicator mounts only, see carve-out below |
 | `components/providers/**` | Context providers |
 | `components/dashboard/draggable-widget.tsx` | Drag-drop wrapper |
 | `components/dashboard/widget-grid.tsx` | Widget grid with DnD context |
@@ -89,6 +91,28 @@ These areas are designed for customization:
 | `lib/i18n/locales/en.json` | ADD new translation keys |
 | `lib/i18n/locales/ar.json` | ADD new translation keys |
 | `lib/api/services/**` | Your API service files |
+| `components/dashboard-v1/**` | Dashboard V1 re-skin components — reuses DSPR's hooks/services, no new data layer |
+| `components/dspr/**` | DSPR dashboard components (data source for the classic dashboard and Dashboard V1) |
+| `components/screen-project/**` | Screen Project live-video monitoring (incl. `drive-thru/**` global hotline overlay) |
+| `components/scheduling/**` | Weekly scheduling grid, wired to the OperationsPizza API. `day-view.tsx` / `month-overview.tsx` are PARKED — kept on disk but not mounted; the week grid is the only live view |
+| `lib/scheduling/**` | Scheduling support: presentation constants, week identity + date-display helpers, snake_case API adapters, error parsing |
+| `components/cleaning/**` | Cleaning Chart feature (task scheduling/completion, evaluation grid, reports) — tab visibility gated by `lib/auth/cleaning-access.ts`, not a feature flag |
+| `lib/store/**` | Feature-scoped Zustand stores (e.g. `dspr.store.ts`, `selected-store.store.ts`, `drive-thru.store.ts`, `cleaning.store.ts`) — distinct from the Core `lib/dashboard/store/**` |
+| `lib/notifications/**` | Notification → page-segment routing helper, shared by notification click-routing and the sidebar unread-dot indicator |
+| `components/uisfx/**` | Sound-fx UI: global click-sound + unlock singleton (`sound-fx-init.tsx`, mounted once in AppShell), topbar mute toggle (`sound-toggle.tsx`) |
+| `lib/uisfx/**` | Sound-fx logic: `sound.store.ts` (persisted Zustand preferences — pack/volume/enabled), `client.ts` (lazy `uisfx` singleton), `sync.ts` (store→library side effects), `play.ts` (`playSfx(cue)` call-site helper, gated on the `soundFx` feature flag + enabled + unlocked) |
+| `lib/nav/**` | Bottom-nav-eligible link list + permission filtering (`bottom-nav-items.ts`, `bottom-nav-access.ts`) for the mobile/tablet `BottomNav` bar — mirrors `sidebar.tsx`'s nav metadata/order independently rather than importing from that Core file, gated on the `mobileBottomNav` feature flag |
+| `components/daily-pay/**` | Daily Pay v2 — three-level pay sheets (Entry -> Payment -> Line). The create/edit dialog, detail sheet, table, filters, payment/line cards, labour control, warnings panel and revision viewer |
+| `lib/daily-pay/**` | Daily Pay pure logic, no React: `entry-form-state.ts` (form state machine — gather-vs-override hours, lump-sum exclusivity, duplicate-payee detection), `money.ts` (display/preview formulas; the server is authoritative), `field-errors.ts` (Laravel 422 dotted keys -> per-field errors), `warnings.ts` (aggregation-warning copy), `revision-snapshot.ts` (v1/v2 snapshot parsing), `explain.ts` (the calculation as plain-words rows — it is what makes the lump-sum override, the additive "money owed", the gathered-vs-typed hours and the unpaid break visible instead of implied), `from-basket.ts` (regroups the pay basket into an entry/payment/line form; deliberately leaves hours blank, because any value sent marks the line overridden upstream) |
+| `lib/maintenance-tickets/**` | Ticket-side pure logic, no React: `attendance-durations.ts` (warning-code parsing, minute formatting, and `computeAttendancePreview` — a FORM-ONLY preview; the read-only attendance card always renders the server's `durations` instead), `issue-actions.ts` (the action catalogue: every action, its plain-language description, and why it cannot apply right now — disabled with a reason, never hidden), `attendance-timeline.ts` (the event model behind timeline entry, and the store-handoff stamps; documents what a clock window MEANS — one paid segment per store, chained, with travel and parts-run paid and break not), `corrections.ts` (reads an existing record back into the form that made it, so "correct this" is one field rather than twelve), `filters-url.ts` (filters ⇄ query string, so a filtered list is a link) |
+| `components/storage/**` | Storage & Stock — GLOBAL (not store-scoped) storage locations, the append-only stock-movement ledger, and on-hand balances. Page at `dashboard/storage`, tabs Balances / Movements / Locations |
+| `lib/storage/**` | Stock pure logic, no React: `movement-types.ts` (the type→direction table; `reversal` cannot be a key, so it is unpostable at the type level), `movement-builder.ts` (composer form → payload, transfer expansion, 422 line-index mapping), `reversal-pairing.ts` (pairs a mistaken movement with its reversal; degrades to null rather than guessing). `stock-actions.ts` (the plain-language layer: five things that happen in a store room, each mapping onto exactly one movement type, so "transfer_out" and the +1/-1 direction never reach the screen). A mistaken movement STILL COUNTS toward every balance — the flag is display-only |
+| `components/store-passport/**` | Store Passport — the topbar dialog describing the selected store (identity/contact, trading hours, team, facilities, and an access tab of shared logins and door codes, masked behind per-row reveal). Static placeholder data for now, from `lib/mock/store-passport.mock.ts` |
+| `components/layout/topbar-tools-cluster.tsx` | The collapsible topbar drawer holding `BreakTimerButton` + `StorePassportButton`. Forces itself open while a break is running (read from `useBreaksStore().active`), so the live counter is never hidden |
+| `components/break-logger/**` | Breaks — self-service break timer on ToolboxPizza's API (proxied by `app/api/toolbox/**`, base `TOOLBOX_API_URL`, which already ends in `/api/v1`). The topbar popover body, the `/dashboard/break-logger` page (Today / History / Settings), and the entry, notes, delete and export dialogs. `BreakTimerButton` owns the only poller (`lib/hooks/use-breaks.ts`), which runs only while a break is open. `GET breaks/active` and `GET breaks/day` WRITE upstream — never prefetch or cache them |
+| `lib/break-logger/**` | Breaks pure logic, no React: `errors.ts` (normalises domain / Laravel-validation / not-found / proxy error bodies into a code-keyed `BreakError`), `work-date.ts` (work-date math from the server's `cutoff_hour` + `timezone` — never hardcoded), `payload.ts` (manual-entry body, changed-keys-only update body — `ended_at: null` reopens a break — and the history query with `0`/`1` booleans) |
+| `components/workbooks/**` | Workbooks (ToolboxPizza, via `app/api/toolbox/**` and `TOOLBOX_API_URL`): nested folders → user-defined tables (typed columns + rows), each folder/workbook/row carrying a visibility tag where the most restrictive tag up the chain wins. Folder browser at `dashboard/workbooks` (`?folder=`), grid at `dashboard/workbooks/[workbookId]`. Every control renders from the server's `viewer.can` and explains a refusal from `effective_visibility.capped_by` — never re-derive the tag rules client-side. A read 404 means "not found OR no access", never "deleted". Super-admin only for now (sidebar "Toolbox" group) |
+| `lib/workbooks/**` | Workbook pure logic, no React: `errors.ts` (error kind from the server's `error.code`, 422 flattening, the 409 force-delete counts, cell type-mismatch `allowed` values), `cells.ts` (per-type display/editor values — dates read from the ISO string's calendar part, never `new Date()`; numbers stay strings), `columns-diff.ts` (column editor model; the columns endpoint is a WHOLE-LIST replace, so this works out which columns a save would delete), `roles.ts` (trim + de-dupe only), `grid-url.ts` (grid query ⇄ URL) |
 | `types/**` | Your custom TypeScript types |
 
 ---
@@ -142,14 +166,16 @@ lib/dashboard/
 
 ```
 components/layout/
-├── app-shell.tsx      ❌ DO NOT MODIFY
+├── app-shell.tsx      ⚠️ ADD global overlay mounts only
 ├── sidebar.tsx        ⚠️ ADD nav items only
-├── topbar.tsx         ❌ DO NOT MODIFY
+├── topbar.tsx         ⚠️ ADD topbar indicator mounts only
 ├── page-header.tsx    ❌ DO NOT MODIFY
 └── breadcrumbs.tsx    ❌ DO NOT MODIFY
 ```
 
 **Why:** These form the responsive shell that all pages inherit. Modifications break the consistent UX.
+
+**Exception — adding a global overlay or topbar indicator:** a one-line `<NewOverlay />` render in `app-shell.tsx` (or a one-line indicator mount in `topbar.tsx`'s icon cluster) is the one sanctioned edit — everything else in those files (shell structure, layout-variant logic, sidebar/topbar wiring itself) stays off-limits, same spirit as the sidebar's "ADD nav items only" rule above. Precedent already in the codebase: `ScreenProjectPiPOverlay`, `DriveThruOverlay`, `FloatingDebriefButton`, `AnnouncementOnLoadPopup`, and `BottomNav` are all mounted this way in `app-shell.tsx`; `DriveThruButton` and `TopbarToolsCluster` are mounted this way in `topbar.tsx`'s icon cluster (the cluster is the collapsible drawer that now holds `BreakTimerButton` and `StorePassportButton`). `BottomNav` (a mobile/tablet quick-nav tab bar) sources its link list from the independent `lib/nav/**` (Extension zone) rather than importing from `sidebar.tsx`.
 
 ### ❌ UI Component Library
 
@@ -565,6 +591,8 @@ To pull updates from upstream without conflicts:
 | Add dev tool | ✅ Safe | `app/[locale]/(dashboard)/dashboard/dev-tools/*/page.tsx` |
 | Add detection rule | ✅ Safe | `lib/i18n-intelligence/detectors/*.ts` |
 | Add export format | ✅ Safe | `lib/i18n-intelligence/utils/export.ts` |
+| Add global overlay | ⚠️ Carve-out | One-line `<NewOverlay />` mount in `app-shell.tsx` only |
+| Add topbar indicator | ⚠️ Carve-out | One-line mount in `topbar.tsx`'s icon cluster only |
 | Modify theme engine | ❌ Core | Use themes via API instead |
 | Modify dashboard store | ❌ Core | Use store actions instead |
 | Edit UI components | ❌ Core | Create wrapper components |

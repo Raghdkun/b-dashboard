@@ -21,6 +21,32 @@ export interface RegisterCredentials {
   confirmPassword: string;
 }
 
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Forgot-password / OTP reset flow                                       */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyResetOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  password: string;
+  password_confirmation: string;
+}
+
+/** Generic envelope shared by the forgot-password/verify-otp/reset-password proxy routes */
+export interface AuthActionResponse {
+  success: boolean;
+  message: string;
+}
+
 /**
  * User data returned from login and /me endpoints
  * This is the full user object with all permissions and roles
@@ -61,6 +87,7 @@ export interface AuthPermission {
 export interface AuthUserStore {
   store: {
     id: string;
+    internalId?: number;
     name: string;
     metadata?: Record<string, unknown>;
     isActive?: boolean;
@@ -103,6 +130,8 @@ export interface ApiAuthUser {
   id: number;
   name: string;
   email: string;
+  image_path?: string | null;
+  image_url?: string | null;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
@@ -128,7 +157,8 @@ export interface ApiAuthPermission {
 
 export interface ApiAuthUserStore {
   store: {
-    id: string;
+    id: number;
+    store_id: string;
     name: string;
     metadata?: Record<string, unknown>;
     is_active?: boolean;

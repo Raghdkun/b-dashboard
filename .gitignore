@@ -29,6 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+build.log
+build_output.txt
+build_result.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -42,3 +45,10 @@ next-env.d.ts
 
 .i18n-intelligence/
 
+# vitepress
+docs/pizza-dashboard-docs/.vitepress/dist
+docs/pizza-dashboard-docs/.vitepress/cache
+dataresponses.json
+# build output / debugging scratch (never commit these)
+build_*.txt
+.diag-tmp/

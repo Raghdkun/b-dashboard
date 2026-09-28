@@ -23,6 +23,7 @@ interface AuthRulesState {
   isLoading: boolean;
   isCreating: boolean;
   isUpdating: boolean;
+  isToggling: boolean;
   isDeleting: boolean;
   isTesting: boolean;
 
@@ -43,6 +44,7 @@ interface AuthRulesState {
   createRule: (data: CreateAuthRulePayload) => Promise<AuthRule>;
   updateRule: (id: string, data: UpdateAuthRulePayload) => Promise<AuthRule>;
   deleteRule: (id: string) => Promise<void>;
+  toggleStatus: (id: string) => Promise<void>;
   testRule: (data: TestAuthRulePayload) => Promise<TestAuthRuleResult>;
   fetchServices: () => Promise<void>;
   setFilters: (filters: Partial<AuthRuleFilters>) => void;
@@ -61,6 +63,7 @@ const initialState = {
   isLoading: false,
   isCreating: false,
   isUpdating: false,
+  isToggling: false,
   isDeleting: false,
   isTesting: false,
   error: null,
@@ -72,19 +75,24 @@ const initialState = {
   selectedRuleId: null,
 };
 
+let fetchRulesRequestId = 0;
+
 export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
   ...initialState,
 
   fetchRules: async (params?: GetAuthRulesParams) => {
+    const requestId = ++fetchRulesRequestId;
     set({ isLoading: true, error: null });
     try {
       const response = await authRuleService.getAuthRules(params);
+      if (requestId !== fetchRulesRequestId) return;
       set({
         rules: response.data,
         pagination: response.meta,
         isLoading: false,
       });
     } catch (error) {
+      if (requestId !== fetchRulesRequestId) return;
       const message =
         error instanceof Error ? error.message : "Failed to fetch auth rules";
       set({ error: message, isLoading: false });
@@ -118,9 +126,15 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
         return response.data;
       }
       throw new Error(response.message || "Failed to create auth rule");
-    } catch (error) {
+    } catch (error: unknown) {
+      const axErr = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const apiMsg = axErr?.response?.data?.message;
+      const fieldErrors = axErr?.response?.data?.errors;
+      const fieldSummary = fieldErrors
+        ? Object.values(fieldErrors).flat().join(". ")
+        : null;
       const message =
-        error instanceof Error ? error.message : "Failed to create auth rule";
+        fieldSummary || apiMsg || (error instanceof Error ? error.message : "Failed to create auth rule");
       set({ createError: message, isCreating: false });
       throw error;
     }
@@ -133,10 +147,10 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
       if (response.success) {
         set((state) => ({
           rules: state.rules.map((r) =>
-            r.id === id ? { ...r, ...response.data } : r
+            String(r.id) === String(id) ? { ...r, ...response.data } : r
           ),
           currentRule:
-            state.currentRule?.id === id
+            String(state.currentRule?.id) === String(id)
               ? { ...state.currentRule, ...response.data }
               : state.currentRule,
           isUpdating: false,
@@ -144,9 +158,15 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
         return response.data;
       }
       throw new Error(response.message || "Failed to update auth rule");
-    } catch (error) {
+    } catch (error: unknown) {
+      const axErr = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const apiMsg = axErr?.response?.data?.message;
+      const fieldErrors = axErr?.response?.data?.errors;
+      const fieldSummary = fieldErrors
+        ? Object.values(fieldErrors).flat().join(". ")
+        : null;
       const message =
-        error instanceof Error ? error.message : "Failed to update auth rule";
+        fieldSummary || apiMsg || (error instanceof Error ? error.message : "Failed to update auth rule");
       set({ updateError: message, isUpdating: false });
       throw error;
     }
@@ -157,14 +177,39 @@ export const useAuthRulesStore = create<AuthRulesState>()((set, get) => ({
     try {
       await authRuleService.deleteAuthRule(id);
       set((state) => ({
-        rules: state.rules.filter((r) => r.id !== id),
-        currentRule: state.currentRule?.id === id ? null : state.currentRule,
+        rules: state.rules.filter((r) => String(r.id) !== String(id)),
+        currentRule: String(state.currentRule?.id) === String(id) ? null : state.currentRule,
         isDeleting: false,
       }));
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete auth rule";
       set({ deleteError: message, isDeleting: false });
+      throw error;
+    }
+  },
+
+  toggleStatus: async (id: string) => {
+    set({ isToggling: true, error: null });
+    try {
+      const response = await authRuleService.toggleAuthRuleStatus(id);
+      if (response.success) {
+        set((state) => ({
+          rules: state.rules.map((r) =>
+            String(r.id) === String(id) ? { ...r, isActive: !r.isActive } : r
+          ),
+          currentRule:
+            String(state.currentRule?.id) === String(id)
+              ? (({ ...state.currentRule, isActive: !state.currentRule!.isActive }) as AuthRule)
+              : state.currentRule,
+          isToggling: false,
+        }));
+        return;
+      }
+      throw new Error(response.message || "Failed to toggle auth rule status");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to toggle auth rule status";
+      set({ error: message, isToggling: false });
       throw error;
     }
   },

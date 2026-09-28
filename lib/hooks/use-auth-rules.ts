@@ -32,24 +32,24 @@ export function useAuthRules(initialParams?: GetAuthRulesParams) {
   const handleSearch = useCallback(
     (search: string) => {
       setFilters({ search });
-      fetchRules({ ...initialParams, search });
+      fetchRules({ ...initialParams, service: filters.service, search, page: 1 });
     },
-    [fetchRules, setFilters, initialParams]
+    [fetchRules, setFilters, initialParams, filters.service]
   );
 
   const handleServiceFilter = useCallback(
     (service: string | undefined) => {
       setFilters({ service });
-      fetchRules({ ...initialParams, service });
+      fetchRules({ ...initialParams, search: filters.search, service, page: 1 });
     },
-    [fetchRules, setFilters, initialParams]
+    [fetchRules, setFilters, initialParams, filters.search]
   );
 
   const handlePageChange = useCallback(
     (page: number) => {
-      fetchRules({ ...initialParams, page });
+      fetchRules({ ...initialParams, ...filters, page });
     },
-    [fetchRules, initialParams]
+    [fetchRules, initialParams, filters]
   );
 
   const handleFilterChange = useCallback(
@@ -147,9 +147,28 @@ export function useCreateAuthRule() {
 }
 
 /**
+ * Hook for updating an auth rule by ID (no auto-fetch, safe for forms)
+ */
+export function useUpdateAuthRule(ruleId: string | null) {
+  const { isUpdating, updateError, updateRule, clearErrors } =
+    useAuthRulesStore();
+
+  return {
+    isUpdating,
+    updateError,
+    updateRule: useCallback(
+      (data: Parameters<typeof updateRule>[1]) =>
+        ruleId ? updateRule(ruleId, data) : Promise.reject("No rule selected"),
+      [ruleId, updateRule]
+    ),
+    clearErrors,
+  };
+}
+
+/**
  * Hook for fetching auth rule details
  */
-export function useAuthRuleDetails(ruleId: string) {
+export function useAuthRuleDetails(ruleId: string | null | undefined) {
   const {
     currentRule,
     isLoading,

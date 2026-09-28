@@ -12,8 +12,10 @@
 import type { ReactNode } from "react";
 import { ThemeProvider } from "./theme-provider";
 import { ThemeSyncProvider } from "./theme-sync-provider";
+import { NextThemeProvider, ThemeAnimationType } from "@space-man/react-theme-animation";
 import { I18nClientProvider } from "./i18n-client-provider";
 import { isFeatureEnabled } from "@/lib/config";
+import { THEME_STORAGE_KEY } from "@/lib/theme/apply-theme";
 
 interface ConditionalThemeProviderProps {
   children: ReactNode;
@@ -55,9 +57,23 @@ export function ConditionalThemeProvider({
       };
 
   return (
-    <ThemeProvider {...themeProps}>
-      <ThemeSyncProvider>{children}</ThemeSyncProvider>
-    </ThemeProvider>
+    <NextThemeProvider
+      defaultTheme={themeProps.defaultTheme as any}
+      attribute="class"
+      storageKey={THEME_STORAGE_KEY}
+      defaultColorTheme="default"
+      colorThemePrefix="theme-"
+      animationType={ThemeAnimationType.BLUR_CIRCLE}
+      duration={750}
+    >
+      {/* Same storageKey as above — this is a SEPARATE theme engine (real
+          next-themes) that also toggles the .dark class; without a shared
+          key the two independently resolve light/dark and fight over the
+          class, and this one (mounted deeper) previously lost every time. */}
+      <ThemeProvider {...themeProps} storageKey={THEME_STORAGE_KEY}>
+        <ThemeSyncProvider>{children}</ThemeSyncProvider>
+      </ThemeProvider>
+    </NextThemeProvider>
   );
 }
 

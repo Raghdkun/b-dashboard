@@ -26,6 +26,9 @@ export interface DsprSales {
   this_week_by_day: DaySalesMap;
   previous_week_by_day: DaySalesMap;
   same_week_last_year_by_day: DaySalesMap;
+  this_week_total?: number;
+  previous_week_total?: number;
+  same_week_last_year_total?: number;
 }
 
 // ============================================================================
@@ -44,11 +47,50 @@ export interface TopIngredient {
   ingredient_id: string;
   ingredient_description: string;
   actual_usage: number;
+  variance_value?: number;
+}
+
+export interface UpsellingRecord {
+  crazy_bread?: number;
+  cookies?: number;
+  sauce?: number;
+  wings?: number;
+  beverages?: number;
+  crazy_puffs?: number;
+  bev_20oz?: number;
+  bev_2l?: number;
+  italian_cheese_bread?: number;
+  pizza_base?: number;
+  [key: string]: number | undefined;
+}
+
+export interface UpsellingScoreRecord {
+  wings?: number;
+  crazy_bread?: number;
+  bev_2l?: number;
+  cookies?: number;
+  bev_20oz?: number;
+  italian_cheese_bread?: number;
+  "EMB Pepperoni"?: number;
+  "EMB Cheese"?: number;
+  sauce?: number;
+  [key: string]: number | undefined;
 }
 
 export interface DsprTop {
   top_5_items_sales_for_day: TopMenuItem[];
-  top_3_ingredients_used: TopIngredient[];
+  top_5_items_sales_week_to_date?: TopMenuItem[];
+  top_5_items_sales_week_to_date_avg?: TopMenuItem[];
+  top_5_items_count_for_day?: TopMenuItem[];
+  top_5_items_count_week_to_date?: TopMenuItem[];
+  top_5_items_count_week_to_date_avg?: TopMenuItem[];
+  ingredients: {
+    top_3_ingredients_used?: TopIngredient[];
+    top_5_ingredients_variance_high?: TopIngredient[];
+    top_5_ingredients_variance_low?: TopIngredient[];
+    main_5_ingredients_usage: TopIngredient[];
+    top_paper_5_ingredients_usage: TopIngredient[];
+  };
 }
 
 // ============================================================================
@@ -57,15 +99,28 @@ export interface DsprTop {
 
 export interface HourlySalesChannel {
   hour: number;
-  royalty_obligation: string;
-  phone_sales: string;
-  call_center_sales: string;
-  drive_thru_sales: string;
-  website_sales: string;
-  mobile_sales: string;
-  doordash_sales: string;
-  ubereats_sales: string;
-  grubhub_sales: string;
+  royalty_obligation: string | number;
+  adjusted_royalty_obligation?: string | number;
+  phone_sales: string | number;
+  call_center_sales: string | number;
+  drive_thru_sales: string | number;
+  website_sales: string | number;
+  mobile_sales: string | number;
+  doordash_sales: string | number;
+  ubereats_sales: string | number;
+  grubhub_sales: string | number;
+}
+
+export interface DsprChannelSales {
+  royalty_obligation: number | string;
+  phone_sales: number | string;
+  call_center_sales: number | string;
+  drive_thru_sales: number | string;
+  website_sales: number | string;
+  mobile_sales: number | string;
+  doordash_sales: number | string;
+  ubereats_sales: number | string;
+  grubhub_sales: number | string;
 }
 
 export interface DsprRefundedOrders {
@@ -85,7 +140,7 @@ export interface DsprHnr {
   hnr_promise_met_percent: number;
 }
 
-export interface DsprPortal {
+interface DsprPortalPeriod {
   portal_eligible_orders: number;
   portal_used_orders: number;
   portal_on_time_orders: number;
@@ -93,18 +148,115 @@ export interface DsprPortal {
   in_portal_on_time_percent: number;
 }
 
+export interface DsprPortal extends DsprPortalPeriod {
+  week_to_date?: DsprPortalPeriod;
+  week_to_date_avg?: DsprPortalPeriod;
+}
+
 export interface DsprDay {
   hourly_sales_and_channels: HourlySalesChannel[];
+  hourly_sales_and_channels_week_to_date_avg?: HourlySalesChannel[];
+  hourly_sales_and_channels_week_to_date_sum?: HourlySalesChannel[];
+  total_sales: DsprChannelSales;
+  total_sales_week_to_date?: DsprChannelSales;
+  total_sales_week_to_date_avg?: DsprChannelSales;
   total_cash_sales: number;
+  total_cash_sales_week_to_date?: number;
+  total_cash_sales_week_to_date_avg?: number;
   total_deposit: number;
+  total_deposit_week_to_date?: number;
+  total_deposit_week_to_date_avg?: number;
   over_short: number;
+  over_short_week_to_date?: number;
+  over_short_week_to_date_avg?: number;
   refunded_orders: DsprRefundedOrders;
+  refunded_orders_week_to_date?: DsprRefundedOrders;
+  refunded_orders_week_to_date_avg?: DsprRefundedOrders;
   customer_count: number;
+  customer_count_week_to_date?: number;
+  customer_count_week_to_date_avg?: number;
   waste: DsprWaste;
+  waste_week_to_date?: DsprWaste;
+  waste_week_to_date_avg?: DsprWaste;
   total_tips: number;
+  total_tips_week_to_date?: number;
+  total_tips_week_to_date_avg?: number;
   hnr: DsprHnr;
+  hnr_week_to_date?: DsprHnr;
+  hnr_week_to_date_avg?: DsprHnr;
+  important_items_hnr?: DsprHnr;
+  important_items_hnr_week_to_date?: DsprHnr;
+  important_items_hnr_week_to_date_avg?: DsprHnr;
   labor: number;
+  labor_week_to_date?: number;
+  labor_week_to_date_avg?: number;
+  labor_week_to_date_by_day?: Record<string, { value: number; percent: number }>;
   portal: DsprPortal;
+  upselling?: {
+    total_upselling_day?: number;
+    total_upselling_week_to_date?: number;
+    day?: UpsellingRecord;
+    week_to_date?: UpsellingRecord;
+  };
+  upselling_score?: {
+    total_upselling_score_day?: number;
+    total_upselling_score_week_to_date?: number;
+    day?: UpsellingScoreRecord;
+    week_to_date?: UpsellingScoreRecord;
+  };
+}
+
+// ============================================================================
+// Goal Metrics (embedded in DSPR response)
+// ============================================================================
+
+export interface DsprGoalEntry {
+  goal_id: number;
+  week_start_date: string;
+  week_end_date: string;
+  /** Numeric value encoded as a decimal string, e.g. "22.0000" */
+  goal: string;
+}
+
+export interface DsprGoalMetric {
+  metric_id: number;
+  metric_name: string;
+  goals: DsprGoalEntry[];
+}
+
+// ============================================================================
+// Store Score
+// ============================================================================
+
+export interface StoreScoreDetail {
+  key: string;
+  label: string;
+  score: number;
+  max: number;
+  actual_percent?: number;
+  goal_percent?: number | null;
+  actual_hours?: number;
+  actual_overtime_hours?: number;
+  has_transfer_in?: boolean;
+  count?: number;
+  /** Prorated weekly floor/ceil goals for the `labor` detail (percent-of-sales points) — inputs to the same labor-score formula as the backend's `laborScore()`. */
+  floor_goal?: number;
+  ceil_goal?: number;
+}
+
+export interface StoreScoreNonNegotiable {
+  entries: number;
+  downtime: number;
+  other: number;
+  penalty: number;
+}
+
+export interface StoreScoreData {
+  score: number;
+  label: string;
+  details: StoreScoreDetail[];
+  non_negotiable: StoreScoreNonNegotiable;
+  raw_score: number;
 }
 
 // ============================================================================
@@ -116,4 +268,6 @@ export interface DsprResponse {
   sales: DsprSales;
   top: DsprTop;
   day: DsprDay;
+  goal_metrics?: DsprGoalMetric[];
+  store_score?: StoreScoreData;
 }

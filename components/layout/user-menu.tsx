@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, LayoutGrid, Type, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/lib/auth/auth.store";
+import { LayoutSwitcher } from "./layout-switcher";
+import { FontSwitcher } from "./font-switcher";
+import { ThemeEditor } from "./theme-editor";
 
 interface UserMenuProps {
   collapsed?: boolean;
@@ -27,6 +31,9 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
   const locale = (params?.locale as string) || "en";
   const t = useTranslations("common");
   const { user, logout } = useAuthStore();
+  const [layoutOpen, setLayoutOpen] = useState(false);
+  const [fontOpen, setFontOpen] = useState(false);
+  const [themeEditorOpen, setThemeEditorOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -42,6 +49,7 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
     : "U";
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -91,6 +99,36 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
             {t("settings")}
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setLayoutOpen(true);
+          }}
+          className="cursor-pointer"
+        >
+          <LayoutGrid className="me-2 h-4 w-4" />
+          Layout
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setFontOpen(true);
+          }}
+          className="cursor-pointer"
+        >
+          <Type className="me-2 h-4 w-4" />
+          Change Font
+        </DropdownMenuItem>
+        {/* <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setThemeEditorOpen(true);
+          }}
+          className="cursor-pointer"
+        >
+          <Palette className="me-2 h-4 w-4" />
+          Theme Editor
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}
@@ -101,5 +139,10 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <LayoutSwitcher open={layoutOpen} onOpenChange={setLayoutOpen} />
+    <FontSwitcher open={fontOpen} onOpenChange={setFontOpen} />
+    {/* <ThemeEditor open={themeEditorOpen} onOpenChange={setThemeEditorOpen} /> */}
+    </>
   );
 }

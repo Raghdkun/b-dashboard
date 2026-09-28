@@ -1,14 +1,89 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { fmtFixed } from "@/lib/utils/number-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SpeedometerGauge, type SpeedZone } from "./speedometer-gauge";
 import type { DsprHnr, DsprPortal } from "@/types/dspr.types";
-import { Timer, ShieldCheck, CheckCircle2, XCircle, Info } from "lucide-react";
+import {
+  Timer,
+  ShieldCheck,
+  Clock,
+  Info,
+  CheckCircle2,
+  XCircle,
+  CalendarDays,
+  Calendar,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { WtdComparisonDialog, ComparisonGrid, ComparisonTable } from "./wtd-comparison-dialog";
+
+// ============================================================================
+// Shared performance zones & helpers
+// ============================================================================
+
+const PERFORMANCE_ZONES: SpeedZone[] = [
+  { from: 0, to: 70, color: "#EF4444" },   // red – critical
+  { from: 70, to: 85, color: "#EAB308" },  // yellow – needs attention
+  { from: 85, to: 95, color: "#F97316" },  // orange – good
+  { from: 95, to: 100, color: "#22C55E" }, // green – excellent
+];
+
+function getPerformanceColor(value: number): string {
+  if (value >= 95) return "#22C55E";
+  if (value >= 85) return "#F97316";
+  if (value >= 70) return "#EAB308";
+  return "#EF4444";
+}
+
+function getPerformanceLabel(value: number): string {
+  if (value >= 95) return "Excellent";
+  if (value >= 85) return "Good";
+  if (value >= 70) return "Needs Attention";
+  return "Critical";
+}
+
+
+//HNR zones and helpers 
+
+const LABOR_ZONES: SpeedZone[] = [
+   { from: 0, to: 60, color: "#EF4444" },
+  { from: 60, to: 70, color: "#EAB308" },
+  { from: 70, to: 90, color: "#F97316" },
+  { from: 90, to: 100, color: "#22C55E" }, // only green zone
+];
+function getLaborColor(value: number): string {
+  if (value <= 35) return "#EF4444";
+  if (value <= 42) return "#EAB308";
+  if (value <= 50) return "#F97316";
+  if (value <= 70) return "#22C55E";
+  if (value <= 77) return "#F97316";
+  if (value <= 85) return "#EAB308";
+  return "#EF4444";
+}
+
+function getLaborLabel(value: number): string {
+  if (value <= 35) return "Critical Low";
+  if (value <= 42) return "Low";
+  if (value <= 50) return "Below Target";
+  if (value <= 70) return "On Target";
+  if (value <= 77) return "Above Target";
+  if (value <= 85) return "High";
+  return "Critical High";
+}
 
 // ============================================================================
 // HNR (Hot-N-Ready) Card
@@ -16,111 +91,287 @@ import { cn } from "@/lib/utils";
 
 interface HnrCardProps {
   hnr: DsprHnr;
+  weeklyHnr?: DsprHnr;
+  weeklyAvgHnr?: DsprHnr;
+  importantItemsHnr?: DsprHnr;
+  weeklyImportantItemsHnr?: DsprHnr;
+  weeklyAvgImportantItemsHnr?: DsprHnr;
   className?: string;
 }
 
-export function HnrCard({ hnr, className }: HnrCardProps) {
-  const metPercent = hnr.hnr_promise_met_percent;
-  const status =
-    metPercent >= 95 ? "excellent" : metPercent >= 85 ? "warning" : "critical";
+export function HnrCard({
+  hnr,
+  weeklyHnr,
+  weeklyAvgHnr,
+  importantItemsHnr,
+  weeklyImportantItemsHnr,
+  weeklyAvgImportantItemsHnr,
+  className,
+}: HnrCardProps) {
+  const [isWeekly, setIsWeekly] = useState(false);
+  const [itemsMode, setItemsMode] = useState<"all" | "special">("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  // Independent from the card's own All/Special toggle — switching one does not affect the other.
+  const [dialogItemsMode, setDialogItemsMode] = useState<"all" | "special">("all");
+  // WTD rankings come two ways — a running sum, or averaged per day.
+  const [wtdMode, setWtdMode] = useState<"sum" | "avg">("sum");
+  const hasSpecialItems = Boolean(importantItemsHnr);
 
-  const statusConfig = {
-    excellent: {
-      barColor: "bg-emerald-500",
-      trackColor: "bg-emerald-100 dark:bg-emerald-950/40",
-      textColor: "text-emerald-600 dark:text-emerald-400",
-      label: "Excellent",
-    },
-    warning: {
-      barColor: "bg-amber-500",
-      trackColor: "bg-amber-100 dark:bg-amber-950/40",
-      textColor: "text-amber-600 dark:text-amber-400",
-      label: "Needs Attention",
-    },
-    critical: {
-      barColor: "bg-red-500",
-      trackColor: "bg-red-100 dark:bg-red-950/40",
-      textColor: "text-red-600 dark:text-red-400",
-      label: "Critical",
-    },
-  }[status];
+  const source =
+    itemsMode === "special"
+      ? {
+          day: importantItemsHnr ?? hnr,
+          wtd: weeklyImportantItemsHnr,
+          wtdAvg: weeklyAvgImportantItemsHnr,
+        }
+      : { day: hnr, wtd: weeklyHnr, wtdAvg: weeklyAvgHnr };
+  const useAvg = wtdMode === "avg";
+  const hasAvgData = Boolean(source.wtdAvg);
+  // True only when avg data actually exists for the current item scope — if the
+  // user picked "avg" then switched All/Special to a scope without avg data,
+  // this correctly falls back to sum without still claiming to show "Avg".
+  const showingAvg = useAvg && hasAvgData;
+  const activeHnr = isWeekly && source.wtd ? (showingAvg ? source.wtdAvg! : source.wtd) : source.day;
+  const pct = activeHnr.hnr_promise_met_percent;
 
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-orange-500/15 dark:bg-orange-500/20">
-            <Timer className="h-4 w-4 text-orange-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0 bg-linear-to-r from-orange-50 via-orange-100 to-orange-200 dark:from-orange-950/20 dark:via-orange-900/40 dark:to-orange-800/50", weeklyHnr && "cursor-pointer dspr-card-hover", className)} onClick={() => weeklyHnr && setDialogOpen(true)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-orange-500/15 dark:bg-orange-500/20">
+            <Timer className="h-3 w-3 text-orange-500" />
           </div>
-          Hot-N-Ready
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-50">
-              Tracks how well HNR promises are being met for customers
-            </TooltipContent>
-          </Tooltip>
+          Hot-N-Ready{isWeekly ? (showingAvg ? " (WTD Avg)" : " (WTD)") : ""}{itemsMode === "special" ? " · Special Items" : ""}
+          <div className="ms-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            {hasSpecialItems && (
+              <div className="flex gap-0.5 rounded-md bg-muted/60 p-0.5">
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    itemsMode === "all"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setItemsMode("all")}
+                >
+                  All
+                </button>
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    itemsMode === "special"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setItemsMode("special")}
+                >
+                  Special
+                </button>
+              </div>
+            )}
+            {isWeekly && hasAvgData && (
+              <div className="flex gap-0.5 rounded-md bg-muted/60 p-0.5">
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    wtdMode === "sum"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setWtdMode("sum")}
+                >
+                  Sum
+                </button>
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    wtdMode === "avg"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setWtdMode("avg")}
+                >
+                  Avg
+                </button>
+              </div>
+            )}
+            {weeklyHnr ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-5 w-5 rounded", isWeekly ? "bg-primary/15 text-primary" : "text-muted-foreground/40")}
+                    onClick={() => setIsWeekly((v) => !v)}
+                  >
+                    <CalendarDays className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isWeekly ? "Switch to Daily" : "Switch to Week-to-Date"}</TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-50">
+                  Tracks how well HNR promises are being met
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Promise Met % — Hero metric */}
-        <div className="space-y-2">
-          <div className="flex items-baseline justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              Promise Met
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className={cn("text-2xl font-bold tabular-nums", statusConfig.textColor)}>
-                {metPercent.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-          <div
-            className={cn("relative h-2.5 w-full overflow-hidden rounded-full", statusConfig.trackColor)}
-            role="progressbar"
-            aria-valuenow={Math.round(metPercent)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`HNR Promise Met: ${metPercent.toFixed(1)}%`}
-          >
-            <div
-              className={cn(
-                "h-full rounded-full transition-all duration-700 ease-out",
-                statusConfig.barColor
-              )}
-              style={{ width: `${Math.min(metPercent, 100)}%` }}
-            />
-          </div>
-          <p className={cn("text-[11px] font-medium", statusConfig.textColor)}>
-            {statusConfig.label}
-          </p>
-        </div>
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <MetricBlock
-            label="Transactions"
-            value={hnr.hnr_transactions}
-            icon={<Timer className="h-3 w-3 text-muted-foreground" />}
+      <CardContent className="pb-1 px-3 flex flex-col gap-8">
+        <SpeedometerGauge
+          value={pct}
+          zones={LABOR_ZONES}
+          statusLabel={getLaborLabel(pct)}
+          statusColor={getLaborColor(pct)}
+          valueDisplay={`${pct}%`}
+          max={100}
+        />
+        <div className="grid grid-cols-3 gap-1 mt-0">
+          <Metric
+            icon={<Timer className="h-2.5 w-2.5 text-muted-foreground" />}
+            value={activeHnr.hnr_transactions}
+            label="Trans."
           />
-          <MetricBlock
+          <Metric
+            icon={<CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />}
+            value={activeHnr.hnr_promise_met}
             label="Kept"
-            value={hnr.hnr_promise_met}
-            icon={<CheckCircle2 className="h-3 w-3 text-emerald-500" />}
           />
-          <MetricBlock
+          <Metric
+            icon={<XCircle className="h-2.5 w-2.5 text-red-500" />}
+            value={activeHnr.hnr_broken_promises}
             label="Broken"
-            value={hnr.hnr_broken_promises}
-            icon={<XCircle className="h-3 w-3 text-red-500" />}
-            valueClassName={
-              hnr.hnr_broken_promises > 0
-                ? "text-red-600 dark:text-red-400"
-                : undefined
-            }
+            highlight={activeHnr.hnr_broken_promises > 0}
           />
         </div>
       </CardContent>
+
+      {/* WTD Comparison Dialog */}
+      {weeklyHnr && (() => {
+        const dailyHnr = dialogItemsMode === "special" ? importantItemsHnr ?? hnr : hnr;
+        const sumHnr =
+          dialogItemsMode === "special"
+            ? weeklyImportantItemsHnr ?? weeklyHnr
+            : weeklyHnr;
+        const avgHnr =
+          dialogItemsMode === "special"
+            ? weeklyAvgImportantItemsHnr ?? weeklyImportantItemsHnr ?? weeklyAvgHnr ?? weeklyHnr
+            : weeklyAvgHnr ?? weeklyHnr;
+        const showSum = avgHnr !== sumHnr;
+        return (
+        <WtdComparisonDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          title="Hot-N-Ready Comparison"
+          badgeText={`${dialogItemsMode === "special" ? "Special Items" : "All Items"} · Daily vs WTD${showSum ? " Avg" : ""}`}
+        >
+          {hasSpecialItems && (
+            <div
+              className="mb-3 flex justify-end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex gap-0.5 rounded-md bg-muted/60 p-0.5">
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    dialogItemsMode === "all"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setDialogItemsMode("all")}
+                >
+                  All Items
+                </button>
+                <button
+                  className={cn(
+                    "text-[9px] font-medium rounded px-1.5 py-0.5 transition-colors",
+                    dialogItemsMode === "special"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setDialogItemsMode("special")}
+                >
+                  Special Items
+                </button>
+              </div>
+            </div>
+          )}
+          <ComparisonGrid
+            daily={
+              <div className="space-y-2">
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 tabular-nums">
+                  {fmtFixed(dailyHnr.hnr_promise_met_percent, 1)}%
+                </p>
+                <p className="text-[10px] text-muted-foreground">Promise Met</p>
+                <div className="flex gap-3 mt-2">
+                  <span className="text-[11px]">Trans: <b>{dailyHnr.hnr_transactions}</b></span>
+                  <span className="text-[11px]">Kept: <b>{dailyHnr.hnr_promise_met}</b></span>
+                  <span className="text-[11px]">Broken: <b>{dailyHnr.hnr_broken_promises}</b></span>
+                </div>
+              </div>
+            }
+            wtd={
+              <div className="space-y-2">
+                <p className="text-2xl font-bold text-primary tabular-nums">
+                  {fmtFixed(avgHnr.hnr_promise_met_percent, 1)}%
+                </p>
+                <p className="text-[10px] text-muted-foreground">Promise Met{showSum ? " (Avg)" : ""}</p>
+                <div className="flex gap-3 mt-2">
+                  <span className="text-[11px]">Trans: <b>{avgHnr.hnr_transactions}</b></span>
+                  <span className="text-[11px]">Kept: <b>{avgHnr.hnr_promise_met}</b></span>
+                  <span className="text-[11px]">Broken: <b>{avgHnr.hnr_broken_promises}</b></span>
+                </div>
+              </div>
+            }
+          />
+          <ComparisonTable
+            rows={[
+              {
+                label: "Promise Met %",
+                daily: `${fmtFixed(dailyHnr.hnr_promise_met_percent, 1)}%`,
+                wtd: `${fmtFixed(avgHnr.hnr_promise_met_percent, 1)}%`,
+                dailyNum: dailyHnr.hnr_promise_met_percent,
+                wtdNum: avgHnr.hnr_promise_met_percent,
+                higherIsBetter: true,
+                wtdSum: showSum ? `${fmtFixed(sumHnr.hnr_promise_met_percent, 1)}%` : undefined,
+              },
+              {
+                label: "Transactions",
+                daily: `${dailyHnr.hnr_transactions}`,
+                wtd: `${avgHnr.hnr_transactions}`,
+                dailyNum: dailyHnr.hnr_transactions,
+                wtdNum: avgHnr.hnr_transactions,
+                higherIsBetter: true,
+                wtdSum: showSum ? `${sumHnr.hnr_transactions}` : undefined,
+              },
+              {
+                label: "Promises Kept",
+                daily: `${dailyHnr.hnr_promise_met}`,
+                wtd: `${avgHnr.hnr_promise_met}`,
+                dailyNum: dailyHnr.hnr_promise_met,
+                wtdNum: avgHnr.hnr_promise_met,
+                higherIsBetter: true,
+                wtdSum: showSum ? `${sumHnr.hnr_promise_met}` : undefined,
+              },
+              {
+                label: "Broken Promises",
+                daily: `${dailyHnr.hnr_broken_promises}`,
+                wtd: `${avgHnr.hnr_broken_promises}`,
+                dailyNum: dailyHnr.hnr_broken_promises,
+                wtdNum: avgHnr.hnr_broken_promises,
+                higherIsBetter: false,
+                wtdSum: showSum ? `${sumHnr.hnr_broken_promises}` : undefined,
+              },
+            ]}
+          />
+        </WtdComparisonDialog>
+        );
+      })()}
     </Card>
   );
 }
@@ -135,65 +386,37 @@ interface PortalCardProps {
 }
 
 export function PortalCard({ portal, className }: PortalCardProps) {
+  const pct = portal.put_into_portal_percent;
+
   return (
-    <Card className={cn("group hover:shadow-md transition-shadow", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <div className="rounded-lg p-1.5 bg-blue-500/15 dark:bg-blue-500/20">
-            <ShieldCheck className="h-4 w-4 text-blue-500" />
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5  gap-0 bg-linear-to-r from-emerald-50/50 via-emerald-100/40 to-emerald-200/30 dark:from-emerald-950/20 dark:via-emerald-900/40 dark:to-emerald-800/50", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-emerald-500/15 dark:bg-emerald-500/20">
+            <ShieldCheck className="h-3 w-3 text-emerald-500" />
           </div>
-          Portal Performance
+          Put Into Portal 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground ms-auto cursor-help" />
+              <Info className="h-3 w-3 text-muted-foreground ms-auto cursor-help" />
             </TooltipTrigger>
             <TooltipContent className="max-w-50">
-              Measures portal usage and on-time order completion rates
+              Measures portal usage rate for eligible orders
             </TooltipContent>
           </Tooltip>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Two main percentages with ring indicators */}
-        <div className="grid grid-cols-2 gap-4">
-          <RingMetric
-            label="Put Into Portal"
-            value={portal.put_into_portal_percent}
-            color={
-              portal.put_into_portal_percent >= 98
-                ? "stroke-emerald-500"
-                : portal.put_into_portal_percent >= 90
-                  ? "stroke-amber-500"
-                  : "stroke-red-500"
-            }
-          />
-          <RingMetric
-            label="On Time"
-            value={portal.in_portal_on_time_percent}
-            color={
-              portal.in_portal_on_time_percent >= 98
-                ? "stroke-emerald-500"
-                : portal.in_portal_on_time_percent >= 90
-                  ? "stroke-amber-500"
-                  : "stroke-red-500"
-            }
-          />
-        </div>
-
-        {/* Detailed stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <MetricBlock
-            label="Eligible"
-            value={portal.portal_eligible_orders}
-          />
-          <MetricBlock
-            label="Used"
-            value={portal.portal_used_orders}
-          />
-          <MetricBlock
-            label="On Time"
-            value={portal.portal_on_time_orders}
-          />
+      <CardContent className="pb-1 px-3">
+        <SpeedometerGauge
+          value={pct}
+          zones={PERFORMANCE_ZONES}
+          statusLabel={getPerformanceLabel(pct)}
+          statusColor={getPerformanceColor(pct)}
+          valueDisplay={`${pct.toFixed(1)}%`}
+        />
+        <div className="grid grid-cols-2 gap-1 mt-0">
+          <Metric value={portal.portal_eligible_orders} label="Eligible" />
+          <Metric value={portal.portal_used_orders} label="Used" />
         </div>
       </CardContent>
     </Card>
@@ -201,94 +424,101 @@ export function PortalCard({ portal, className }: PortalCardProps) {
 }
 
 // ============================================================================
-// Shared helpers
+// On Time Card
 // ============================================================================
 
-function MetricBlock({
-  label,
-  value,
-  icon,
-  valueClassName,
-}: {
-  label: string;
-  value: number;
-  icon?: React.ReactNode;
-  valueClassName?: string;
-}) {
+interface OnTimeCardProps {
+  portal: DsprPortal;
+  className?: string;
+}
+
+export function OnTimeCard({ portal, className }: OnTimeCardProps) {
+  const pct = portal.in_portal_on_time_percent;
+
   return (
-    <div className="text-center space-y-0.5">
-      <div className="flex items-center justify-center gap-1">
-        {icon}
-        <p className={cn("text-lg font-bold tabular-nums", valueClassName)}>
-          {value.toLocaleString()}
-        </p>
-      </div>
-      <p className="text-[10px] text-muted-foreground leading-tight font-medium uppercase tracking-wide">
-        {label}
-      </p>
-    </div>
+    <Card className={cn("group hover:shadow-md transition-shadow py-1.5 gap-0  bg-linear-to-r from-emerald-50/50 via-emerald-100/40 to-emerald-200/30 dark:from-emerald-950/20 dark:via-emerald-900/40 dark:to-emerald-800/50  ", className)}>
+      <CardHeader className="pb-0 px-3">
+        <CardTitle className="text-[11px] font-semibold flex items-center gap-1">
+          <div className="rounded p-0.5 bg-emerald-500/15 dark:bg-emerald-500/20">
+            <Clock className="h-3 w-3 text-emerald-500" />
+          </div>
+          Portal On Time 
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3 w-3 text-muted-foreground ms-auto cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-50">
+              On-time completion rate for portal orders
+            </TooltipContent>
+          </Tooltip>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-1 px-3">
+        <SpeedometerGauge
+          value={pct}
+          zones={PERFORMANCE_ZONES}
+          statusLabel={getPerformanceLabel(pct)}
+          statusColor={getPerformanceColor(pct)}
+          valueDisplay={`${pct.toFixed(1)}%`}
+        />
+        <div className="grid grid-cols-2 gap-1 mt-0">
+          <Metric value={portal.portal_on_time_orders} label="On Time" />
+          <Metric value={portal.portal_used_orders} label="Total" />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-/** Compact ring/donut metric */
-function RingMetric({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
-  const radius = 32;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+// ============================================================================
+// Shared metric helper
+// ============================================================================
 
-  const textColor =
-    value >= 98
-      ? "text-emerald-600 dark:text-emerald-400"
-      : value >= 90
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-red-600 dark:text-red-400";
+function Metric({
+  value,
+  label,
+  icon,
+  highlight,
+}: {
+  value: number;
+  label: string;
+  icon?: React.ReactNode;
+  highlight?: boolean;
+}) {
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const to = value;
+    const duration = 700;
+    const start = performance.now();
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+    cancelAnimationFrame(rafRef.current);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      if (textRef.current)
+        textRef.current.textContent = Math.round(to * easeOut(t)).toLocaleString();
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value]);
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="relative w-19 h-19">
-        <svg
-          className="w-full h-full -rotate-90"
-          viewBox="0 0 76 76"
-          role="img"
-          aria-label={`${label}: ${value.toFixed(1)}%`}
+    <div className="text-center space-y-0">
+      <div className="flex items-center justify-center gap-0.5">
+        {icon}
+        <p
+          ref={textRef}
+          className={cn(
+            "text-xs font-bold tabular-nums",
+            highlight && "text-red-600 dark:text-red-400",
+          )}
         >
-          <circle
-            cx="38"
-            cy="38"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            className="text-muted/30"
-            strokeWidth="5"
-          />
-          <circle
-            cx="38"
-            cy="38"
-            r={radius}
-            fill="none"
-            className={color}
-            strokeWidth="5"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: "stroke-dashoffset 0.7s ease-out" }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={cn("text-sm font-bold tabular-nums", textColor)}>
-            {value.toFixed(1)}%
-          </span>
-        </div>
+          {value.toLocaleString()}
+        </p>
       </div>
-      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide text-center">
+      <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-wider">
         {label}
       </p>
     </div>

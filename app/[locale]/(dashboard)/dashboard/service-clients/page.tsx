@@ -20,8 +20,12 @@ export default function ServiceClientsPage() {
   const [selectedClient, setSelectedClient] = useState<ServiceClient | null>(null);
 
   const { clients, isLoading, error } = useServiceClients();
-  const { token: createdToken, isTokenDialogOpen: showCreatedToken, closeTokenDialog: closeCreatedTokenDialog } = useCreateServiceClient();
-  const { token: rotatedToken, isTokenDialogOpen: showRotatedToken, closeTokenDialog: closeRotatedTokenDialog } = useRotateToken();
+  const { token: createdToken, isTokenDialogOpen: storeTokenDialogOpen, closeTokenDialog } = useCreateServiceClient();
+  const { token: rotatedToken } = useRotateToken();
+
+  // Determine which token dialog to show based on which token exists
+  const showCreatedToken = storeTokenDialogOpen && !!createdToken;
+  const showRotatedToken = storeTokenDialogOpen && !createdToken && !!rotatedToken;
 
   const handleRotateToken = (client: ServiceClient) => {
     setSelectedClient(client);
@@ -30,14 +34,14 @@ export default function ServiceClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Service Clients</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Service Client Management</h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
             Manage API service clients and their tokens.
           </p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
+        <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Create Client
         </Button>
@@ -79,7 +83,7 @@ export default function ServiceClientsPage() {
 
       <TokenDisplayDialog
         open={showCreatedToken}
-        onOpenChange={closeCreatedTokenDialog}
+        onOpenChange={closeTokenDialog}
         token={createdToken}
         title="Service Client Created"
         description="Your new service client has been created. Copy the token below - it won't be shown again."
@@ -87,7 +91,7 @@ export default function ServiceClientsPage() {
 
       <TokenDisplayDialog
         open={showRotatedToken}
-        onOpenChange={closeRotatedTokenDialog}
+        onOpenChange={closeTokenDialog}
         token={rotatedToken}
         title="Token Rotated"
         description="The token has been rotated. Copy the new token below - it won't be shown again."

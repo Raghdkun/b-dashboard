@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 import type { DsprResponse } from "@/types/dspr.types";
+import type { DashboardReportExtras } from "@/types/dashboard-report.types";
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Error types                                                             */
@@ -47,7 +48,7 @@ function getToken(): string | null {
     return parsed?.state?.token ?? null;
   } catch (e) {
     if (process.env.NODE_ENV === "development") {
-      console.warn("[DSPR] Failed to read auth token from localStorage:", e);
+      // console.warn("[DSPR] Failed to read auth token from localStorage:", e);
     }
     return null;
   }
@@ -63,7 +64,8 @@ function getSelectedStoreId(): string | null {
     const raw = localStorage.getItem("selected-store-storage");
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    return parsed?.state?.selectedStore?.id ?? null;
+    // Use the human-readable storeId (e.g. "03795-00021"), not the numeric id
+    return parsed?.state?.selectedStore?.storeId ?? parsed?.state?.selectedStore?.id ?? null;
   } catch (e) {
     if (process.env.NODE_ENV === "development") {
       console.warn("[DSPR] Failed to read selected store from localStorage:", e);
@@ -198,9 +200,11 @@ export const dsprService = {
     storeId?: string,
     date?: string,
     signal?: AbortSignal
-  ): Promise<DsprResponse> => {
+  ): Promise<{ dspr: DsprResponse; extras: DashboardReportExtras }> => {
     const resolvedStore = storeId || getSelectedStoreId();
     const resolvedDate = date || getYesterday();
+
+    // console.log("[DsprService] getReport:", { storeId, date, resolvedStore, resolvedDate });
 
     if (!resolvedStore) {
       throw new DsprError(
@@ -221,17 +225,25 @@ export const dsprService = {
       );
     }
 
-    const url = `/api/dspr/${encodeURIComponent(resolvedStore)}/${encodeURIComponent(resolvedDate)}`;
+    const cacheBuster = Date.now();
+    const url = `/api/data/reports/dashboard/${encodeURIComponent(resolvedStore)}/${encodeURIComponent(resolvedDate)}?__noCache=${cacheBuster}`;
+    // console.log("[DsprService] Fetching URL:", url);
 
     try {
-      const { data } = await axios.get<DsprResponse>(url, {
+      const { data: body } = await axios.get<{ dspr: DsprResponse } & DashboardReportExtras>(url, {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
+          "Cache-Control": "no-cache, no-store, max-age=0",
+          Pragma: "no-cache",
         },
         timeout: CLIENT_TIMEOUT_MS,
         signal,
       });
+
+      const data = body?.dspr;
+
+      // console.log("[DsprService] Response received:", { filtering: data?.filtering, hasDay: !!data?.day, hasSales: !!data?.sales });
 
       // Basic response shape validation
       if (!data || !data.filtering || !data.sales || !data.day) {
@@ -243,7 +255,7 @@ export const dsprService = {
         );
       }
 
-      return data;
+      return { dspr: data, extras: body };
     } catch (err) {
       // Already a DsprError (from validation above)
       if (err instanceof DsprError) throw err;

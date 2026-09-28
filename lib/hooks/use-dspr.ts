@@ -14,6 +14,7 @@ export function useDspr() {
   const { selectedStore } = useSelectedStoreStore();
   const {
     data,
+    wbrData,
     isLoading,
     isRefreshing,
     error,
@@ -27,14 +28,20 @@ export function useDspr() {
     stopAutoRefresh,
   } = useDsprStore();
 
-  const storeIdRef = useRef(selectedStore?.id);
-  storeIdRef.current = selectedStore?.id;
+  // Use the human-readable storeId (e.g. "03795-00021") for the DSPR API URL
+  const storeIdRef = useRef(selectedStore?.storeId ?? selectedStore?.id);
+  storeIdRef.current = selectedStore?.storeId ?? selectedStore?.id;
+
+  // console.log("[useDspr] selectedStore:", selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null);
 
   /** Fetch for a specific date (or re-fetch current) */
   const refetch = useCallback(
     (date?: string) => {
+      // console.log("[useDspr] refetch called with:", { storeId: storeIdRef.current, date });
       if (storeIdRef.current) {
         fetchReport(storeIdRef.current, date);
+      } else {
+        // console.warn("[useDspr] refetch skipped — no storeId");
       }
     },
     [fetchReport]
@@ -66,6 +73,7 @@ export function useDspr() {
 
   return {
     data,
+    wbrData,
     isLoading,
     isRefreshing,
     error,

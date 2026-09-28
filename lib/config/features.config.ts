@@ -293,6 +293,75 @@ export const featuresConfig: FeaturesConfig = {
     envOverride: "NEXT_PUBLIC_FEATURE_SEARCH",
     runtimeToggle: true,
   },
+
+  /**
+   * Screen Project — Global PiP Mini-Player
+   *
+   * When enabled, navigating away from the Screen Project page while a live
+   * station is active will automatically show a draggable picture-in-picture
+   * mini-player that keeps the video feed alive across routes.
+   *
+   * Affects:
+   * - Floating PiP overlay in AppShell
+   * - LiveKit room lifecycle (one room kept alive across navigation)
+   * - Drag position persistence
+   */
+  screenProjectPiP: {
+    id: "screenProjectPiP",
+    name: "Screen Project PiP",
+    description:
+      "Draggable cross-page mini-player for live station video when leaving Screen Project.",
+    category: "ui",
+    enabled: true,
+    envOverride: "NEXT_PUBLIC_FEATURE_SCREEN_PROJECT_PIP",
+    runtimeToggle: false,
+  },
+
+  /**
+   * Sound Effects
+   *
+   * Enables semantic UI sound cues (click feedback, notification arrival,
+   * and select outcome sounds) via the uisfx library.
+   *
+   * Affects:
+   * - Global press/click sound on every interactive element
+   * - Notification arrival sound
+   * - Debrief submission success sound
+   * - Sound toggle in the topbar
+   * - Settings > Sound page
+   */
+  soundFx: {
+    id: "soundFx",
+    name: "Sound Effects",
+    description:
+      "Semantic UI sound cues for clicks, notifications, and key outcomes.",
+    category: "ui",
+    enabled: true,
+    envOverride: "NEXT_PUBLIC_FEATURE_SOUND_FX",
+    runtimeToggle: true,
+  },
+
+  /**
+   * Mobile Bottom Navigation
+   *
+   * Enables a persistent, customizable 4-link bottom tab bar on mobile and
+   * tablet widths, sourced from the sidebar's nav items and filtered by the
+   * user's role/permissions. Auto-hides on scroll-down, reappears on scroll-up.
+   *
+   * Affects:
+   * - Bottom nav bar in AppShell (mobile/tablet widths only)
+   * - Its inline edit-mode link picker
+   */
+  mobileBottomNav: {
+    id: "mobileBottomNav",
+    name: "Mobile Bottom Navigation",
+    description:
+      "Customizable 4-link bottom nav bar for mobile/tablet, auto-hides on scroll.",
+    category: "ui",
+    enabled: true,
+    envOverride: "NEXT_PUBLIC_FEATURE_MOBILE_BOTTOM_NAV",
+    runtimeToggle: false,
+  },
 };
 
 /**

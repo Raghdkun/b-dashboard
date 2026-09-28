@@ -38,10 +38,19 @@
     "daysAgo": "منذ {count} يوم",
     "totalIssues": "إجمالي المشاكل",
     "filesScanned": "الملفات الممسوحة",
-    "withIssues": "بها مشاكل"
+    "withIssues": "بها مشاكل",
+    "soundFx": {
+      "mute": "كتم المؤثرات الصوتية",
+      "unmute": "إلغاء كتم المؤثرات الصوتية"
+    }
   },
   "nav": {
     "dashboard": "لوحة التحكم",
+    "dashboards": "لوحات التحكم",
+    "laborDashboard": "لوحة العمالة",
+    "announcements": "الإعلانات",
+    "dailyPay": "الأجر اليومي",
+    "employeeManagement": "إدارة الموظفين",
     "users": "المستخدمون",
     "employees": "الموظفون",
     "stores": "الفروع",
@@ -51,7 +60,43 @@
     "assignments": "التعيينات",
     "hierarchy": "الهيكل",
     "serviceClients": "عملاء الخدمة",
+    "userStoreAssignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "sensors": "المستشعرات",
+    "qualityAssurance": "ضمان الجودة",
+    "cameraForms": "نماذج الكاميرا",
+    "createCameraForms": "إنشاء نماذج الكاميرا",
+    "createQaCategory": "إنشاء فئة الجودة",
+    "createQaEntity": "إنشاء كيان الجودة",
+    "entitiesAndCategories": "الكيانات والفئات",
+    "cameraReport": "تقرير الكاميرا",
+    "customReports": "التقارير المخصصة",
+    "cleaningChart": "جدول التنظيف",
     "settings": "الإعدادات",
+    "storeManagement": "إدارة الفروع",
+    "userManagement": "إدارة المستخدمين",
+    "hiringManagement": "إدارة التوظيف",
+    "inventoryManagement": "إدارة المخزون",
+    "inventoryUnits": "الوحدات",
+    "inventoryItems": "الأصناف",
+    "inventoryLinks": "الروابط",
+    "inventoryEntries": "الإدخالات",
+    "hiringRequest": "طلب توظيف",
+    "separationRequest": "طلب فصل",
+    "manageRequests": "إدارة الطلبات",
+    "qaManagement": "إدارة الجودة",
+    "highLevelMgmt": "الإدارة العليا",
+    "dataManagement": "إدارة البيانات",
+    "keys": "المفاتيح",
+    "maintenanceTickets": "تذاكر الصيانة",
+    "dueKeys": "المفاتيح المستحقة",
+    "employeeDebriefs": "ملاحظات إحاطة الموظفين",
+    "exportImport": "تصدير / استيراد",
+    "tags": "العلامات",
+    "goals": "الأهداف",
+    "employeeDebriefHistory": "سجل الإحاطات",
+    "scheduling": "الجدولة",
+    "screenProject": "مشروع الشاشة",
     "collapse": "طي",
     "selectStore": "اختيار الفرع",
     "selectStoreDescription": "اختر فرعاً لإدارته",
@@ -61,7 +106,11 @@
       "title": "أدوات المطور",
       "i18n": "ذكاء الترجمة",
       "security": "مراقب الأمان"
-    }
+    },
+    "storage": "المخزون والمستودعات",
+    "breaks": "الاستراحات",
+    "toolbox": "صندوق الأدوات",
+    "workbooks": "دفاتر العمل"
   },
   "breadcrumbs": {
     "dashboard": "لوحة التحكم",
@@ -74,6 +123,23 @@
     "hierarchy": "الهيكل",
     "by-user": "حسب المستخدم",
     "by-store": "حسب الفرع",
+    "user-store-assignment": "تعيين الفروع للمستخدمين",
+    "maintenance": "الصيانة",
+    "sensors": "المستشعرات",
+    "quality-assurance": "ضمان الجودة",
+    "create-qa-category": "إنشاء فئة الجودة",
+    "entities-and-categories": "الكيانات والفئات",
+    "camera-report": "تقرير الكاميرا",
+    "custom-reports": "التقارير المخصصة",
+    "keys": "المفاتيح",
+    "due-keys": "المفاتيح المستحقة",
+    "employee-debriefs": "ملاحظات إحاطة الموظفين",
+    "export-import": "تصدير / استيراد",
+    "goals": "الأهداف",
+    "scheduling": "الجدولة",
+    "create-key": "إنشاء مفتاح",
+    "update-key": "تعديل مفتاح",
+    "assign": "تعيين فرع",
     "bulk": "التعيين الجماعي",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
@@ -89,7 +155,13 @@
     "en": "الإنجليزية",
     "ar": "العربية",
     "create": "إنشاء",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "store-details": "تفاصيل الفرع",
+    "user-details": "تفاصيل المستخدم",
+    "screen-project": "مشروع الشاشة",
+    "storage": "المخزون والمستودعات",
+    "break-logger": "الاستراحات",
+    "workbooks": "دفاتر العمل"
   },
   "employees": {
     "title": "الموظفون",
@@ -125,7 +197,12 @@
       "noAccount": "ليس لديك حساب؟",
       "register": "إنشاء حساب",
       "error": "الرجاء إدخال البريد الإلكتروني وكلمة المرور",
-      "failed": "فشل تسجيل الدخول. حاول مرة أخرى."
+      "failed": "فشل تسجيل الدخول. حاول مرة أخرى.",
+      "clickToSignIn": "انقر لتسجيل الدخول",
+      "useDifferentAccount": "استخدم حسابًا مختلفًا",
+      "notYou": "لست أنت؟",
+      "backToAccounts": "العودة إلى الحسابات",
+      "removeAccount": "إزالة الحساب"
     },
     "register": {
       "title": "إنشاء حساب",
@@ -144,18 +221,32 @@
     },
     "forgotPassword": {
       "title": "إعادة تعيين كلمة المرور",
-      "description": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين",
+      "description": "أدخل بريدك الإلكتروني وسنرسل لك رمز تحقق",
       "email": "البريد الإلكتروني",
       "emailPlaceholder": "you@example.com",
-      "submit": "إرسال رابط إعادة التعيين",
+      "submit": "إرسال الرمز",
       "backToLogin": "العودة لتسجيل الدخول",
       "checkEmail": "تحقق من بريدك الإلكتروني",
-      "checkEmailDescription": "لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+      "checkEmailDescription": "إذا كان هناك حساب مرتبط بـ {email}، فقد أرسلنا رمز تحقق إليه.",
+      "otpLabel": "رمز التحقق",
+      "verify": "تحقق من الرمز",
+      "resendCode": "إعادة إرسال الرمز",
+      "resendCodeIn": "إعادة الإرسال خلال {seconds} ثانية",
+      "changeEmail": "استخدام بريد إلكتروني مختلف",
+      "resetTitle": "تعيين كلمة مرور جديدة",
+      "resetDescription": "اختر كلمة مرور جديدة لحسابك",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+      "resetSubmit": "إعادة تعيين كلمة المرور",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين",
+      "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+      "successTitle": "تمت إعادة تعيين كلمة المرور",
+      "successDescription": "تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول بكلمة المرور الجديدة."
     }
   },
   "dashboard": {
     "title": "لوحة التحكم",
-    "welcome": "مرحباً بعودتك! إليك نظرة عامة على مساحة عملك.",
+    "welcome": "مرحبًا بك في لوحة تحكم DSPR.\nهنا يمكنك مراجعة وإدارة بيانات أداء المتاجر بكفاءة من خلال عرض مركزي واحد.",
     "customize": "تخصيص",
     "customizeDescription": "ترتيب وتكوين أدوات لوحة التحكم",
     "editMode": "وضع التعديل",
@@ -257,6 +348,7 @@
     "title": "المستخدمون",
     "description": "إدارة المستخدمين وصلاحياتهم.",
     "addUser": "إضافة مستخدم",
+    "createUser": "إنشاء مستخدم",
     "searchPlaceholder": "البحث عن مستخدمين...",
     "noUsers": "لم يتم العثور على مستخدمين.",
     "columns": {
@@ -295,6 +387,9 @@
       "passwordPlaceholder": "أدخل كلمة المرور",
       "confirmPassword": "تأكيد كلمة المرور",
       "confirmPasswordPlaceholder": "أكد كلمة المرور",
+      "allPermissions": "كل الصلاحيات",
+      "noRolePermissions": "لا توجد صلاحيات مرتبطة بهذا الدور",
+      "superAdminPermissionsInherited": "جميع الصلاحيات موروثة من دور المشرف العام.",
       "validation": {
         "nameRequired": "الاسم مطلوب",
         "emailRequired": "البريد الإلكتروني مطلوب",
@@ -370,7 +465,8 @@
       "account": "الحساب",
       "appearance": "المظهر",
       "preferences": "التفضيلات",
-      "themes": "السمات"
+      "themes": "السمات",
+      "sound": "الصوت"
     },
     "profile": {
       "title": "الملف الشخصي",
@@ -435,6 +531,17 @@
       "exportTitle": "تصدير السمة",
       "exportDescription": "تحميل أو نسخ السمة بتنسيق JSON أو CSS.",
       "close": "إغلاق"
+    },
+    "sound": {
+      "title": "المؤثرات الصوتية",
+      "description": "تهيئة مؤثرات الصوت الدلالية للنقرات والإشعارات والنتائج المهمة.",
+      "featureDisabled": "ميزة المؤثرات الصوتية معطّلة حاليًا. تواصل مع المسؤول لتفعيلها.",
+      "enable": "تفعيل المؤثرات الصوتية",
+      "enableDescription": "تشغيل مؤثرات صوتية للنقرات والإشعارات والنتائج المهمة عبر لوحة التحكم.",
+      "volume": "مستوى الصوت",
+      "pack": "حزمة الصوت",
+      "packDescription": "اختر الطابع الصوتي المستخدم لجميع المؤثرات.",
+      "testSound": "تجربة الصوت"
     }
   },
   "devTools": {
@@ -690,6 +797,10 @@
       "selectAll": "تحديد الكل",
       "deselectAll": "إلغاء تحديد الكل",
       "create": "إنشاء الدور"
+    },
+    "details": {
+      "title": "تفاصيل الدور",
+      "description": "عرض وإدارة التفاصيل لـ"
     }
   },
   "authRules": {
@@ -704,9 +815,11 @@
       "service": "الخدمة",
       "method": "الطريقة",
       "path": "المسار",
+      "scoped": "محددة النطاق",
       "authorization": "التصريح",
       "priority": "الأولوية",
-      "status": "الحالة"
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
     },
     "status": {
       "active": "نشط",
@@ -715,8 +828,14 @@
     "rolesAny": "{count} أدوار",
     "permissionsAny": "{count} صلاحيات (أي)",
     "permissionsAll": "{count} صلاحيات (كل)",
+    "scoped": {
+      "true": "نعم",
+      "false": "لا"
+    },
     "actions": {
       "view": "عرض التفاصيل",
+      "activate": "تفعيل القاعدة",
+      "deactivate": "إلغاء تفعيل القاعدة",
       "test": "اختبار القاعدة",
       "edit": "تعديل القاعدة",
       "delete": "حذف القاعدة"
@@ -725,14 +844,21 @@
       "title": "إنشاء قاعدة تصريح",
       "description": "إضافة قاعدة تصريح جديدة لنقطة API."
     },
+    "edit": {
+      "title": "تعديل قاعدة التصريح",
+      "description": "تحديث قاعدة تصريح موجودة لنقطة API."
+    },
     "form": {
       "routeInfo": "معلومات المسار",
       "routeInfoDescription": "حدد مسار API المراد حمايته.",
+      "routeInfoPlaceholder": "حدد تفاصيل المسار (الخدمة، الطريقة، المسار أو اسم المسار)",
       "service": "الخدمة",
       "servicePlaceholder": "مثال: user-service",
       "method": "طريقة HTTP",
+      "requiredField": "حقل مطلوب.",
       "routeName": "اسم المسار",
       "routeNamePlaceholder": "مثال: users.list",
+      "routeNameHint": "مطلوب إما مسار DSL أو اسم المسار.",
       "httpMethod": "طريقة HTTP",
       "selectMethod": "اختر طريقة HTTP",
       "pathDsl": "مسار DSL",
@@ -747,13 +873,50 @@
       "rolesAnyPlaceholder": "admin, manager",
       "rolesAnyHint": "يجب أن يكون للمستخدم واحد على الأقل من هذه الأدوار.",
       "addRole": "إضافة دور",
+      "selectRolePlaceholder": "اختر دورًا للإضافة",
       "permissionsAny": "الصلاحيات (أي)",
       "permissionsAnyPlaceholder": "users.read, users.list",
       "permissionsAnyHint": "يجب أن يكون للمستخدم واحدة على الأقل من هذه الصلاحيات.",
       "permissionsAll": "الصلاحيات (كل)",
       "permissionsAllPlaceholder": "users.read, users.write",
       "permissionsAllHint": "يجب أن يكون للمستخدم كل هذه الصلاحيات.",
-      "permissionPlaceholder": "مثال: users.read",
+      "permissionPlaceholder": "اكتب صلاحية ثم اضغط إضافة",
+      "selectPermissionPlaceholder": "اختر صلاحية للإضافة",
+      "permissionsLoadError": "فشل تحميل الصلاحيات من /permissions.",
+      "storeScope": "نطاق المتجر",
+      "storeScopeDescription": "حدد كيفية تطبيق هذه القاعدة على المتاجر.",
+      "storeScopePlaceholder": "حدد سلوك المتجر: النطاق، مصادر معرف المتجر، سياسة المطابقة، وصلاحيات الوصول العامة",
+      "storeScopeMode": "وضع نطاق المتجر",
+      "storeScopeModeHint": "يحدد ما إذا كانت القاعدة تنطبق على لا شيء، متاجر محددة (محددة النطاق)، أو جميع المتاجر.",
+      "storeScopeModes": {
+        "none": "بدون نطاق",
+        "scoped": "متاجر محددة",
+        "allStores": "جميع المتاجر"
+      },
+      "storeIdSources": "مصادر معرف المتجر",
+      "storeIdSource": {
+        "path": "المسار",
+        "query": "الاستعلام",
+        "body": "جسم الطلب"
+      },
+      "storeMatchPolicy": "سياسة مطابقة المتجر",
+      "storeMatchPolicyPlaceholder": "مثال: all أو any أو strict",
+      "storeMatchPolicyHint": "أدخل قيمة السياسة كما يتوقعها الخادم تماماً.",
+      "storeMatchPolicies": {
+        "all": "يجب أن تتطابق جميع المصادر",
+        "any": "يكفي تطابق أي مصدر"
+      },
+      "storeAllowsEmpty": "السماح بمعرفات فرع فارغة",
+      "storeAllowsEmptyHint": "إذا تم تمكينه، يُسمح بمعرفات الفروع الفارغة.",
+      "storeAllAccessRolesAny": "الأدوار (وصول لجميع المتاجر)",
+      "storeAllAccessRolesAnyHint": "الأدوار التي تمنح وصولاً إلى جميع المتاجر بغض النظر عن معرف المتجر.",
+      "storeAllAccessPermissionsAny": "الصلاحيات (وصول لجميع المتاجر)",
+      "storeAllAccessPermissionsAnyHint": "الصلاحيات التي تمنح وصولاً إلى جميع المتاجر بغض النظر عن معرف المتجر.",
+      "validation": {
+        "serviceRequired": "الخدمة مطلوبة.",
+        "methodRequired": "طريقة HTTP مطلوبة.",
+        "pathOrRouteRequired": "مطلوب إما مسار DSL أو اسم المسار."
+      },
       "active": "نشط",
       "activeDescription": "تفعيل أو تعطيل هذه القاعدة.",
       "create": "إنشاء القاعدة"
@@ -885,6 +1048,2186 @@
       "reason": "السبب",
       "reasonPlaceholder": "لماذا يتم إنشاء هذا الهيكل؟",
       "reasonHint": "قدم سياقاً لعلاقة الهيكل هذه."
+    }
+  },
+  "userStoreAssignment": {
+    "title": "تعيين الفروع للمستخدمين",
+    "description": "عرض وإدارة تعيينات الفروع للمستخدمين.",
+    "assignStore": "تعيين فرع",
+    "removeUser": "إزالة مستخدم",
+    "searchPlaceholder": "بحث عن المستخدمين...",
+    "noUsers": "لا يوجد مستخدمون.",
+    "columns": {
+      "user": "المستخدم",
+      "roles": "الأدوار",
+      "storesAssigned": "الفروع المعينة"
+    },
+    "moreStores": "+{count} أخرى",
+    "storesDialogTitle": "الفروع المعينة لـ {name}",
+    "storesDialogDescription": "جميع الفروع المعينة لهذا المستخدم (الإجمالي {count}).",
+    "noStoresAssigned": "لا توجد فروع معينة حتى الآن.",
+    "assign": {
+      "title": "تعيين فرع لمستخدم",
+      "description": "اختر مستخدماً ودوراً وفروعاً للتعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStores": "اختر الفروع",
+      "selectStoresPlaceholder": "ابحث واختر الفروع...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "currentAssignments": "التعيينات الحالية",
+      "noCurrentAssignments": "لا توجد تعيينات فروع حالية لهذا المستخدم.",
+      "moreStores": "+{count} أخرى",
+      "assignmentsDialogDescription": "جميع الفروع المعينة حاليًا لهذا المستخدم (الإجمالي {count}).",
+      "storeName": "اسم الفرع",
+      "assignedRoles": "الأدوار المعينة",
+      "selectedStores": "الفروع المختارة",
+      "selectAllStores": "تحديد الكل المعروض",
+      "deselectAllStores": "إلغاء تحديد الكل المعروض",
+      "selectedCount": "المحدد {count} من {total}",
+      "alreadyAssigned": "مُعيَّن",
+      "selectUserAndRoleFirst": "اختر مستخدماً ودوراً أولاً لإدارة اختيار الفروع.",
+      "noStoresAssignedForRole": "لا توجد فروع معيّنة حالياً لهذا المستخدم مع هذا الدور.",
+      "noNewStoresSelected": "كل الفروع المحددة معيّنة بالفعل لهذا الدور.",
+      "submit": "تعيين الفرع",
+      "submitting": "جارٍ التعيين...",
+      "success": "تم تعيين الفرع بنجاح.",
+      "error": "فشل تعيين الفرع.",
+      "loadUsersError": "فشل تحميل المستخدمين.",
+      "loadRolesError": "فشل تحميل الأدوار.",
+      "loadStoresError": "فشل تحميل الفروع.",
+      "loadAssignmentsError": "فشل تحميل التعيينات الحالية.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع واحد على الأقل."
+      }
+    },
+    "remove": {
+      "title": "إزالة تعيين المستخدم",
+      "description": "اختر المستخدم والدور والفرع لإزالة التعيين.",
+      "selectUser": "اختر مستخدماً",
+      "selectUserPlaceholder": "ابحث واختر مستخدماً...",
+      "selectRole": "اختر دوراً",
+      "selectRolePlaceholder": "ابحث واختر دوراً...",
+      "selectStores": "اختر الفروع",
+      "selectStoresPlaceholder": "ابحث واختر الفروع...",
+      "selectStore": "اختر فرعاً",
+      "selectStorePlaceholder": "ابحث واختر فرعاً...",
+      "noUsersFound": "لا يوجد مستخدمون.",
+      "noRolesFound": "لا توجد أدوار.",
+      "noStoresFound": "لا توجد فروع.",
+      "currentAssignments": "التعيينات الحالية",
+      "noCurrentAssignments": "لا توجد تعيينات فروع حالية لهذا المستخدم.",
+      "moreStores": "+{count} أخرى",
+      "assignmentsDialogDescription": "جميع الفروع المعينة حاليًا لهذا المستخدم (الإجمالي {count}).",
+      "selectedStores": "الفروع المختارة",
+      "selectAllStores": "تحديد الكل المعروض",
+      "deselectAllStores": "إلغاء تحديد الكل المعروض",
+      "selectedCount": "المحدد {count} من {total}",
+      "alreadyAssigned": "مُعيَّن",
+      "selectUserAndRoleFirst": "اختر مستخدماً ودوراً أولاً لإدارة اختيار الفروع.",
+      "noStoresAssignedForRole": "لا توجد فروع معيّنة حالياً لهذا المستخدم مع هذا الدور.",
+      "noAssignedStoresSelected": "اختر فرعاً واحداً معيّناً حالياً على الأقل لإزالته.",
+      "submit": "إزالة التعيين",
+      "submitting": "جارٍ الإزالة...",
+      "success": "تم إزالة تعيين المستخدم بنجاح.",
+      "error": "فشل في إزالة تعيين المستخدم.",
+      "loadUsersError": "فشل تحميل المستخدمين.",
+      "loadRolesError": "فشل تحميل الأدوار.",
+      "loadStoresError": "فشل تحميل الفروع.",
+      "loadAssignmentsError": "فشل تحميل التعيينات الحالية.",
+      "validation": {
+        "userRequired": "يرجى اختيار مستخدم.",
+        "roleRequired": "يرجى اختيار دور.",
+        "storeRequired": "يرجى اختيار فرع واحد على الأقل."
+      }
+    }
+  },
+  "maintenance": {
+    "title": "طلبات الصيانة",
+    "description": "عرض وتتبع طلبات الصيانة لفرعك.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "rows": "صفوف",
+    "storeNumber": "فرع #",
+    "showing": "عرض {from}-{to} من {total} طلب(ات)",
+    "columns": {
+      "id": "المعرف",
+      "entryNumber": "رقم الإدخال",
+      "brokenItem": "العنصر المكسور",
+      "status": "الحالة",
+      "submittedAt": "تاريخ التقديم"
+    },
+    "status": {
+      "done": "مكتمل",
+      "in_progress": "قيد التنفيذ",
+      "pending": "قيد الانتظار",
+      "cancelled": "ملغي",
+      "canceled": "ملغي"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض طلبات الصيانة الخاصة به."
+    },
+    "noData": {
+      "title": "لا توجد طلبات صيانة",
+      "description": "لا توجد طلبات صيانة لهذا الفرع.",
+      "hint": "ستظهر طلبات الصيانة الجديدة هنا عند تقديمها."
+    },
+    "error": {
+      "title": "خطأ في تحميل طلبات الصيانة",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "maintenanceTickets": {
+    "groupBy": {
+      "label": "تجميع حسب",
+      "none": "بدون تجميع",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "technician": "الفني (الحضور)",
+      "part": "القطعة",
+      "assigned_technician": "الفني المعيّن",
+      "pay": "إدخال الراتب",
+      "warranty": "الضمان",
+      "diagnosis": "استكشاف الأخطاء"
+    },
+    "title": "تذاكر الصيانة",
+    "description": "تتبع وإدارة تذاكر الصيانة لفرعك.",
+    "refresh": "تحديث",
+    "common": {
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "optional": "اختياري"
+    },
+    "navigator": {
+      "title": "التذاكر",
+      "searchPlaceholder": "ابحث عن تذكرة...",
+      "noResults": "لا توجد تذاكر مطابقة.",
+      "issueCount": "{count} مشكلة",
+      "selectPrompt": "اختر تذكرة من الشريط الجانبي."
+    },
+    "showing": "عرض {from}-{to} من {total} تذكرة",
+    "columns": {
+      "id": "الرقم",
+      "status": "الحالة",
+      "issues": "المشاكل",
+      "issuesCount": "مشاكل",
+      "store": "الفرع",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "assigned": "مُسندة",
+      "in_progress": "جارية",
+      "waiting": "بانتظار",
+      "complete": "مكتملة"
+    },
+    "priority": {
+      "urgent": "عاجل",
+      "high": "عالية",
+      "medium": "متوسطة",
+      "low": "منخفضة"
+    },
+    "pagination": {
+      "page": "الصفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "filters": {
+      "statusPlaceholder": "فلترة حسب الحالة",
+      "allStatuses": "كل الحالات",
+      "priorityPlaceholder": "فلترة حسب الأولوية",
+      "allPriorities": "كل الأولويات",
+      "export": "تصدير",
+      "catalog": "إدارة الكتالوج",
+      "createTicket": "تذكرة جديدة",
+      "allStores": "جميع الفروع",
+      "selectStore": "اختر فرعاً"
+    },
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض تذاكر الصيانة."
+    },
+    "noData": {
+      "title": "لا توجد تذاكر",
+      "description": "لا توجد تذاكر صيانة لهذا الفرع.",
+      "hint": "أنشئ تذكرة جديدة للبدء."
+    },
+    "error": {
+      "title": "خطأ في تحميل التذاكر",
+      "retry": "حاول مجدداً",
+      "dismiss": "تجاهل"
+    },
+    "createDialog": {
+      "title": "إنشاء تذكرة صيانة",
+      "description": "أضف مشكلة أو أكثر لرفع تذكرة صيانة.",
+      "addIssue": "إضافة مشكلة",
+      "issueRow": "المشكلة #{number}",
+      "useCatalog": "استخدام المشكلة من الكتالوج",
+      "useCustom": "مشكلة مخصصة",
+      "issueLabel": "المشكلة",
+      "issuePlaceholder": "اختر مشكلة من الكتالوج",
+      "customTitleLabel": "عنوان المشكلة",
+      "customTitlePlaceholder": "صف المشكلة",
+      "priorityLabel": "الأولوية",
+      "descriptionLabel": "الوصف",
+      "descriptionPlaceholder": "أدخل تفاصيل المشكلة...",
+      "noteLabel": "ملاحظة",
+      "notePlaceholder": "أضف ملاحظة أولية لهذه المشكلة (اختياري)...",
+      "filesLabel": "المرفقات",
+      "attachFiles": "إرفاق ملفات",
+      "removeFile": "إزالة الملف",
+      "optional": "(اختياري)",
+      "cancel": "إلغاء",
+      "submit": "رفع التذكرة",
+      "submitting": "جارٍ الرفع...",
+      "validationSelectIssue": "يرجى اختيار مشكلة من الكتالوج لكل صف.",
+      "validationTitleRequired": "يرجى إدخال عنوان المشكلة لكل صف.",
+      "validationDescriptionRequired": "يرجى إدخال وصف لكل مشكلة.",
+      "submitError": "فشل إنشاء التذكرة. حاول مجدداً."
+    },
+    "detailSheet": {
+      "title": "تذكرة",
+      "description": "عرض وإدارة مشاكل هذه التذكرة.",
+      "noIssues": "لا توجد مشاكل لهذه التذكرة.",
+      "loadError": "فشل تحميل مشاكل التذكرة.",
+      "deferred": "مؤجلة",
+      "changeStatus": "تغيير الحالة",
+      "changeStatusDesc": "اختر الحالة الجديدة لهذه المشكلة.",
+      "newStatus": "الحالة الجديدة",
+      "assignIssue": "إسناد",
+      "assignIssueDesc": "أسند هذه المشكلة إلى فنيين.",
+      "assignDate": "تاريخ الإسناد",
+      "assignHour": "ساعة الإسناد (اختياري)",
+      "selectTechnicians": "الفنيون",
+      "noTechnicians": "لا يوجد فنيون متاحون.",
+      "assign": "إسناد",
+      "assignDateRequired": "يرجى تحديد تاريخ الإسناد.",
+      "assignTechRequired": "يرجى اختيار فني واحد على الأقل.",
+      "deferIssue": "تأجيل المشكلة",
+      "deferIssueDesc": "سيؤدي التأجيل إلى إنشاء مشكلة جديدة قيد الانتظار.",
+      "deferReason": "السبب",
+      "deferReasonPlaceholder": "لماذا يتم تأجيل هذه المشكلة؟",
+      "deferReasonRequired": "يرجى تقديم سبب للتأجيل.",
+      "defer": "تأجيل",
+      "waitIssue": "وضع المشكلة في الانتظار",
+      "waitReason": "السبب",
+      "waitReasonPlaceholder": "ما الذي تنتظره هذه المشكلة؟",
+      "waitReasonRequired": "يرجى تقديم سبب للانتظار.",
+      "wait": "انتظار",
+      "statusHistory": "سجل الحالة",
+      "setFinalNote": "تعيين الملاحظة الختامية",
+      "setFinalNoteDesc": "أضف أو حدّث الملاحظة الختامية لهذه التذكرة.",
+      "finalNotePlaceholder": "أدخل الملاحظة الختامية...",
+      "actionError": "فشل الإجراء. حاول مجدداً.",
+      "noDescription": "لا يوجد وصف.",
+      "draftSaved": "تم حفظ المسودة"
+    },
+    "catalog": {
+      "title": "إدارة الكتالوج",
+      "description": "إدارة البيانات المرجعية المستخدمة في تذاكر الصيانة.",
+      "tabs": {
+        "issues": "المشكلات",
+        "technicians": "الفنيون",
+        "categories": "الفئات",
+        "parts": "القطع"
+      },
+      "items": "عناصر",
+      "noItems": "لا توجد عناصر.",
+      "add": "إضافة",
+      "showDeleted": "عرض المحذوفات",
+      "hideDeleted": "إخفاء المحذوفات",
+      "addIssue": "مشكلة جديدة",
+      "issueTitlePlaceholder": "عنوان المشكلة",
+      "addTechnician": "فني جديد",
+      "namePlaceholder": "الاسم الكامل",
+      "phonePlaceholder": "رقم الهاتف (اختياري)",
+      "categoryPlaceholder": "اختر الفئة (اختياري)",
+      "noCategory": "بدون فئة",
+      "addCategory": "فئة جديدة",
+      "categoryNamePlaceholder": "اسم الفئة",
+      "addPart": "قطعة جديدة",
+      "partNamePlaceholder": "اسم القطعة",
+      "descriptionPlaceholder": "الوصف (اختياري)"
+    }
+  },
+  "keys": {
+    "title": "المفاتيح",
+    "description": "عرض وإدارة مفاتيح المحرك عبر فروعك.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "createKey": "إنشاء مفتاح",
+    "updateKey": "تعديل مفتاح",
+    "showing": "عرض {from}-{to} من {total} مفتاح",
+    "noKeys": "لا توجد مفاتيح.",
+    "details": "تفاصيل المفتاح",
+    "deactivate": "تعطيل",
+    "deactivateConfirm": "هل أنت متأكد أنك تريد تعطيل هذا المفتاح؟",
+    "deactivated": "تم تعطيل المفتاح بنجاح.",
+    "created": "تم إنشاء المفتاح بنجاح.",
+    "updated": "تم تعديل المفتاح بنجاح.",
+    "columns": {
+      "id": "المعرف",
+      "label": "التسمية",
+      "dataType": "نوع البيانات",
+      "status": "الحالة",
+      "storeRules": "قواعد الفرع",
+      "createdAt": "تاريخ الإنشاء",
+      "actions": "الإجراءات"
+    },
+    "form": {
+      "label": "التسمية",
+      "labelPlaceholder": "أدخل تسمية المفتاح",
+      "dataType": "نوع البيانات",
+      "dataTypePlaceholder": "اختر نوع البيانات",
+      "isActive": "نشط",
+      "frequencyType": "نوع التكرار",
+      "frequencyTypePlaceholder": "اختر التكرار",
+      "interval": "الفاصل",
+      "startsAt": "يبدأ في",
+      "endsAt": "ينتهي في",
+      "storeId": "معرف الفرع",
+      "storeIdPlaceholder": "أدخل معرف الفرع",
+      "weekDays": "أيام الأسبوع",
+      "monthDay": "يوم الشهر",
+      "weekDay": "يوم الأسبوع",
+      "weekOfMonth": "أسبوع الشهر",
+      "yearMonth": "شهر السنة",
+      "storeRules": "قواعد الفرع",
+      "addStoreRule": "إضافة قاعدة فرع",
+      "removeStoreRule": "إزالة قاعدة فرع",
+      "submit": "إرسال",
+      "submitting": "جارٍ الإرسال...",
+      "backToKeys": "العودة إلى المفاتيح"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    }
+  },
+  "qa": {
+    "description": "عرض وإدارة عمليات التدقيق عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tableTitle": "عمليات تدقيق الجودة",
+    "showing": "عرض {from}-{to} من {total} عملية تدقيق",
+    "totalAudits": "{total} عملية تدقيق إجمالية",
+    "columns": {
+      "id": "المعرف",
+      "store": "الفرع",
+      "auditor": "المدقق",
+      "email": "البريد الإلكتروني",
+      "date": "تاريخ التدقيق",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "noData": {
+      "title": "لا توجد عمليات تدقيق",
+      "description": "لا توجد عمليات تدقيق للجودة مسجلة بعد.",
+      "hint": "ستظهر عمليات التدقيق الجديدة هنا عند إنشائها."
+    },
+    "error": {
+      "title": "خطأ في تحميل عمليات التدقيق",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "qaCategories": {
+    "title": "إنشاء فئة الجودة",
+    "description": "إنشاء فئة جديدة لضمان الجودة.",
+    "formTitle": "تفاصيل الفئة",
+    "formDescription": "املأ التفاصيل أدناه لإنشاء فئة جودة جديدة.",
+    "fields": {
+      "label": "التسمية",
+      "labelPlaceholder": "مثال: المدخل، المطبخ، الحمام",
+      "labelHint": "اسم وصفي للفئة (بحد أقصى 255 حرفاً).",
+      "sortOrder": "ترتيب العرض",
+      "sortOrderPlaceholder": "مثال: 1",
+      "sortOrderHint": "اختياري. يحدد ترتيب عرض الفئات."
+    },
+    "validation": {
+      "labelRequired": "التسمية مطلوبة.",
+      "labelMaxLength": "يجب ألا تتجاوز التسمية {max} حرفاً.",
+      "sortOrderNumber": "ترتيب العرض يجب أن يكون رقماً صحيحاً."
+    },
+    "create": "إنشاء الفئة",
+    "creating": "جارٍ الإنشاء...",
+    "success": "تم إنشاء الفئة \"{label}\" بنجاح."
+  },
+  "qaEntities": {
+    "title": "إنشاء كيان الجودة",
+    "description": "إنشاء كيان جديد لضمان الجودة.",
+    "formTitle": "تفاصيل الكيان",
+    "formDescription": "املأ التفاصيل أدناه لإنشاء كيان جودة جديد.",
+    "fields": {
+      "entityLabel": "تسمية الكيان",
+      "entityLabelPlaceholder": "مثال: تغطية كاميرا الغرفة الخلفية",
+      "entityLabelHint": "اسم وصفي للكيان (بحد أقصى 255 حرفاً).",
+      "categoryId": "معرف الفئة",
+      "categoryIdPlaceholder": "مثال: 6",
+      "categoryIdHint": "اختياري. معرف الفئة التي ينتمي إليها هذا الكيان.",
+      "category": "اختيار الفئة",
+      "categoryPlaceholder": "اختر فئة",
+      "categoryLoading": "جارٍ تحميل الفئات...",
+      "categoryHint": "اختياري. الفئة التي ينتمي إليها هذا الكيان.",
+      "dateRangeType": "نوع النطاق الزمني",
+      "dateRangeTypePlaceholder": "اختر نوع النطاق الزمني",
+      "dateRangeTypeHint": "يحدد تكرار التقارير لهذا الكيان.",
+      "dateRangeDaily": "يومي",
+      "dateRangeWeekly": "أسبوعي",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "اختر نوع التقرير",
+      "reportTypeHint": "اختياري. نوع التقرير لهذا الكيان.",
+      "reportTypeNone": "بدون",
+      "reportTypeMain": "رئيسي",
+      "reportTypeSecondary": "ثانوي",
+      "sortOrder": "ترتيب العرض",
+      "sortOrderPlaceholder": "مثال: 20",
+      "sortOrderHint": "اختياري. يحدد ترتيب عرض الكيانات.",
+      "active": "نشط",
+      "activeHint": "ما إذا كان هذا الكيان نشطاً حالياً."
+    },
+    "validation": {
+      "entityLabelRequired": "تسمية الكيان مطلوبة.",
+      "entityLabelMaxLength": "يجب ألا تتجاوز تسمية الكيان {max} حرفاً.",
+      "dateRangeTypeRequired": "نوع النطاق الزمني مطلوب.",
+      "categoryIdNumber": "معرف الفئة يجب أن يكون رقماً صحيحاً.",
+      "sortOrderNumber": "ترتيب العرض يجب أن يكون رقماً صحيحاً."
+    },
+    "create": "إنشاء الكيان",
+    "creating": "جارٍ الإنشاء...",
+    "success": "تم إنشاء الكيان \"{label}\" بنجاح."
+  },
+  "qaEntitiesAndCategories": {
+    "title": "الكيانات والفئات",
+    "description": "عرض جميع كيانات وفئات ضمان الجودة.",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث...",
+    "tabs": {
+      "entities": "الكيانات",
+      "categories": "الفئات"
+    },
+    "entitiesTable": {
+      "title": "كيانات الجودة",
+      "columns": {
+        "id": "المعرف",
+        "entityLabel": "تسمية الكيان",
+        "category": "الفئة",
+        "dateRange": "النطاق الزمني",
+        "reportType": "نوع التقرير",
+        "sortOrder": "ترتيب العرض",
+        "active": "الحالة"
+      },
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "noData": "لا توجد كيانات.",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "edit": "تعديل الكيان",
+      "delete": "حذف الكيان",
+      "openMenu": "فتح القائمة"
+    },
+    "editDialog": {
+      "title": "تعديل الكيان",
+      "description": "قم بتحديث تفاصيل الكيان أدناه.",
+      "entityLabel": "تسمية الكيان",
+      "entityLabelPlaceholder": "أدخل تسمية الكيان",
+      "category": "الفئة",
+      "categoryPlaceholder": "اختر فئة",
+      "noCategory": "بدون فئة",
+      "dateRangeType": "نوع النطاق الزمني",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "مثال: رئيسي",
+      "sortOrder": "ترتيب العرض",
+      "active": "نشط",
+      "save": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "cancel": "إلغاء",
+      "success": "تم تحديث الكيان بنجاح.",
+      "error": "فشل تحديث الكيان.",
+      "validation": {
+        "labelRequired": "تسمية الكيان مطلوبة.",
+        "labelMaxLength": "يجب ألا تتجاوز تسمية الكيان 255 حرفاً.",
+        "dateRangeRequired": "نوع النطاق الزمني مطلوب."
+      }
+    },
+    "deleteDialog": {
+      "title": "حذف الكيان",
+      "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف...",
+      "cancel": "إلغاء",
+      "success": "تم حذف الكيان بنجاح.",
+      "error": "فشل حذف الكيان."
+    },
+    "categoriesTable": {
+      "title": "فئات الجودة",
+      "columns": {
+        "id": "المعرف",
+        "label": "التسمية",
+        "entitiesCount": "الكيانات",
+        "sortOrder": "ترتيب العرض",
+        "createdAt": "تاريخ الإنشاء"
+      },
+      "noData": "لا توجد فئات.",
+      "actions": "الإجراءات"
+    },
+    "categoryActions": {
+      "edit": "تعديل الفئة",
+      "delete": "حذف الفئة",
+      "openMenu": "فتح القائمة"
+    },
+    "editCategoryDialog": {
+      "title": "تعديل الفئة",
+      "description": "قم بتحديث تفاصيل الفئة أدناه.",
+      "label": "التسمية",
+      "labelPlaceholder": "أدخل اسم الفئة",
+      "sortOrder": "ترتيب العرض",
+      "save": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "cancel": "إلغاء",
+      "success": "تم تحديث الفئة بنجاح.",
+      "error": "فشل في تحديث الفئة.",
+      "validation": {
+        "labelRequired": "اسم الفئة مطلوب.",
+        "labelMaxLength": "يجب ألا يتجاوز اسم الفئة 255 حرفاً."
+      }
+    },
+    "deleteCategoryDialog": {
+      "title": "حذف الفئة",
+      "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirm": "حذف",
+      "deleting": "جاري الحذف...",
+      "cancel": "إلغاء",
+      "success": "تم حذف الفئة بنجاح.",
+      "error": "فشل في حذف الفئة."
+    },
+    "error": {
+      "title": "خطأ في تحميل البيانات",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    },
+    "showing": "عرض {count} عنصر(عناصر)"
+  },
+  "cameraReport": {
+    "title": "تقرير الكاميرا",
+    "description": "عرض تقارير تدقيق الكاميرا عبر جميع الفروع.",
+    "refresh": "تحديث",
+    "refreshing": "جاري التحديث...",
+    "tableTitle": "تقارير الكاميرا",
+    "totalStores": "{count} فرع(فروع) إجمالي",
+    "noData": "لا توجد بيانات تقرير الكاميرا.",
+    "columns": {
+      "store": "الفرع",
+      "group": "المجموعة",
+      "entity": "الكيان",
+      "category": "الفئة",
+      "ratings": "التقييمات",
+      "score": "النتيجة",
+      "notes": "ملاحظات"
+    },
+    "scoreWithAutoFail": "النتيجة (مع الرسوب التلقائي)",
+    "scoreWithoutAutoFail": "النتيجة (بدون الرسوب التلقائي)",
+    "scoreLabel": "النتيجة",
+    "scoreWithAutoFailSub": "(مع الرسوب التلقائي)",
+    "scoreWithoutAutoFailSub": "(بدون الرسوب التلقائي)",
+    "filters": {
+      "title": "الفلاتر",
+      "store": "الفرع",
+      "group": "المجموعة",
+      "reportType": "نوع التقرير",
+      "dateRangeType": "نوع نطاق التاريخ",
+      "category": "الفئات",
+      "dateFrom": "من تاريخ",
+      "dateTo": "إلى تاريخ",
+      "rating": "التقييم",
+      "apply": "تطبيق الفلاتر",
+      "reset": "إعادة تعيين",
+      "export": "تصدير ZIP",
+      "exportExcel": "تصدير Excel",
+      "exportImages": "تصدير الصور",
+      "allStores": "جميع الفروع",
+      "allGroups": "جميع المجموعات",
+      "allTypes": "جميع الأنواع",
+      "allDateRanges": "جميع نطاقات التاريخ",
+      "allRatings": "جميع التقييمات",
+      "allCategories": "جميع الفئات",
+      "selectedCategories": "{count} محدد",
+      "loadingCategories": "جاري تحميل الفئات...",
+      "noCategories": "لا توجد فئات",
+      "clearCategories": "مسح الفئات",
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "main": "رئيسي",
+      "secondary": "ثانوي",
+      "groupLabel": "مجموعة {group}",
+      "ratingPass": "ناجح",
+      "ratingFail": "راسب",
+      "ratingNotDone": "لم يتم",
+      "ratingCameraFail": "فشل الكاميرا",
+      "ratingAutoFail": "رسوب تلقائي",
+      "ratingUrgent": "عاجل",
+      "customReportId": "التقرير المخصص",
+      "allCustomReports": "جميع التقارير المخصصة"
+    },
+    "error": {
+      "title": "خطأ في تحميل تقرير الكاميرا",
+      "retry": "إعادة المحاولة",
+      "dismiss": "تجاهل"
+    }
+  },
+  "createCameraForm": {
+    "title": "إنشاء نموذج الكاميرا",
+    "description": "تقييم الكيانات لفرع في تاريخ محدد",
+    "filterEntities": {
+      "title": "تصفية الكيانات",
+      "dateRangeType": "نوع نطاق التاريخ",
+      "dateRangeTypePlaceholder": "اختر نوع نطاق التاريخ",
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "reportType": "نوع التقرير",
+      "reportTypePlaceholder": "اختر نوع التقرير",
+      "allReports": "جميع التقارير",
+      "main": "رئيسي",
+      "secondary": "ثانوي"
+    },
+    "basicInfo": {
+      "title": "المعلومات الأساسية",
+      "store": "الفرع",
+      "storePlaceholder": "اختر فرعاً",
+      "storeLoading": "جاري تحميل الفروع...",
+      "date": "التاريخ",
+      "datePlaceholder": "اختر تاريخاً (YYYY-MM-DD)"
+    },
+    "entities": {
+      "title": "الكيانات",
+      "noEntities": "لم يتم العثور على كيانات للفلاتر المحددة.",
+      "rating": "التقييم",
+      "ratingPlaceholder": "اختر التقييم",
+      "pass": "ناجح",
+      "fail": "راسب",
+      "notDone": "لم يتم",
+      "cameraFail": "فشل الكاميرا",
+      "autoFail": "رسوب تلقائي",
+      "urgent": "عاجل",
+      "note": "ملاحظة",
+      "notePlaceholder": "أضف ملاحظة (اختياري)",
+      "attachment": "مرفق",
+      "addNote": "إضافة ملاحظة",
+      "attachmentInvalid": "يسمح فقط بملفات الصور حتى 5 ميجابايت."
+    },
+    "submit": "إرسال نموذج الكاميرا",
+    "submitting": "جاري الإرسال...",
+    "reset": "إعادة تعيين النموذج",
+    "success": "تم إرسال نموذج الكاميرا بنجاح!",
+    "validation": {
+      "storeRequired": "يرجى اختيار فرع.",
+      "dateRequired": "يرجى اختيار تاريخ.",
+      "dateInvalid": "يجب أن يكون التاريخ بصيغة YYYY-MM-DD.",
+      "entitiesRequired": "يجب تقييم كيان واحد على الأقل.",
+      "ratingRequired": "يرجى اختيار تقييم لجميع الكيانات المعروضة."
+    },
+    "error": {
+      "loadEntities": "فشل تحميل الكيانات.",
+      "loadStores": "فشل تحميل الفروع.",
+      "submitFailed": "فشل إرسال نموذج الكاميرا."
+    }
+  },
+  "editCameraForm": {
+    "title": "تعديل نموذج الكاميرا",
+    "description": "تحديث التقييمات والملاحظات والمرفقات لنموذج الكاميرا هذا",
+    "back": "رجوع",
+    "submit": "تحديث نموذج الكاميرا",
+    "submitting": "جاري التحديث...",
+    "cancel": "إلغاء",
+    "success": "تم تحديث نموذج الكاميرا بنجاح!"
+  },
+  "sensors": {
+    "title": "لوحة المستشعرات",
+    "description": "مراقبة مستشعرات الحرارة والرطوبة في فرعك.",
+    "refresh": "تحديث",
+    "refreshAll": "تحديث الكل",
+    "reloadDevices": "إعادة تحميل الأجهزة",
+    "toggleUnit": "تبديل وحدة الحرارة",
+    "temperature": "الحرارة",
+    "alert": "تنبيه",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "tempRange": "نطاق الحرارة",
+    "sensorsSection": "المستشعرات",
+    "noStore": {
+      "title": "لم يتم اختيار فرع",
+      "description": "يرجى اختيار فرع من الشريط الجانبي لعرض المستشعرات."
+    },
+    "noSensors": {
+      "title": "لا توجد مستشعرات",
+      "description": "لا يحتوي هذا الفرع على أي مستشعرات."
+    },
+    "error": {
+      "title": "خطأ في تحميل المستشعرات",
+      "retry": "إعادة المحاولة"
+    },
+    "notFound": {
+      "title": "لم يتم العثور على المستشعرات",
+      "description": "هذا الفرع أو مستشعراته غير متاحة على الخادم. يرجى التحقق مع المسؤول."
+    },
+    "stats": {
+      "totalDevices": "إجمالي الأجهزة",
+      "online": "متصل",
+      "offline": "غير متصل",
+      "alerts": "التنبيهات"
+    },
+    "period": {
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "monthly": "شهري"
+    },
+    "report": {
+      "todayReport": "تقرير اليوم",
+      "weeklyReport": "التقرير الأسبوعي",
+      "monthlyReport": "التقرير الشهري",
+      "totalReadings": "إجمالي القراءات",
+      "avgTemp": "متوسط الحرارة",
+      "avgHumidity": "متوسط الرطوبة",
+      "alarms": "التنبيهات",
+      "offlineEvents": "أحداث عدم الاتصال",
+      "eventsDetected": "أحداث مكتشفة",
+      "allOnline": "الكل متصل",
+      "timeSeries": "السلسلة الزمنية",
+      "timeSeriesDesc": "الحرارة والرطوبة مجمعة حسب الساعة.",
+      "perDevice": "ملخص لكل جهاز",
+      "readings": "قراءات",
+      "temperature": "الحرارة",
+      "humidity": "الرطوبة",
+      "alarmsLabel": "تنبيهات",
+      "columns": {
+        "time": "الوقت",
+        "avgTemp": "متوسط الحرارة",
+        "minMax": "الحد الأدنى / الأقصى",
+        "avgHumidity": "متوسط الرطوبة",
+        "humidityMinMax": "الحد الأدنى / الأقصى",
+        "readings": "القراءات"
+      }
+    },
+    "alerts": {
+      "title": "التنبيهات الأخيرة",
+      "showingFirst": "عرض أول {count} من {total} تنبيه",
+      "columns": {
+        "device": "الجهاز",
+        "temperature": "الحرارة",
+        "humidity": "الرطوبة",
+        "state": "الحالة",
+        "recordedAt": "وقت التسجيل"
+      }
+    }
+  },
+  "customReports": {
+    "title": "التقارير المخصصة",
+    "description": "إدارة وعرض تقارير الجودة المخصصة.",
+    "createReport": "إنشاء تقرير",
+    "refresh": "تحديث",
+    "refreshing": "جاري التحديث...",
+    "retry": "إعادة المحاولة",
+    "searchPlaceholder": "بحث في التقارير...",
+    "emptyMessage": "لا توجد تقارير مخصصة.",
+    "table": {
+      "id": "المعرف",
+      "name": "الاسم",
+      "entities": "الكيانات",
+      "entity": "كيان",
+      "entitiesLabel": "كيانات",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "تاريخ التحديث"
+    },
+    "form": {
+      "createTitle": "إنشاء تقرير مخصص",
+      "createDescription": "أنشئ تقريراً مخصصاً جديداً باختيار الكيانات.",
+      "editTitle": "تعديل التقرير المخصص",
+      "editDescription": "تحديث تفاصيل التقرير المخصص.",
+      "name": "اسم التقرير",
+      "namePlaceholder": "أدخل اسم التقرير",
+      "entities": "الكيانات",
+      "loadingEntities": "جاري تحميل الكيانات...",
+      "noEntities": "لا توجد كيانات متاحة.",
+      "selectedCount": "{count} محدد",
+      "cancel": "إلغاء",
+      "save": "حفظ التغييرات",
+      "create": "إنشاء التقرير",
+      "saving": "جاري الحفظ...",
+      "createSuccess": "تم إنشاء التقرير المخصص بنجاح.",
+      "updateSuccess": "تم تحديث التقرير المخصص بنجاح.",
+      "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "nameRequired": "اسم التقرير مطلوب.",
+        "nameMaxLength": "يجب أن يكون الاسم 255 حرفاً أو أقل.",
+        "entitiesRequired": "يجب اختيار كيان واحد على الأقل."
+      }
+    },
+    "delete": {
+      "title": "حذف التقرير المخصص",
+      "description": "هل أنت متأكد من حذف \"{name}\"? لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جاري الحذف...",
+      "success": "تم حذف التقرير المخصص بنجاح.",
+      "error": "فشل حذف التقرير المخصص."
+    },
+    "actions": {
+      "openMenu": "فتح القائمة",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "detail": {
+      "title": "تفاصيل التقرير",
+      "report": "التقرير",
+      "loading": "جاري تحميل التفاصيل...",
+      "retry": "إعادة المحاولة",
+      "created": "تاريخ الإنشاء",
+      "updated": "تاريخ التحديث",
+      "entities": "الكيانات",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "noEntities": "لا توجد كيانات في هذا التقرير.",
+      "noData": "لا توجد تفاصيل متاحة."
+    }
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "description": "عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+    "backToDashboard": "العودة إلى لوحة التحكم"
+  },
+  "screenProject": {
+    "title": "مشروع الشاشة",
+    "description": "مراقبة الشاشات المباشرة والتواصل الصوتي",
+    "mainScreen": "الشاشة الرئيسية",
+    "sidePanel": "الشاشات الجانبية",
+    "mute": "كتم",
+    "unmute": "إلغاء الكتم",
+    "noStreams": "لا توجد بثوث نشطة",
+    "participant": "مشارك"
+  },
+  "cleaningChart": {
+    "page": {
+      "title": "جدول التنظيف",
+      "description": "تتبع مهام التنظيف الدورية، وتقييم الفروع، وتصدير التقارير.",
+      "noAccessTitle": "لا يوجد صلاحية",
+      "noAccessDescription": "لا تملك صلاحية الوصول إلى جدول التنظيف.",
+      "noStoreTitle": "لم يتم اختيار فرع",
+      "noStoreDescription": "اختر فرعًا لعرض المهام المستحقة.",
+      "noEvaluationTitle": "لا توجد بيانات تقييم",
+      "noEvaluationDescription": "لا يوجد شيء لتقييمه في هذه الفترة بعد.",
+      "openFull": "فتح في جدول التنظيف",
+      "pendingTotal": "{pending} معلّق · {total} إجمالي",
+      "openedFromNotification": "عرض تقييم {store} لفترة {period}.",
+      "openedFromNotificationFallbackStore": "فرعك"
+    },
+    "tabs": {
+      "due": "المستحق اليوم",
+      "tasks": "المهام",
+      "evaluation": "التقييم",
+      "reports": "التقارير",
+      "myStore": "فرعي"
+    },
+    "common": {
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "refresh": "تحديث",
+      "loading": "جارٍ التحميل…",
+      "date": "التاريخ",
+      "close": "إغلاق"
+    },
+    "frequency": {
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "monthly": "شهري",
+      "hourly": "بالساعة"
+    },
+    "weekday": {
+      "1": "الإثنين",
+      "2": "الثلاثاء",
+      "3": "الأربعاء",
+      "4": "الخميس",
+      "5": "الجمعة",
+      "6": "السبت",
+      "7": "الأحد"
+    },
+    "status": {
+      "pending": "معلّق",
+      "done": "منجز",
+      "overdue": "متأخر"
+    },
+    "itemValue": {
+      "pass": "ناجح",
+      "fail": "فاشل",
+      "auto_fail": "تلقائي",
+      "not_applicable": "لا ينطبق",
+      "empty": "خالي"
+    },
+    "storePicker": {
+      "loading": "جارٍ تحميل الفروع…",
+      "selectStore": "اختر فرعًا…",
+      "searchPlaceholder": "بحث بالاسم أو الرقم…",
+      "empty": "لم يتم العثور على فروع."
+    },
+    "due": {
+      "refreshLabel": "تحديث",
+      "statusAll": "الكل",
+      "statusPending": "معلّق",
+      "statusDone": "منجز",
+      "statusOverdue": "متأخر",
+      "table": {
+        "task": "المهمة",
+        "status": "الحالة",
+        "frequency": "التكرار",
+        "period": "الفترة",
+        "weight": "الوزن",
+        "doneBy": "أُنجز بواسطة",
+        "actions": "الإجراءات",
+        "empty": "لا توجد مهام مستحقة لهذا الفرع في {date}.",
+        "meta": "{freq} · {from} → {to}",
+        "noDoneBy": "—"
+      },
+      "viewHistory": "عرض السجل",
+      "undo": "تراجع",
+      "complete": "إنجاز",
+      "evaluateHint": "تحديد نتيجة جدول التنظيف لهذه المهمة للتاريخ المحدد",
+      "evaluatePass": "ناجح",
+      "evaluateFail": "فاشل",
+      "lockedShortPending": "بالانتظار — لم يحن موعدها بعد",
+      "lockedExplainPending": "لم يسجّل الفرع إنجاز هذه المهمة بعد، لكن الفترة لا تزال مفتوحة — لم يفشل شيء بعد. يُفتح التقييم بمجرد تسجيلها، أو بمجرد انتهاء الموعد.",
+      "lockedShortBlocked": "مقفلة — فشل تلقائي",
+      "lockedExplainBlocked": "لم يسجّل الفرع إنجاز هذه المهمة إطلاقًا لهذه الفترة، فهي للقراءة فقط وأُخفقت تلقائيًا بالفعل. لا يمكن إدخال أي نتيجة هنا — افتح تبويب التقييم بعد تسجيلها لرؤيتها تُفتح.",
+      "undoDialog": {
+        "title": "التراجع عن الإنجاز؟",
+        "description": "سيعيد هذا “{label}” إلى حالة معلّق لتاريخ {date}. ستتم إزالة أي صورة أو ملاحظة أو موظفين مسجلين."
+      },
+      "toasts": {
+        "reverted": "تم إعادة “{label}” إلى معلّق.",
+        "undoFailed": "تعذّر التراجع.",
+        "evaluated": "تم تقييم “{label}”.",
+        "evaluateCleared": "تم مسح تقييم “{label}”.",
+        "evaluateFailed": "تعذّر حفظ التقييم.",
+        "evaluateForbidden": "ليس لديك صلاحية لتقييم المهام.",
+        "noPeriodForWeek": "تعذّر تحديد الأسبوع الذي ينتمي إليه هذا التاريخ — أعد التحميل وحاول مرة أخرى."
+      }
+    },
+    "tasks": {
+      "createTask": "إنشاء مهمة",
+      "table": {
+        "task": "المهمة",
+        "frequency": "التكرار",
+        "weight": "الوزن",
+        "photo": "الصورة",
+        "starts": "البدء",
+        "stores": "الفروع",
+        "actions": "الإجراءات"
+      },
+      "storeCount": "{count} فرع",
+      "storeCountPlural": "{count} فروع",
+      "everyHoursSuffix": "· كل {hours} ساعة",
+      "photoRequiredShort": "مطلوبة",
+      "photoOptionalShort": "اختيارية",
+      "editTitle": "تعديل المهمة",
+      "deleteTitle": "حذف المهمة",
+      "empty": {
+        "title": "لا توجد مهام تنظيف بعد",
+        "description": "أنشئ مهمة للبدء."
+      },
+      "deleteDialog": {
+        "title": "حذف المهمة؟",
+        "description": "سيزيل هذا “{name}” من قوائم المستحق لكل فرع معيّن له. سيتم الاحتفاظ بسجلّه وإنجازاته. لا يمكن التراجع عن هذا."
+      },
+      "toasts": {
+        "deleted": "تم حذف “{name}”.",
+        "deleteFailed": "تعذّر حذف المهمة."
+      }
+    },
+    "taskForm": {
+      "sections": {
+        "details": "تفاصيل المهمة",
+        "schedule": "الجدولة",
+        "stores": "تعيين الفروع"
+      },
+      "name": "اسم المهمة",
+      "namePlaceholder": "مثال: تنظيف الفرن",
+      "description": "الوصف",
+      "descriptionPlaceholder": "ما الذي يجب إنجازه بالتحديد؟",
+      "weight": "الوزن (0–100)",
+      "weightPlaceholder": "اختياري",
+      "dueTime": "وقت الاستحقاق",
+      "frequency": "التكرار",
+      "frequencyHint": {
+        "daily": "الصورة مطلوبة",
+        "weekly": "الصورة مطلوبة",
+        "monthly": "الصورة مطلوبة",
+        "hourly": "الصورة اختيارية"
+      },
+      "repeatEvery": "التكرار كل",
+      "intervalUnit": {
+        "daily": "يوم/أيام",
+        "weekly": "أسبوع/أسابيع",
+        "monthly": "شهر/أشهر",
+        "hourly": "دورة/دورات"
+      },
+      "everyXHours": "كل X ساعة (1–24)",
+      "weekdaysLabel": "أيام الأسبوع (اختياري)",
+      "startsOn": "يبدأ في",
+      "endsOn": "ينتهي في",
+      "endsOnHint": "(فراغ = يتكرر دائمًا)",
+      "storesLabel": "الفروع",
+      "storesPlaceholder": "اختر الفروع",
+      "storesSearchPlaceholder": "بحث في الفروع…",
+      "storesEmpty": "لم يتم العثور على فروع.",
+      "storesLoading": "جارٍ تحميل الفروع…",
+      "storesLoadingShort": "جارٍ التحميل…",
+      "storesSelectedCount": "تم اختيار {count} فرع",
+      "storesSelectedCountPlural": "تم اختيار {count} فروع"
+    },
+    "createTaskDialog": {
+      "title": "إنشاء مهمة تنظيف",
+      "description": "أنشئ مهمة تنظيف دورية وعيّنها لفرع واحد أو أكثر.",
+      "cancel": "إلغاء",
+      "submit": "إنشاء المهمة",
+      "toasts": {
+        "startRequired": "تاريخ البدء مطلوب.",
+        "storeRequired": "اختر فرعًا واحدًا على الأقل.",
+        "hourlyIntervalRequired": "المهام بالساعة تحتاج إلى فاصل زمني (1–24 ساعة).",
+        "created": "تم إنشاء المهمة “{name}”.",
+        "failed": "تعذّر إنشاء المهمة."
+      }
+    },
+    "editTaskDialog": {
+      "title": "تعديل مهمة التنظيف",
+      "description": "تحديث الجدولة أو الفروع المعيّنة لهذه المهمة.",
+      "cancel": "إلغاء",
+      "submit": "حفظ التغييرات",
+      "loadFailed": "فشل تحميل المهمة.",
+      "toasts": {
+        "startRequired": "تاريخ البدء مطلوب.",
+        "storeRequired": "اختر فرعًا واحدًا على الأقل.",
+        "hourlyIntervalRequired": "المهام بالساعة تحتاج إلى فاصل زمني (1–24 ساعة).",
+        "nothingChanged": "لم يتغيّر شيء.",
+        "updated": "تم تحديث المهمة “{name}”.",
+        "failed": "تعذّر تحديث المهمة."
+      }
+    },
+    "taskDetail": {
+      "fallbackTitle": "تفاصيل المهمة",
+      "photoRequired": "الصورة مطلوبة",
+      "photoOptional": "الصورة اختيارية",
+      "edit": "تعديل",
+      "deleteTitle": "حذف المهمة",
+      "loading": "جارٍ التحميل…",
+      "loadFailed": "فشل تحميل المهمة.",
+      "frequency": "التكرار",
+      "every": "· كل {interval}",
+      "interval": "الفاصل الزمني",
+      "everyHours": "كل {hours} ساعة",
+      "weight": "الوزن",
+      "startsOn": "يبدأ في",
+      "endsOn": "ينتهي في",
+      "repeatsForever": "يتكرر دائمًا",
+      "dueTime": "وقت الاستحقاق",
+      "weekdays": "أيام الأسبوع",
+      "assignedStores": "الفروع المعيّنة ({count})",
+      "noStoresAssigned": "لا توجد فروع معيّنة."
+    },
+    "completeDialog": {
+      "title": "إنجاز: {label}",
+      "employeeFallback": "الموظف {id}",
+      "description": "سجّل من قام بهذه المهمة.",
+      "descriptionWithPhoto": "سجّل من قام بهذه المهمة وأرفق صورة.",
+      "who": "من قام بها؟",
+      "loadingEmployees": "جارٍ تحميل الموظفين…",
+      "selectEmployees": "اختر الموظفين",
+      "searchEmployees": "بحث عن الموظفين…",
+      "loadingShort": "جارٍ التحميل…",
+      "noEmployees": "لم يتم العثور على موظفين لهذا الفرع.",
+      "employeesLoadFailed": "تعذّر تحميل الموظفين.",
+      "retry": "إعادة المحاولة",
+      "note": "ملاحظة (اختياري)",
+      "notePlaceholder": "مثال: تم التنظيف أثناء الافتتاح",
+      "photo": "الصورة",
+      "photoHint": "(يمكن أيضًا اللصق بـ Ctrl+V)",
+      "choosePhoto": "اختر صورة",
+      "replace": "استبدال",
+      "cancel": "إلغاء",
+      "submit": "إنجاز",
+      "toasts": {
+        "pasted": "تم لصق الصورة.",
+        "maxReached": "يمكنك إضافة حتى {max} صورة.",
+        "done": "تم إنجاز “{label}”.",
+        "failed": "تعذّر إنجاز المهمة."
+      }
+    },
+    "historyDrawer": {
+      "description": "سجل إنجاز هذه المهمة في هذا الفرع.",
+      "empty": "لا يوجد سجل لهذه المهمة بعد.",
+      "completedAt": "تم الإنجاز في {date}",
+      "photoEvidence": "دليل الصورة",
+      "notCompleted": "لم تُنجز هذه الفترة في الوقت المحدد.",
+      "loadFailed": "فشل تحميل السجل."
+    },
+    "evaluation": {
+      "weekTab": "أسبوع",
+      "dateTab": "تاريخ",
+      "weekPlaceholder": "2026-W30",
+      "datePlaceholder": "2026-07-21",
+      "load": "تحميل",
+      "periodSearchPlaceholder": "بحث عن فترة…",
+      "periodSearchEmpty": "لا توجد فترة مطابقة.",
+      "periodLoadError": "تعذّر تحميل الفترات — حاول مرة أخرى.",
+      "addItemPlaceholder": "إضافة عنصر تفتيش…",
+      "newItemWeightTitle": "الوزن (1–100) — يمكنك تغييره لاحقًا من محرر وزن العنصر",
+      "weightPrefix": "وزن",
+      "add": "إضافة",
+      "legendLabel": "المفتاح",
+      "legendHint": "انقر على عنصر التفتيش لتقييمه · انقر على شريحة الجدول للتنقل بين ناجح/فاشل/لا ينطبق، وانقر × للمسح",
+      "itemValueExplain": {
+        "pass": "تُحتسب كنجاح ضمن النتيجة.",
+        "fail": "تُحتسب كفشل ضمن النتيجة.",
+        "auto_fail": "فشل تلقائي وجسيم — يصفّر نتيجة العناصر لهذا الفرع (لكن لا يصفّر النتيجة النهائية وحده).",
+        "not_applicable": "لا تنطبق هنا — مستبعدة تمامًا من التقييم، لا تفيد ولا تضر.",
+        "empty": "لا يوجد تقييم بعد. تعيين خلية مقيَّمة مسبقًا إلى فارغ يحذف نهائيًا ملاحظتها وصورها."
+      },
+      "legendWeight": "وزن المهمة",
+      "legendWeightExplain": "مقدار احتساب هذه المهمة ضمن نتيجة الجدول، مقارنةً بغيرها.",
+      "legendAllocated": "وزن مُعزَّز",
+      "legendAllocatedExplain": "وزن هذه المهمة الأساسي، إضافة إلى وزن إضافي مُنح لها من مهمة غير مستحقة هذه الفترة (مثال: 3+2 = الوزن الأساسي 3، مع 2 إضافية موزَّعة إليها).",
+      "legendNote": "توجد ملاحظة/صورة",
+      "legendHistorical": "مقفلة (فترة سابقة)",
+      "legendPending": "بالانتظار (لم يحن موعدها)",
+      "legendPendingExplain": "لم يسجّل الفرع إنجاز هذه المهمة بعد، لكن الفترة لا تزال مفتوحة — لم يفشل شيء، وهي للقراءة فقط حتى تُسجَّل أو ينتهي الموعد.",
+      "legendAutoFail": "فشل تلقائي (غير مسجَّل)",
+      "legendAutoFailExplain": "لم يسجّل الفرع إنجاز هذه المهمة إطلاقًا لهذه الفترة — أخفقها النظام تلقائيًا بمجرد انتهاء الموعد. للقراءة فقط بالكامل؛ تُفتح تلقائيًا بمجرد تسجيلها.",
+      "noStores": {
+        "title": "لا توجد فروع للتقييم",
+        "description": "لا يوجد شيء لتقييمه في هذه الفترة بعد."
+      },
+      "columns": {
+        "store": "الفرع",
+        "inspectionItems": "عناصر التفتيش",
+        "itemScore": "نتيجة العناصر",
+        "itemScoreExplain": "نسبة عناصر التفتيش المقيَّمة التي نجحت.",
+        "cleaningChart": "جدول التنظيف",
+        "chartScore": "نتيجة الجدول",
+        "chartScoreExplain": "نسبة مهام جدول التنظيف المقيَّمة التي نجحت، مرجّحة بوزن كل مهمة.",
+        "finalScore": "النتيجة النهائية",
+        "finalScoreExplain": "النتيجة الإجمالية — متوسط مرجّح لنتيجة العناصر ونتيجة الجدول. هذا هو الرقم الأهم.",
+        "notify": "إشعار"
+      },
+      "scoreSide": {
+        "items": "العناصر فقط",
+        "chart": "الجدول فقط"
+      },
+      "itemWeight": {
+        "badge": "الوزن {weight}",
+        "title": "الوزن: {weight} — انقر للتعديل",
+        "label": "الوزن (1–100)",
+        "save": "حفظ",
+        "failed": "تعذّر حفظ الوزن."
+      },
+      "absentTasksLink": "{count, plural, one {مهمة غائبة واحدة} other {# مهام غائبة}} — توزيع",
+      "removeItemTitle": "إزالة العنصر",
+      "cellWeightTitle": "{name} (الوزن {weight})",
+      "cellWeightTitleAllocated": "{name} (الوزن {weight}، أساسي {base} + موزّع من {sources})",
+      "historicalTitle": "قُيّمت قبل أن تصبح هذه المهمة غائبة في هذه الفترة — مقفلة حتى لا يتغيّر التقرير المُرسل",
+      "pendingLockTitle": "بالانتظار — لم تُسجَّل منجزة بعد، الفترة لا تزال مفتوحة، لم يفشل شيء",
+      "autoFailedLockTitle": "لم تُسجَّل منجزة إطلاقًا لهذه الفترة — فشل تلقائي، للقراءة فقط",
+      "partiallyCompletedLockTitle": "لم تُسجَّل منجزة عددًا كافيًا من المرات لهذه الفترة (آخر إنجاز {when} بواسطة {who}) — فشل تلقائي، للقراءة فقط",
+      "evidenceUnknownWhen": "تاريخ سابق",
+      "evidenceUnknownWho": "شخص ما",
+      "clearVerdictTitle": "مسح النتيجة",
+      "hasNoteTitle": "توجد ملاحظة أو صورة",
+      "finalize": "إنهاء",
+      "finalized": "منتهي",
+      "reopen": "إعادة فتح",
+      "completionHint": "تم تقييم {graded}/{required}",
+      "completionHintExplain": "يجب تقييم كل عنصر تفتيش وكل مهمة في جدول التنظيف (ناجح/فاشل/تلقائي/لا ينطبق) قبل التمكّن من إنهاء هذا الفرع.",
+      "autoFailedBadge": "{count, plural, one {⚠ مهمة واحدة فشلت تلقائيًا} other {⚠ # مهام فشلت تلقائيًا}}",
+      "autoFailedExplain": "{count, plural, one {لم تُسجَّل مهمة واحدة منجزة لهذه الفترة، فأخفقت تلقائيًا} other {لم تُسجَّل # مهام منجزة لهذه الفترة، فأخفقت تلقائيًا}}",
+      "copyAllocationLink": "نسخ التوزيع إلى فروع أخرى",
+      "copyAllocationLinkExplain": "طبّق توزيع الوزن المحفوظ بالكامل لهذا الفرع على فروع أخرى لهذه الفترة.",
+      "absentTasksLinkExplain": "هذه المهام الشهرية غير مستحقة هذا الأسبوع بالذات — انقر لمنح وزنها إلى مهام مستحقة هذا الأسبوع بدلًا من تركه دون استخدام.",
+      "noItems": "لا توجد عناصر تفتيش بعد — أضف عنصرًا أعلاه للبدء بالتقييم.",
+      "removeDialog": {
+        "title": "إزالة عنصر التفتيش؟",
+        "description": "سيؤدي هذا إلى إزالة عمود “{name}” والقيم المسجلة له لجميع الفروع في هذه الفترة. لا يمكن التراجع عن هذا.",
+        "confirm": "إزالة"
+      },
+      "missingDialog": {
+        "title": "لا يمكن الإنهاء بعد",
+        "description": "لا يزال لدى {store} خلايا غير مقيّمة في هذه الفترة:",
+        "kind": {
+          "item": "عنصر",
+          "chart": "جدول"
+        }
+      },
+      "reopenDialog": {
+        "title": "إعادة فتح هذا التقييم؟",
+        "description": "سيتم حذف نتائج {store} النهائية المجمّدة وستعود إلى الحساب الحي. تصبح خلايا الفرع قابلة للتعديل مجددًا.",
+        "confirm": "إعادة فتح"
+      },
+      "toasts": {
+        "saveFailed": "فشل الحفظ.",
+        "notified": "تم إشعار {store}.",
+        "reopened": "تمت إعادة فتح تقييم {store}."
+      }
+    },
+    "gradeDialog": {
+      "title": "تقييم “{item}”",
+      "description": "{store} — حدد النتيجة وملاحظة وأي صور داعمة.",
+      "verdict": "النتيجة",
+      "verdictHint": "ناجح أو فاشل لفحص عادي؛ \"تلقائي\" يحدده كفاشل تلقائيًا؛ \"لا ينطبق\" يستبعده من التقييم؛ \"فارغ\" يحذف نهائيًا ملاحظة هذه الخلية وصورها.",
+      "note": "ملاحظة",
+      "notePlaceholder": "ما الذي وجدته؟",
+      "noteHint": "اختياري، ولكنه يُنصح به عند الفشل أو التلقائي حتى يعرف مدير الفرع ما يجب إصلاحه.",
+      "photos": "الصور",
+      "pasteHint": "نصيحة: اضغط Ctrl+V (⌘V على ماك) في أي مكان بهذا الحوار للصق لقطة شاشة أو صورة منسوخة.",
+      "photoPasted": "تم لصق الصورة من الحافظة.",
+      "photoMaxReached": "يمكنك إضافة حتى {max} صورة.",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "saved": "تم تقييم “{item}”.",
+      "failed": "تعذّر حفظ التقييم.",
+      "emptyConfirm": {
+        "title": "حذف هذا التقييم؟",
+        "descriptionNoteAndPhotos": "تعيين هذه الخلية إلى \"فارغ\" يحذف نهائيًا الملاحظة و{count, plural, one {صورة واحدة} other {# صور}} المرفقة بها. لا يمكن التراجع عن هذا.",
+        "descriptionNoteOnly": "تعيين هذه الخلية إلى \"فارغ\" يحذف نهائيًا الملاحظة المرفقة بها. لا يمكن التراجع عن هذا.",
+        "descriptionPhotosOnly": "تعيين هذه الخلية إلى \"فارغ\" يحذف نهائيًا {count, plural, one {صورة واحدة} other {# صور}} المرفقة بها. لا يمكن التراجع عن هذا.",
+        "confirm": "حذف ومسح"
+      }
+    },
+    "photoPicker": {
+      "choose": "إضافة صور",
+      "addMore": "إضافة المزيد",
+      "maxReached": "بحد أقصى {max} صورة",
+      "remove": "إزالة {name}",
+      "savedAlt": "صورة محفوظة {n}",
+      "pasted": "تم لصق الصورة من الحافظة."
+    },
+    "allocateDialog": {
+      "title": "توزيع الوزن",
+      "description": "{store} — وزّع وزن مهمة غائبة على المهام النشطة في هذه الفترة.",
+      "noAbsentTasks": "لا توجد مهام غائبة لهذه الفترة — جميع المهام المخصصة نشطة.",
+      "currentSplits": "التوزيعات الحالية",
+      "removeSplit": "إزالة هذا التوزيع",
+      "removeSplitDialog": {
+        "title": "إزالة هذا التوزيع؟",
+        "description": "سيؤدي هذا إلى إزالة توزيع وزن “{task}” — يصبح وزنها غير موزَّع مجددًا حتى يتم توزيعها على المهام النشطة بطريقة أخرى. لا يمكن التراجع عن هذا.",
+        "confirm": "إزالة"
+      },
+      "sourceLabel": "المهمة الغائبة",
+      "sourcePlaceholder": "اختر مهمة غائبة…",
+      "sourceOption": "{name} — الوزن {weight} ({unallocated} غير موزّع)",
+      "splitLabel": "وزّع {weight} نقطة على:",
+      "noTargets": "لا توجد مهام نشطة لتوزيع الوزن عليها في هذه الفترة.",
+      "remainingZero": "تم التوزيع بالكامل",
+      "remaining": "تبقّى {remaining}",
+      "fill": "الباقي",
+      "fillRemaining": "أعطِ هذه المهمة كل ما تبقّى للتوزيع",
+      "evenSplitHint": "التوزيع المتساوي لا يغيّر أي نتيجة — هذا مفيد فقط عند التوزيع غير المتساوي عن قصد.",
+      "cancel": "إلغاء",
+      "save": "حفظ التوزيع",
+      "saved": "تم توزيع الوزن من “{task}”.",
+      "deleted": "تمت إزالة التوزيع.",
+      "failed": "تعذّر حفظ التوزيع.",
+      "copyToStores": "نسخ إلى فروع أخرى",
+      "copyUnsavedWarning": "احفظ تغييراتك أولًا — النسخ يستخدم ما هو محفوظ، لا ما يظهر على الشاشة.",
+      "removeFromStores": "إزالة من الفروع"
+    },
+    "removeAllocationDialog": {
+      "title": "إزالة توزيعات الوزن",
+      "description": "امسح توزيعات الوزن المحفوظة من عدة فروع دفعة واحدة — تراجُع عن عملية النسخ.",
+      "clearsNotUndoWarning": "هذا يمسح ولا يتراجع: إذا حلّ النسخ محل توزيع الفرع الأصلي، فإن الإزالة لن تُعيد التوزيع القديم. تُتخطّى الفروع التي أُنهي تقييمها.",
+      "onlyThisTask": "إزالة “{task}” فقط",
+      "scopeAllSplits": "ستتم إزالة كل توزيع محفوظ لدى هذه الفروع لهذه الفترة.",
+      "scopeSelectedTasks": "ستتم إزالة “{task}” فقط — وتبقى توزيعات كل فرع الأخرى كما هي.",
+      "storesLabel": "{count, plural, one {تم تحديد فرع واحد} other {تم تحديد # فروع}}",
+      "selectAll": "تحديد الكل",
+      "deselectAll": "إلغاء تحديد الكل",
+      "noStoresWithSplits": "لا يوجد فرع لديه توزيع محفوظ لهذه الفترة.",
+      "splitCount": "{count, plural, one {توزيع واحد} other {# توزيعات}}",
+      "finalizedNote": "منتهي — أعد فتح التقييم أولًا إذا كان هذا فعلًا يحتاج إلى تغيير.",
+      "maxStores": "يمكنك تحديد حتى {max} فرعًا في المرة الواحدة.",
+      "previewLabel": "معاينة",
+      "resultLabel": "النتيجة",
+      "staleNotice": "تغيّر التحديد — عاين مرة أخرى",
+      "removedCount": "{count, plural, =0 {لم تتم إزالة شيء} one {تمت إزالة توزيع واحد} other {تمت إزالة # توزيعات}}",
+      "splitDetail": "“{task}” — الوزن {amount} موزّع على {targets, plural, one {مهمة واحدة} other {# مهام}}",
+      "skipReasons": {
+        "evaluation_already_finalized": "منتهي — أعد فتحه أولًا إذا كان هذا فعلًا يحتاج إلى تغيير.",
+        "nothing_to_remove": "لا يوجد لدى هذا الفرع توزيع محفوظ لهذه الفترة."
+      },
+      "close": "إغلاق",
+      "preview": "معاينة",
+      "removeNow": "إزالة من {count, plural, one {فرع واحد} other {# فروع}}",
+      "removed": "{count, plural, =0 {لا يوجد ما يُزال.} one {تمت إزالة توزيع واحد.} other {تمت إزالة # توزيعات.}}",
+      "failed": "تعذّرت إزالة التوزيعات."
+    },
+    "copyAllocationDialog": {
+      "title": "نسخ توزيع الوزن",
+      "description": "طبّق توزيع الوزن المحفوظ بالكامل لـ {store} على فروع أخرى لهذه الفترة.",
+      "wholeSplitWarning": "هذا ينسخ توزيع الفرع بالكامل، وليس مهمة واحدة فقط — يُطبَّق توزيع كل مهمة غائبة على كل فرع محدد.",
+      "targetStoresLabel": "{count, plural, one {تم تحديد فرع واحد} other {تم تحديد # فروع}}",
+      "selectAll": "تحديد الكل",
+      "deselectAll": "إلغاء تحديد الكل",
+      "noOtherStores": "لا توجد فروع أخرى متاحة.",
+      "finalizedNote": "منتهي — أعد فتح التقييم أولًا إذا كان هذا فعلًا يحتاج إلى تغيير.",
+      "maxTargets": "يمكنك تحديد حتى {max} فرعًا في المرة الواحدة.",
+      "previewLabel": "معاينة",
+      "resultLabel": "النتيجة",
+      "staleNotice": "تغيّر التحديد — عاين مرة أخرى",
+      "copiedCount": "{count, plural, one {تم نسخ مهمة واحدة} other {تم نسخ # مهام}}",
+      "replacesExistingWarning": "هذا يستبدل أي توزيع محفوظ مسبقًا لهذه المهام في هذا الفرع.",
+      "skipReasons": {
+        "nothing_to_copy": "لا يوجد لدى هذا الفرع توزيع محفوظ لنسخه لهذه الفترة.",
+        "evaluation_already_finalized": "منتهي — أعد فتحه أولًا إذا كان هذا فعلًا يحتاج إلى تغيير.",
+        "source_task_not_absent_here": "تلك المهمة غير غائبة بالنسبة لهذا الفرع.",
+        "target_task_not_in_play": "مهمة الاستقبال غير قابلة للتقييم هنا.",
+        "split_does_not_match_weight": "التوزيع لا يساوي مجموع وزن المهمة.",
+        "store_not_visible": "هذا الفرع غير ظاهر في هذا الجدول."
+      },
+      "close": "إغلاق",
+      "preview": "معاينة",
+      "copyNow": "انسخ الآن",
+      "copied": "{count, plural, one {تم نسخ مهمة واحدة} other {تم نسخ # مهام}}.",
+      "failed": "تعذّر نسخ التوزيع."
+    },
+    "settingsDialog": {
+      "trigger": "إعدادات التقييم",
+      "title": "إعدادات التقييم",
+      "description": "تُطبَّق التغييرات فورًا على التقييمات غير المنتهية ولا تؤثر أبدًا على المنتهية.",
+      "formulaAverageHint": "النتيجة النهائية هي متوسط مرجّح لنتيجة العناصر ونتيجة الجدول، بالنسب أدناه.",
+      "sharesLabel": "توزيع العناصر / الجدول",
+      "sharesItemsEnd": "العناصر",
+      "sharesChartEnd": "الجدول",
+      "previewTitle": "مثال",
+      "previewBody": "فرع يحصل على {itemScore}% في العناصر و{chartScore}% في الجدول سيحصل على نتيجة نهائية {result}%.",
+      "requiresCompletionLabel": "يتطلب إنجاز المهمة",
+      "requiresCompletionHint": "المهمة التي لم يسجّل الفرع إنجازها تُخفَق تلقائيًا ولا يمكن تمريرها حتى تُسجَّل.",
+      "completionRuleLabel": "قاعدة الإنجاز",
+      "completionRule": {
+        "any": "تم إنجازها مرة واحدة",
+        "all": "كل مرات الاستحقاق",
+        "threshold": "نسبة حدّية"
+      },
+      "completionThresholdLabel": "النسبة الحدّية (%)",
+      "close": "إغلاق",
+      "save": "حفظ",
+      "saved": "تم حفظ إعدادات التقييم.",
+      "failed": "تعذّر حفظ الإعدادات."
+    },
+    "reports": {
+      "title": "تقرير التنظيف",
+      "periodLabel": "الفترة {period} · مرتّب حسب النتيجة",
+      "csv": "CSV",
+      "exportPng": "تصدير PNG",
+      "downloadPng": "تنزيل PNG",
+      "reviewDialog": {
+        "title": "مراجعة التقرير قبل التصدير",
+        "description": "جدول واحد، مرتّب حسب النتيجة. هذا هو الشكل الدقيق لصورة PNG — راجع، ثم نزّل.",
+        "cancel": "إلغاء",
+        "styleLabel": "نمط التصدير",
+        "styleClassic": "كلاسيكي",
+        "styleColorful": "ملوّن"
+      },
+      "table": {
+        "rank": "#",
+        "store": "الفرع",
+        "inspectionItems": "عناصر التفتيش",
+        "itemScore": "نتيجة العناصر",
+        "chart": "الجدول",
+        "score": "النتيجة",
+        "average": "المتوسط",
+        "empty": "لا توجد فروع لتقريرها في هذه الفترة.",
+        "completionTitle": "تم تقييم {pct}% من الخلايا"
+      },
+      "toasts": {
+        "imageDownloaded": "تم تنزيل صورة التقرير.",
+        "imageFailed": "تعذّر تصدير الصورة.",
+        "csvFailed": "فشل تنزيل CSV."
+      }
+    },
+    "myStore": {
+      "loading": "جارٍ تحميل نتائج فرعك…",
+      "noRow": "لا يوجد تقييم مسجل لفرعك في هذه الفترة بعد.",
+      "itemScore": "نتيجة العناصر",
+      "chartScoreLabel": "نتيجة الجدول",
+      "finalScoreLabel": "النتيجة النهائية",
+      "scoreSide": {
+        "items": "العناصر فقط",
+        "chart": "الجدول فقط"
+      },
+      "inspectionItems": "عناصر التفتيش",
+      "itemColumn": "العنصر",
+      "resultColumn": "النتيجة",
+      "noItems": "لا توجد عناصر تفتيش بعد.",
+      "cleaningChart": "جدول التنظيف",
+      "hasNote": "ملاحظة",
+      "hasPhoto": "{count} صورة",
+      "hasPhotoPlural": "{count} صور",
+      "chartGroups": {
+        "daily": "يومي",
+        "weekly": "أسبوعي",
+        "monthly": "شهري",
+        "hourly": "كل ساعة"
+      },
+      "verdict": {
+        "pass": "ناجح",
+        "fail": "فاشل",
+        "not_applicable": "لا ينطبق"
+      },
+      "photoAlt": "صورة {n}"
+    },
+    "errorState": {
+      "notAvailable": "غير متاح بعد",
+      "noPermission": "لا يوجد صلاحية",
+      "somethingWrong": "حدث خطأ ما",
+      "retry": "أعد المحاولة"
+    }
+  },
+  "notepad": {
+    "tab": "المفكرة",
+    "title": "المفكرة",
+    "placeholder": "اكتب أي شيء هنا — تذكيرات، ملاحظات التسليم، متابعات…",
+    "hint": "محفوظة على هذا الجهاز فقط ولا تتم مشاركتها مع أحد.",
+    "saved": "تم الحفظ",
+    "clear": "مسح",
+    "clearConfirm": "تأكيد المسح؟",
+    "charCount": "{count} / {max}"
+  },
+  "breakTimer": {
+    "trigger": "مؤقت الاستراحة",
+    "title": "مؤقت الاستراحة",
+    "start": "بدء الاستراحة",
+    "end": "إنهاء الاستراحة",
+    "freshCounter": "تصفير العدّاد إلى 0:00",
+    "hintIdle": "اضغط للبدء · اضغط مرتين للتفاصيل",
+    "hintOnBreak": "اضغط للإنهاء · اضغط مرتين للتفاصيل",
+    "cumulativeNote": "الاستراحات تتراكم في إجمالي واحد لليوم — وتُنبَّه عند تجاوزه الحد أدناه.",
+    "onBreak": "في استراحة",
+    "onBreakSummary": "في استراحة · {duration} اليوم",
+    "totalToday": "{duration} إجمالي اليوم",
+    "counterReset": "تم تصفير العدّاد",
+    "todaySummaryZero": "لا توجد استراحات اليوم",
+    "todaySummary": "{breaks} · {duration} اليوم",
+    "breaksCount": "استراحة واحدة",
+    "breaksCountPlural": "{count} استراحات",
+    "sessionsHeading": "استراحات اليوم",
+    "sessionRange": "{start} – {end}",
+    "resetHistory": "إعادة تعيين",
+    "resetHistoryConfirmTitle": "إعادة تعيين سجل استراحات اليوم؟",
+    "resetHistoryConfirmDescription": "سيؤدي هذا إلى مسح جميع الاستراحات المسجلة اليوم. لا يمكن التراجع عن هذا الإجراء.",
+    "resetHistoryConfirmAction": "إعادة تعيين",
+    "resetHistoryConfirmCancel": "إلغاء",
+    "overtimeThresholdLabel": "التنبيه بعد (بالدقائق)",
+    "overtimeIncrease": "زيادة دقيقة واحدة",
+    "overtimeDecrease": "إنقاص دقيقة واحدة",
+    "overtimeAlert": "استراحتك طالت — يرجى العودة."
+  },
+  "breaks": {
+    "title": "الاستراحات",
+    "description": "مؤقت استراحاتك الشخصي. كل ما هنا مُسجَّل ذاتيًا ولا يراه غيرك.",
+    "trigger": "مؤقت الاستراحة",
+    "openPage": "فتح الاستراحات",
+    "loadError": "تعذّر تحميل استراحاتك.",
+    "minutes": "{minutes}د",
+    "tabs": {
+      "today": "اليوم",
+      "history": "السجل",
+      "settings": "الإعدادات"
+    },
+    "timer": {
+      "start": "بدء استراحة",
+      "starting": "جارٍ البدء…",
+      "stop": "إنهاء الاستراحة",
+      "stopping": "جارٍ الإنهاء…",
+      "onBreak": "في استراحة",
+      "since": "منذ {time}",
+      "pickType": "ما نوع الاستراحة؟",
+      "customLabel": "صِفها",
+      "customLabelPlaceholder": "مثال: إحضار مستلزمات",
+      "counted": "محتسبة",
+      "excluded": "غير محتسبة",
+      "quickStart": "بدء {label} مجددًا",
+      "belongsToYesterday": "تابعة لأمس",
+      "belongsToYesterdayHint": "بدأت قبل موعد فصل يوم العمل، لذا تُحتسب على الأمس وليس على مجموع اليوم.",
+      "hintIdle": "انقر لبدء استراحة",
+      "hintOnBreak": "في {label} · {clock}",
+      "idleSummary": "استُخدم {used}د من {allowance}د اليوم",
+      "addNote": "إضافة ملاحظة",
+      "back": "رجوع",
+      "noTypes": "لا توجد أنواع استراحات مُعدّة بعد، لذا لا يمكن بدء استراحة. حاول مرة أخرى بعد قليل."
+    },
+    "allowance": {
+      "used": "{used}د من {allowance}د",
+      "left": "متبقٍ {minutes}د",
+      "over": "تجاوز {minutes}د",
+      "softLimit": "حد مرن — الاستراحة تستمر ولا يُمنع شيء؛ ويُسجَّل التجاوز.",
+      "overAlert": "تجاوزت رصيد استراحتك اليومي"
+    },
+    "switch": {
+      "title": "أنت في استراحة بالفعل",
+      "description": "{label} مستمرة منذ {time}. هل تريد إنهاءها وبدء {next}؟",
+      "confirm": "إنهاء وبدء",
+      "cancel": "إبقاء الحالية"
+    },
+    "today": {
+      "prev": "اليوم السابق",
+      "next": "اليوم التالي",
+      "goToday": "اليوم",
+      "workDayRange": "يوم العمل {start} – {end}",
+      "kpiCounted": "المحتسب",
+      "kpiRemaining": "المتبقي",
+      "kpiOver": "التجاوز",
+      "kpiExcluded": "غير محتسب",
+      "kpiTotal": "الإجمالي",
+      "kpiEntries": "الاستراحات",
+      "ofAllowance": "من {allowance}د",
+      "entriesTitle": "الاستراحات",
+      "emptyTitle": "لا توجد استراحات في هذا اليوم",
+      "emptyHint": "ابدأ واحدة من المؤقت في الشريط العلوي، أو أضف استراحة نسيت توقيتها.",
+      "categories": "حسب الفئة",
+      "milestones": "المراحل",
+      "milestoneReached": "تم بلوغ {minutes}د",
+      "allowanceReached": "نفد الرصيد ({minutes}د)",
+      "at": "عند {time}",
+      "pending": "المراحل القادمة",
+      "noMilestones": "لا توجد مراحل محددة.",
+      "selfReported": "مُسجَّل ذاتيًا — يمكن تعديل الاستراحات مباشرة، لذا هذا ما تقول إنه حدث.",
+      "live": "هناك استراحة جارية — المجاميع تتحدّث مباشرة.",
+      "manual": "يدوية",
+      "running": "جارية",
+      "copySummary": "نسخ الملخص",
+      "addBreak": "إضافة استراحة",
+      "retentionNote": "تُحفظ الاستراحات لمدة 30 يومًا.",
+      "allowanceTitle": "المحتسب اليوم",
+      "softLimitInfo": "عن الرصيد",
+      "nextMilestoneIn": "المعلم التالي بعد {minutes}د",
+      "inMinutes": "بعد {minutes}د",
+      "countedGroup": "محتسبة",
+      "excludedGroup": "غير محتسبة"
+    },
+    "export": {
+      "title": "ملخص الاستراحات",
+      "description": "ملخص نصي ليوم {date}، جاهز للصق.",
+      "tabSummary": "الملخص",
+      "tabText": "نص عادي",
+      "textHint": "هذا بالضبط ما سيُنسخ — الصقه في رسالة أو بريد.",
+      "copy": "نسخ الملخص",
+      "copiedShort": "تم النسخ",
+      "copied": "تم نسخ الملخص",
+      "copyFailed": "تعذّر النسخ تلقائيًا — النص محدد، اضغط Ctrl+C.",
+      "copyHint": "يُنسخ الإصدار النصي.",
+      "close": "إغلاق",
+      "selfReported": "مُسجَّل ذاتيًا",
+      "breakCount": "{count, plural, one {استراحة واحدة} other {# استراحات}}",
+      "countedSection": "محتسبة ضمن رصيد {allowance} دقيقة",
+      "excludedSection": "غير محتسبة — استراحات خاصة",
+      "subtotal": "المجموع الفرعي",
+      "none": "لا توجد استراحات مسجلة في هذا اليوم.",
+      "noMilestones": "لم يتم بلوغ أي مرحلة.",
+      "runningNote": "هناك استراحة جارية — المجاميع حتى {time}.",
+      "footer": "يوم العمل يمتد {start} – {end}."
+    },
+    "history": {
+      "from": "من",
+      "to": "إلى",
+      "source": "المصدر",
+      "sourceAll": "أي مصدر",
+      "sourceTimer": "المؤقت",
+      "sourceManual": "يدوي",
+      "counted": "الاحتساب",
+      "countedAll": "محتسبة وغير محتسبة",
+      "countedYes": "المحتسبة فقط",
+      "countedNo": "غير المحتسبة فقط",
+      "types": "الأنواع",
+      "typesAll": "كل الأنواع",
+      "typesCount": "{count} محدد",
+      "clear": "مسح",
+      "colDate": "يوم العمل",
+      "colTime": "الوقت",
+      "colType": "الاستراحة",
+      "colDuration": "المدة",
+      "colStatus": "الحالة",
+      "colActions": "الإجراءات",
+      "emptyTitle": "لا توجد استراحات مطابقة",
+      "emptyHint": "جرّب توسيع التواريخ أو مسح عوامل التصفية.",
+      "perPage": "لكل صفحة",
+      "summary": "صفحة {page} من {last} · {total} استراحة",
+      "prev": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last7": "آخر 7 أيام",
+      "last30": "آخر 30 يومًا",
+      "openDay": "فتح {date} في اليوم",
+      "anyDate": "أي تاريخ"
+    },
+    "entry": {
+      "createTitle": "إضافة استراحة نسيت توقيتها",
+      "createDescription": "تُسجَّل كإدخال يدوي.",
+      "editTitle": "تعديل الاستراحة",
+      "editDescription": "التعديلات تستبدل ما سُجّل — لا يوجد سجل للتعديلات.",
+      "type": "النوع",
+      "start": "البداية",
+      "end": "النهاية",
+      "stillRunning": "ما زالت جارية",
+      "stillRunningHint": "إبقاؤها مفتوحة بلا وقت نهاية.",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "cancel": "إلغاء",
+      "created": "تمت إضافة الاستراحة",
+      "updated": "تم تحديث الاستراحة",
+      "nothingChanged": "لم يتغير شيء",
+      "missingFields": "اختر النوع والوقتين.",
+      "overlapTitle": "هذه الاستراحات تتداخل مع ذلك الوقت:",
+      "retentionHint": "لا يمكن إضافة استراحات أقدم من {date}.",
+      "retiredType": "{name} (متوقف)",
+      "pickDateTime": "اختر التاريخ والوقت",
+      "hour": "الساعة",
+      "minute": "الدقيقة",
+      "period": "ص/م",
+      "now": "الآن",
+      "done": "تم",
+      "searchType": "ابحث في أنواع الاستراحات…",
+      "noTypeMatch": "لا توجد أنواع مطابقة."
+    },
+    "notes": {
+      "title": "الملاحظات",
+      "placeholder": "اشرح هذه الاستراحة…",
+      "add": "إضافة ملاحظة",
+      "adding": "جارٍ الإضافة…",
+      "added": "تمت إضافة الملاحظة",
+      "empty": "لا توجد ملاحظات بعد.",
+      "count": "{count}/{max}",
+      "by": "{name} · {time}"
+    },
+    "delete": {
+      "title": "حذف هذه الاستراحة؟",
+      "description": "سيتم حذف {label} بتاريخ {date} نهائيًا مع ملاحظاتها.",
+      "confirm": "حذف",
+      "cancel": "إلغاء",
+      "deleted": "تم حذف الاستراحة"
+    },
+    "settings": {
+      "allowanceTitle": "الرصيد اليومي",
+      "allowanceDescription": "دقائق الاستراحة المحتسبة لكل يوم عمل. حد مرن — لا يُمنع شيء؛ ويُسجَّل التجاوز ويُعرض.",
+      "allowanceLabel": "دقائق في اليوم",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "saved": "تم حفظ الرصيد",
+      "milestonesTitle": "المراحل",
+      "milestonesDescription": "تنبيه عندما يبلغ وقت استراحتك المحتسب هذه الدقائق. كل مرحلة تُطلق مرة واحدة كحد أقصى في يوم العمل.",
+      "addMilestone": "إضافة",
+      "milestonePlaceholder": "دقائق",
+      "removeMilestone": "إزالة {minutes}د",
+      "milestonesOff": "لا توجد مراحل — لن تصلك تنبيهات.",
+      "milestonesSaved": "تم حفظ المراحل",
+      "maxMilestones": "حتى {max} مراحل.",
+      "workDay": "يوم عملك يمتد {cutoff}–{cutoff} {tz}. تُحتسب الاستراحة على اليوم الذي بدأت فيه.",
+      "rangeError": "أدخل رقمًا صحيحًا من 1 إلى 1440.",
+      "duplicate": "موجودة في القائمة بالفعل.",
+      "tooMany": "يمكنك إضافة {max} مراحل كحد أقصى.",
+      "unsaved": "تغييرات غير محفوظة",
+      "workDayLocal": "يوم عملك يمتد {start} – {start} بتوقيتك ({cutoff} {tz}). تُحتسب الاستراحة على اليوم الذي بدأت فيه.",
+      "milestonePreview": "موقع معالمك مقارنة برصيد {allowance}د",
+      "milestoneAtAllowance": "المعالم عند {allowance}د أو بعدها لا تضيف شيئًا — الرصيد نفسه ينبّهك عند {allowance}د.",
+      "unsavedTab": "تغييرات غير محفوظة"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "notes": "الملاحظات",
+      "retry": "إعادة المحاولة",
+      "more": "إجراءات الاستراحة"
+    },
+    "errors": {
+      "ALREADY_ON_BREAK": "أنت في استراحة بالفعل. أنهِها قبل بدء أخرى.",
+      "BREAK_OVERLAP": "هذا الوقت يتداخل مع استراحة لديك.",
+      "BREAK_NOT_RUNNING": "انتهت تلك الاستراحة بالفعل.",
+      "BREAK_ENDS_BEFORE_START": "يجب أن يكون وقت النهاية بعد وقت البداية.",
+      "BREAK_STARTS_IN_FUTURE": "لا يمكن أن تبدأ الاستراحة في المستقبل.",
+      "BREAK_OUTSIDE_RETENTION_WINDOW": "هذا أقدم من مدة الاحتفاظ بالاستراحات (30 يومًا).",
+      "BREAK_CUSTOM_LABEL_REQUIRED": "أضف وصفًا قصيرًا للاستراحة المخصصة.",
+      "BREAK_CUSTOM_LABEL_NOT_ALLOWED": "الاستراحة المخصصة فقط يمكن أن يكون لها وصف.",
+      "BREAK_TYPE_INACTIVE": "تم إيقاف هذا النوع — اختر نوعًا آخر.",
+      "VALIDATION": "بعض الحقول تحتاج إلى تصحيح.",
+      "NOT_FOUND": "الاستراحة غير موجودة.",
+      "NOT_AUTHENTICATED": "انتهت جلستك. يرجى تسجيل الدخول مجددًا.",
+      "CONFIG_MISSING": "خدمة الاستراحات غير مهيأة بعد.",
+      "TIMEOUT": "استغرقت خدمة الاستراحات وقتًا طويلًا للرد.",
+      "NETWORK": "تعذّر الوصول إلى خدمة الاستراحات. تحقق من اتصالك.",
+      "SERVER": "حدثت مشكلة في خدمة الاستراحات. حاول مجددًا.",
+      "CANCELLED": "أُلغي.",
+      "UNKNOWN": "حدث خطأ ما."
+    },
+    "alerts": {
+      "milestoneTitle": "تم استخدام {minutes} دقيقة من الاستراحة",
+      "milestoneBody": "استخدمت {used} من أصل {allowance} دقيقة استراحة يومية. متبقٍ {left} دقيقة.",
+      "milestoneBodyOver": "استخدمت {used} من أصل {allowance} دقيقة استراحة يومية — بزيادة {over}.",
+      "allowanceTitle": "تم استنفاد رصيد الاستراحة اليومي",
+      "allowanceBody": "استخدمت {used} من أصل {allowance} دقيقة استراحة يومية — بزيادة {over}. تستمر الاستراحات ولا يُمنع شيء.",
+      "longTitle": "هل ما زلت في استراحة؟",
+      "longBody": "{label} مستمرة منذ {minutes} دقيقة.",
+      "endBreak": "إنهاء الاستراحة"
+    }
+  },
+  "bottomNav": {
+    "editTrigger": "تخصيص الروابط السريعة",
+    "editTitle": "اختر روابطك السريعة",
+    "editDescription": "اختر حتى {max} روابط لعرضها في الشريط السفلي.",
+    "selectedCount": "{count}/{max} محدد",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "reset": "إعادة تعيين",
+    "saved": "تم تحديث الروابط السريعة",
+    "discardChanges": {
+      "title": "تجاهل التغييرات؟",
+      "description": "لديك تغييرات غير محفوظة في روابطك السريعة. هل أنت متأكد من رغبتك في تجاهلها؟"
+    },
+    "resetConfirm": {
+      "title": "إعادة تعيين الروابط السريعة",
+      "description": "سيؤدي هذا إلى استعادة الروابط السريعة الافتراضية بناءً على صلاحياتك."
+    }
+  },
+  "topbarTools": {
+    "expand": "إظهار الأدوات",
+    "collapse": "إخفاء الأدوات",
+    "lockedOnBreak": "تبقى مفتوحة أثناء الاستراحة"
+  },
+  "storePassport": {
+    "trigger": "بطاقة المتجر",
+    "subtitle": "كل ما يخص هذا المتجر في مكان واحد.",
+    "placeholderNote": "بيانات مبدئية — لم يتم ربط هذه البطاقة بالخادم بعد.",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "reveal": "إظهار",
+    "hide": "إخفاء",
+    "hideAll": "إخفاء الكل",
+    "yes": "نعم",
+    "no": "لا",
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "hours": "ساعات العمل",
+      "team": "الفريق",
+      "facilities": "المرافق",
+      "access": "بيانات الدخول"
+    },
+    "sections": {
+      "identity": "الهوية",
+      "contact": "بيانات التواصل",
+      "management": "الإدارة",
+      "headcount": "عدد الموظفين",
+      "capacity": "السعة والمعدات",
+      "services": "الخدمات"
+    },
+    "fields": {
+      "name": "اسم المتجر",
+      "code": "رمز المتجر",
+      "internalId": "المعرّف الداخلي",
+      "franchisee": "صاحب الامتياز",
+      "legalEntity": "الكيان القانوني",
+      "openedOn": "تاريخ الافتتاح",
+      "address": "العنوان",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "timezone": "المنطقة الزمنية",
+      "generalManager": "المدير العام",
+      "areaManager": "مدير المنطقة",
+      "assistantManagers": "المدراء المساعدون",
+      "seating": "المقاعد",
+      "posTerminals": "أجهزة الكاشير",
+      "ovens": "الأفران",
+      "makeLines": "خطوط التحضير",
+      "parkingSpaces": "مواقف السيارات",
+      "deliveryRadius": "نطاق التوصيل",
+      "driveThru": "خدمة السيارات",
+      "dineIn": "تناول الطعام بالداخل"
+    },
+    "units": {
+      "miles": "{count} ميل"
+    },
+    "roles": {
+      "shiftLeads": "مشرفو الورديات",
+      "cooks": "الطهاة",
+      "drivers": "السائقون",
+      "csr": "خدمة العملاء"
+    },
+    "hours": {
+      "openNow": "مفتوح الآن",
+      "closedNow": "مغلق الآن",
+      "day": "اليوم",
+      "open": "الفتح",
+      "close": "الإغلاق",
+      "holidayNote": "قد تختلف ساعات العمل في العطلات — راجع مدير المنطقة.",
+      "days": {
+        "sun": "الأحد",
+        "mon": "الاثنين",
+        "tue": "الثلاثاء",
+        "wed": "الأربعاء",
+        "thu": "الخميس",
+        "fri": "الجمعة",
+        "sat": "السبت"
+      }
+    },
+    "access": {
+      "warning": "معلومات حساسة — يمكن لأي شخص يفتح هذه النافذة الاطلاع عليها. لا تشاركها خارج فريق المتجر، وقم بتغييرها عند مغادرة أي موظف.",
+      "sections": {
+        "websites": "المواقع",
+        "alarm": "نظام الإنذار",
+        "registers": "الكاشير والخزنة"
+      },
+      "fields": {
+        "paychexUrl": "رابط Paychex",
+        "paychexUser": "اسم مستخدم Paychex",
+        "paychexPassword": "كلمة مرور Paychex",
+        "altametricsUrl": "رابط Altametrics",
+        "altametricsUser": "اسم مستخدم Altametrics",
+        "altametricsPassword": "كلمة مرور Altametrics",
+        "alarmProvider": "مزود الإنذار",
+        "alarmAccount": "رقم الحساب",
+        "alarmCode": "رمز الإنذار",
+        "alarmDuressCode": "رمز الطوارئ",
+        "alarmPhone": "خط الإنذار",
+        "managerOverride": "رمز تجاوز المدير",
+        "register1": "الكاشير 1",
+        "register2": "الكاشير 2",
+        "safeCode": "رمز الخزنة"
+      }
+    }
+  },
+  "workbooks": {
+    "title": "دفاتر العمل",
+    "description": "جداول مشتركة مرتبة في مجلدات. وسم الوصول لكل عنصر يحدد من يمكنه رؤيته ومن يمكنه تعديله.",
+    "refresh": "تحديث",
+    "optionsError": "تعذر تحميل خيارات الوصول وأنواع الأعمدة، لذا قد تكون بعض النماذج غير مكتملة.",
+    "noAccess": {
+      "title": "لا يوجد وصول إلى دفاتر العمل",
+      "body": "دفاتر العمل متاحة للمشرفين العامين فقط أثناء طرح صندوق الأدوات."
+    },
+    "common": {
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "create": "إنشاء",
+      "creating": "جارٍ الإنشاء…",
+      "delete": "حذف",
+      "back": "رجوع",
+      "clear": "مسح",
+      "loading": "جارٍ التحميل…",
+      "search": "بحث…",
+      "noResults": "لا توجد نتائج.",
+      "optional": "اختياري",
+      "yes": "نعم",
+      "no": "لا",
+      "any": "الكل"
+    },
+    "errors": {
+      "title": "حدث خطأ ما",
+      "retry": "حاول مرة أخرى",
+      "backToWorkbooks": "العودة إلى دفاتر العمل",
+      "notFound": {
+        "title": "غير موجود، أو ليس لديك صلاحية الوصول",
+        "body": "قد لا يكون موجودًا، أو قد لا تشملك إعدادات الوصول الخاصة به."
+      },
+      "noAccess": {
+        "title": "ليس لديك صلاحية الوصول",
+        "body": "رفض صندوق الأدوات هذا الطلب لحسابك.",
+        "rulesHint": "إذا لم يكن بإمكان أحد فتح دفاتر العمل بعد، فقد تحتاج قواعد الوصول لصندوق الأدوات إلى الإعداد في pizzasys."
+      },
+      "storeUnknown": {
+        "title": "المتجر غير مسجل في صندوق الأدوات",
+        "body": "صندوق الأدوات لا يعرف المتجر المحدد بعد. اختر متجرًا آخر، أو اطلب من المسؤول إضافته."
+      },
+      "noStore": {
+        "title": "اختر متجرًا أولًا",
+        "body": "تُسجَّل العناصر الجديدة باسم متجر. اختر متجرًا من الشريط الجانبي."
+      },
+      "auth": {
+        "title": "انتهت جلستك",
+        "body": "سجّل الدخول مرة أخرى للمتابعة."
+      },
+      "network": {
+        "title": "تعذر الوصول إلى صندوق الأدوات",
+        "body": "تحقق من اتصالك وحاول مرة أخرى."
+      },
+      "timeout": {
+        "title": "استغرق صندوق الأدوات وقتًا طويلًا",
+        "body": "لم يصل الرد في الوقت المحدد. حاول مرة أخرى بعد قليل."
+      },
+      "server": {
+        "title": "حدثت مشكلة في صندوق الأدوات",
+        "body": "حدث خطأ من جهة صندوق الأدوات. حاول مرة أخرى بعد قليل."
+      }
+    },
+    "capped": {
+      "folder": "المجلد «{name}» مضبوط على {label}، وهذا يقيّد ما يمكنك فعله هنا.",
+      "folderUnnamed": "مجلد أعلى هذا العنصر مضبوط على {label}، وهذا يقيّد ما يمكنك فعله هنا.",
+      "workbook": "دفتر العمل «{name}» مضبوط على {label}، وهذا يقيّد ما يمكنك فعله هنا.",
+      "workbookUnnamed": "دفتر العمل الذي ينتمي إليه هذا العنصر مضبوط على {label}، وهذا يقيّد ما يمكنك فعله هنا.",
+      "escapeHatch": "لتوسيع الوصول، غيّر إعدادات الوصول لذلك المجلد، أو اطلب ذلك من مالكه.",
+      "readOnly": "يمكنك عرض هذا العنصر، لكن لا يمكنك تعديله.",
+      "noPermission": "ليس لديك صلاحية للقيام بذلك."
+    },
+    "tree": {
+      "title": "المجلدات",
+      "open": "المجلدات",
+      "allFolders": "كل المجلدات",
+      "empty": "لا توجد مجلدات بعد.",
+      "loadError": "تعذر تحميل المجلدات.",
+      "retry": "إعادة المحاولة",
+      "expand": "توسيع المجلد",
+      "collapse": "طي المجلد",
+      "showMore": "عرض المزيد ({shown} من {total})"
+    },
+    "contents": {
+      "rootTitle": "كل المجلدات",
+      "rootHint": "دفاتر العمل موجودة داخل المجلدات. افتح مجلدًا أو أنشئ واحدًا لإضافة دفتر.",
+      "subfolders": "المجلدات",
+      "workbooks": "دفاتر العمل",
+      "searchPlaceholder": "ابحث في هذا المجلد…",
+      "sort": {
+        "nameAsc": "الاسم (أ–ي)",
+        "nameDesc": "الاسم (ي–أ)",
+        "newest": "الأحدث أولًا",
+        "oldest": "الأقدم أولًا",
+        "mostWorkbooks": "الأكثر دفاتر"
+      },
+      "workbooksCount": "{count, plural, =0 {لا توجد دفاتر} one {دفتر واحد} two {دفتران} few {# دفاتر} many {# دفترًا} other {# دفتر}}",
+      "columnsCount": "{count, plural, one {عمود واحد} two {عمودان} few {# أعمدة} many {# عمودًا} other {# عمود}}",
+      "newFolder": "مجلد جديد",
+      "newSubfolder": "مجلد فرعي جديد",
+      "newWorkbook": "دفتر عمل جديد",
+      "needStore": "اختر متجرًا من الشريط الجانبي أولًا. تُسجَّل العناصر الجديدة باسم متجر.",
+      "actions": "الإجراءات",
+      "rename": "تعديل التفاصيل",
+      "access": "تغيير الوصول",
+      "delete": "حذف",
+      "empty": {
+        "rootTitle": "لا توجد مجلدات بعد",
+        "rootBody": "أنشئ مجلدًا لبدء تنظيم دفاتر العمل.",
+        "folderTitle": "هذا المجلد فارغ",
+        "folderBody": "أضف دفتر عمل أو مجلدًا فرعيًا للبدء.",
+        "readOnlyBody": "لا يوجد شيء هنا بعد، وهذا المجلد للعرض فقط بالنسبة لك.",
+        "searchTitle": "لا توجد نتائج مطابقة لبحثك",
+        "searchBody": "جرّب كلمة أخرى، أو امسح البحث."
+      },
+      "foldersCount": "{count, plural, one {مجلد فرعي واحد} two {مجلدان فرعيان} few {# مجلدات فرعية} many {# مجلدًا فرعيًا} other {# مجلد فرعي}}",
+      "updated": "حُدِّث في {date}",
+      "created": "أُنشئ في {date}",
+      "viewOnly": "عرض فقط",
+      "loadMore": "تحميل المزيد ({shown} من {total})",
+      "scope": {
+        "folder": "هذا المجلد",
+        "all": "كل المجلدات",
+        "workbooksNote": "يتم البحث في أسماء المجلدات في كل مكان. للبحث في دفاتر العمل، افتح مجلدًا."
+      },
+      "descriptionLabel": "الوصف"
+    },
+    "visibility": {
+      "title": "من يمكنه رؤية هذا؟",
+      "editTitle": "تغيير الوصول",
+      "editDescription": "اختر من يمكنه رؤية «{name}» ومن يمكنه تعديله.",
+      "canEdit": "يمكنه التعديل",
+      "viewOnly": "عرض فقط",
+      "rolesLabel": "الأدوار",
+      "rolesPlaceholder": "اكتب اسم الدور ثم اضغط Enter",
+      "rolesAdd": "إضافة",
+      "rolesRemove": "إزالة {role}",
+      "rolesRequired": "أضف دورًا واحدًا على الأقل.",
+      "rolesHintExact": "يجب أن تطابق أسماء الأدوار ما في pizzasys تمامًا. الخطأ الإملائي لا يطابق أحدًا، ولن تظهر لك رسالة خطأ.",
+      "rolesHintHierarchy": "لا يوجد تسلسل هرمي للأدوار هنا: المدير العام لا يدخل إلا إذا كان يحمل أحد هذه الأدوار مباشرة.",
+      "rolesHintDelay": "الدور الممنوح في pizzasys قبل لحظات قد يستغرق بعض الوقت للوصول إلى هنا.",
+      "parentTitle": "يقع داخل",
+      "parentBody": "الوصول الأكثر تقييدًا هو الذي يسري، لذا لا يمكن أن يكون هذا العنصر أكثر انفتاحًا من العنصر الذي يقع داخله.",
+      "parentRoles": "الأدوار على العنصر الأعلى: {roles}",
+      "sharedRoles": "هذه الأدوار فقط موجودة في القائمتين، لذا هي وحدها يمكنها الدخول: {roles}",
+      "noSharedRoles": "لا تشترك هذه الأدوار في شيء مع العنصر الأعلى، لذا لن يتمكن من الدخول إلا المالكون.",
+      "ownerNote": "من ينشئ العنصر يمكنه دائمًا عرضه وتعديله.",
+      "saved": "تم تحديث الوصول"
+    },
+    "folderForm": {
+      "createTitle": "مجلد جديد",
+      "createSubTitle": "مجلد جديد في «{name}»",
+      "editTitle": "تعديل المجلد",
+      "noInherit": "المجلد الجديد لا ينسخ إعدادات الوصول من المجلد الذي يقع فيه، لذا اخترها أدناه.",
+      "name": "الاسم",
+      "namePlaceholder": "مثال: الافتتاح",
+      "nameRequired": "أدخل اسمًا للمجلد.",
+      "description": "الوصف",
+      "parent": "داخل",
+      "parentRoot": "المستوى الأعلى (بدون مجلد أب)",
+      "parentPlaceholder": "اختر مجلدًا",
+      "parentSearch": "ابحث في المجلدات…",
+      "parentHint": "تحتاج إلى صلاحية التعديل على المجلد الذي تضع هذا فيه.",
+      "parentForbidden": "لا يمكنك الإضافة إلى ذلك المجلد. تحتاج إلى صلاحية التعديل عليه.",
+      "insideItself": "داخل هذا المجلد",
+      "cycle": "لا يمكن وضع المجلد داخل نفسه أو داخل أحد مجلداته الفرعية.",
+      "created": "تم إنشاء المجلد",
+      "updated": "تم تحديث المجلد",
+      "moved": "تم نقل المجلد"
+    },
+    "deleteFolder": {
+      "title": "حذف المجلد «{name}»؟",
+      "body": "لا يمكن التراجع عن هذا.",
+      "notEmptyTitle": "هذا المجلد ليس فارغًا",
+      "notEmptyBody": "حذف «{name}» يحذف أيضًا كل ما بداخله نهائيًا:",
+      "childFolders": "{count, plural, one {مجلد فرعي واحد} two {مجلدان فرعيان} few {# مجلدات فرعية} many {# مجلدًا فرعيًا} other {# مجلد فرعي}}",
+      "workbooks": "{count, plural, one {دفتر عمل واحد} two {دفترا عمل} few {# دفاتر عمل} many {# دفتر عمل} other {# دفتر عمل}}",
+      "rowsNote": "بالإضافة إلى كل صف وخلية في تلك الدفاتر.",
+      "cannotUndo": "لا يمكن التراجع عن هذا.",
+      "confirmForce": "حذف كل شيء",
+      "deleted": "تم حذف المجلد"
+    },
+    "workbookForm": {
+      "createTitle": "دفتر عمل جديد",
+      "createDescription": "في «{folder}». جهّز الأعمدة الآن، ويمكنك تغييرها لاحقًا.",
+      "editTitle": "تعديل دفتر العمل",
+      "name": "الاسم",
+      "namePlaceholder": "مثال: الفحوصات الصباحية",
+      "nameRequired": "أدخل اسمًا لدفتر العمل.",
+      "description": "الوصف",
+      "stepDetails": "التفاصيل",
+      "stepColumns": "الأعمدة",
+      "stepAccess": "الوصول",
+      "columnsHint": "اسحب لإعادة الترتيب",
+      "created": "تم إنشاء دفتر العمل",
+      "updated": "تم تحديث دفتر العمل"
+    },
+    "deleteWorkbook": {
+      "title": "حذف دفتر العمل «{name}»؟",
+      "body": "سيتم حذف كل صف وخلية فيه نهائيًا. لا يمكن التراجع عن هذا.",
+      "deleted": "تم حذف دفتر العمل"
+    },
+    "columns": {
+      "editTitle": "تعديل الأعمدة",
+      "editDescription": "اسحب لإعادة الترتيب. لن يتغير شيء حتى تحفظ.",
+      "add": "إضافة عمود",
+      "name": "اسم العمود",
+      "namePlaceholder": "اسم العمود {n}",
+      "type": "النوع",
+      "typeSearch": "ابحث في الأنواع…",
+      "noTypes": "لا توجد أنواع.",
+      "typeLocked": "لا يمكن تغيير نوع العمود بعد إنشائه.",
+      "required": "مطلوب",
+      "optionsPlaceholder": "اكتب خيارًا ثم اضغط Enter",
+      "addOption": "إضافة",
+      "removeOption": "إزالة {option}",
+      "remove": "إزالة العمود",
+      "drag": "اسحب لإعادة الترتيب",
+      "new": "جديد",
+      "pendingRemoval": "سيتم حذفها عند الحفظ: {names}",
+      "confirmTitle": "حذف {count, plural, one {عمود واحد} two {عمودين} few {# أعمدة} many {# عمودًا} other {# عمود}}؟",
+      "confirmBody": "سيتم حذف خلاياها أيضًا، ولا يمكن استعادتها.",
+      "confirmRows": "يؤثر هذا على {count, plural, one {صف واحد} two {صفين} few {# صفوف} many {# صفًا} other {# صف}} كحد أقصى.",
+      "confirm": "حذف وحفظ",
+      "saved": "تم حفظ الأعمدة",
+      "errors": {
+        "nameRequired": "أدخل اسمًا لهذا العمود.",
+        "duplicateName": "يوجد عمود آخر بهذا الاسم.",
+        "optionsRequired": "أضف خيارًا واحدًا على الأقل.",
+        "atLeastOne": "يحتاج دفتر العمل إلى عمود واحد على الأقل.",
+        "lastColumn": "يحتاج دفتر العمل إلى عمود واحد على الأقل. أبقِ عمودًا، أو أضف عمودًا جديدًا أولًا."
+      }
+    },
+    "grid": {
+      "breadcrumb": "الموقع",
+      "rowsCount": "{count, plural, =0 {لا توجد صفوف} one {صف واحد} two {صفان} few {# صفوف} many {# صفًا} other {# صف}}",
+      "addRow": "إضافة صف",
+      "editColumns": "الأعمدة",
+      "editDetails": "تعديل التفاصيل",
+      "deleteWorkbook": "حذف دفتر العمل",
+      "access": "الوصول",
+      "filters": "عوامل التصفية",
+      "clearFilters": "مسح عوامل التصفية",
+      "searchPlaceholder": "ابحث في كل الخلايا…",
+      "contains": "يحتوي على…",
+      "exactNumber": "رقم مطابق",
+      "sortBy": "ترتيب حسب {name}",
+      "rowActions": "إجراءات الصف",
+      "editRow": "تعديل الصف",
+      "rowAccess": "تغيير الوصول",
+      "deleteRow": "حذف الصف",
+      "thisRow": "هذا الصف",
+      "dragRow": "اسحب لإعادة الترتيب",
+      "reorderDisabled": "امسح الترتيب وعوامل التصفية لإعادة ترتيب الصفوف.",
+      "reordered": "تم حفظ الترتيب",
+      "reorderFailed": "تعذر حفظ الترتيب الجديد.",
+      "edit": "انقر للتعديل",
+      "noColumns": "لا يحتوي دفتر العمل هذا على أعمدة بعد.",
+      "rowCreated": "تمت إضافة الصف",
+      "rowUpdated": "تم حفظ الصف",
+      "rowDeleted": "تم حذف الصف",
+      "empty": {
+        "title": "لا توجد بيانات بعد",
+        "body": "أضف الصف الأول للبدء.",
+        "readOnly": "لا توجد صفوف هنا بعد.",
+        "filteredTitle": "لا توجد صفوف مطابقة لعوامل التصفية",
+        "filteredBody": "جرّب تخفيفها أو مسحها."
+      }
+    },
+    "cell": {
+      "required": "هذا العمود مطلوب.",
+      "notNumber": "أدخل رقمًا، مثل 12 أو 1.50.",
+      "notDate": "اختر تاريخًا.",
+      "notOption": "اختر أحد الخيارات.",
+      "empty": "(فارغ)",
+      "pick": "اختر…",
+      "ctrlEnter": "Ctrl+Enter للحفظ"
+    },
+    "rowForm": {
+      "createTitle": "إضافة صف",
+      "editTitle": "تعديل الصف",
+      "description": "تُحفظ الخلايا الفارغة على أنها فارغة.",
+      "createDescription": "يُسجَّل في {store}. تُحفظ الخلايا الفارغة على أنها فارغة.",
+      "editDescription": "تُحفظ الخلايا التي تغيّرها فقط.",
+      "accessTitle": "من يمكنه رؤية هذا الصف؟"
+    },
+    "deleteRow": {
+      "title": "حذف هذا الصف؟",
+      "body": "لا يمكن التراجع عن هذا."
+    },
+    "pagination": {
+      "page": "صفحة {current} من {total}",
+      "showing": "{from}–{to} من {total}",
+      "perPage": "الصفوف",
+      "first": "الصفحة الأولى",
+      "previous": "الصفحة السابقة",
+      "next": "الصفحة التالية",
+      "last": "الصفحة الأخيرة"
+    },
+    "info": {
+      "label": "التفاصيل",
+      "createdBy": "أنشأه",
+      "store": "المتجر",
+      "created": "تاريخ الإنشاء",
+      "updated": "آخر تحديث"
     }
   }
 }

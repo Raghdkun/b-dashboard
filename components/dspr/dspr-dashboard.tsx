@@ -2,18 +2,49 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { format, subDays, formatDistanceToNow } from "date-fns";
-import { useDspr } from "@/lib/hooks/use-dspr";
+import { format, subDays, formatDistanceToNow, getISOWeek, parseISO } from "date-fns";
+import html2canvas from "html2canvas-pro";
+import { useWbrCard } from "@/lib/hooks/use-wbr-card";
+import { useManagerDashboard } from "@/lib/hooks/use-manager-dashboard";
+import { useHooksWbr } from "@/lib/hooks/use-hooks-wbr";
 import {
   SalesChart,
   TopItemsList,
   TopIngredientsList,
   HourlyChannelsChart,
+  DailySalesByChannelChart,
   DaySummaryStats,
   HnrCard,
-  PortalCard,
+  PortalOnTimeDualGauge,
+  StoreScoreCard,
   LaborGauge,
+  SalesHistoryCard,
   DsprDashboardSkeleton,
+  RecentMaintenanceTable,
+  CurrentEmployeesTable,
+  TopQaRatingsCard,
+  EmployeeBirthday,
+  TopEmployeeHours,
+  StoreGoals,
+  WbrCustomerSalesCard,
+  WbrChannelSalesCard,
+  WbrPromoCard,
+  WbrPortalWeeklyCard,
+  WbrCashControlCard,
+  WbrPhoneSalesCard,
+  WbrNonNegotiableCard,
+  WbrLtoCard,
+  WbrGoToCard,
+  WbrHighHoursCard,
+  WbrAveragePayCard,
+  WbrComplaintsCard,
+  WbrFeedbacksCard,
+  WbrMoneyOwedCard,
+  WbrOrdersVsSalesCard,
+  WbrTransferInOutCard,
+  WbrCleaningReviewCard,
+  WbrCustomerServiceCard,
+  WbrPortioningCard,
 } from "@/components/dspr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,9 +61,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertCircle,
   RefreshCw,
   Store,
+  Pizza,
   Calendar as CalendarIcon,
   ExternalLink,
   Clock,
@@ -43,8 +81,28 @@ import {
   Loader2,
   CheckCircle2,
   AlertTriangle,
+  Camera,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  ImageDown,
+  LayoutTemplate,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageGuide } from "@/components/shared/page-guide";
+import { DSPR_GUIDE_STEPS } from "./dspr-guide-config";
+import { buildDsprReportHtml } from "./dspr-report-template";
+import { buildStorePerformanceReportHtml } from "./dspr-store-performance-report-template";
+import {
+  StorePerformanceReportDialog,
+  type StorePerformanceReportValues,
+} from "./store-performance-report-dialog";
+import { buildDsprDailyReportHtml } from "./dspr-daily-report-template";
+import {
+  DsprDailyReportDialog,
+  type DsprReportValues,
+} from "./dspr-daily-report-dialog";
 
 /** Format a Date to YYYY-MM-DD (API-compatible format) */
 function toApiDate(date: Date): string {
@@ -61,7 +119,12 @@ function ErrorDisplay({
   onClear,
   locale,
 }: {
-  error: { message: string; code: string; retryable: boolean; retryAfter?: number };
+  error: {
+    message: string;
+    code: string;
+    retryable: boolean;
+    retryAfter?: number;
+  };
   onRetry: () => void;
   onClear: () => void;
   locale: string;
@@ -139,15 +202,17 @@ function ErrorDisplay({
   const Icon = errorConfig.icon;
 
   return (
-    <Card className={cn("border-2", errorConfig.borderColor, errorConfig.bgColor)}>
-      <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-5">
-        <div className={cn("rounded-full p-4", errorConfig.bgColor)}>
-          <Icon className={cn("h-10 w-10", errorConfig.color)} />
+    <Card
+      className={cn("border-2", errorConfig.borderColor, errorConfig.bgColor)}
+    >
+      <CardContent className="flex flex-col items-center justify-center py-6 text-center gap-2">
+        <div className={cn("rounded-full p-2.5", errorConfig.bgColor)}>
+          <Icon className={cn("h-6 w-6", errorConfig.color)} />
         </div>
 
-        <div className="space-y-2 max-w-md">
-          <h3 className="text-lg font-semibold">{errorConfig.title}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+        <div className="space-y-1 max-w-md">
+          <h3 className="text-xs font-semibold">{errorConfig.title}</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {error.message}
           </p>
           {error.retryAfter && (
@@ -191,6 +256,49 @@ function ErrorDisplay({
   );
 }
 
+function ForbiddenWelcomeScreen({ locale }: { locale: string }) {
+  return (
+    <Card className="overflow-hidden border  ">
+      <CardContent className="p-5 sm:p-8">
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 ring-1 ring-orange-400/30 sm:h-20 sm:w-20">
+            <Pizza className="h-8 w-8 text-orange-600 sm:h-10 sm:w-10" />
+          </div>
+
+          <h2 className="text-xl font-semibold tracking-tight sm:text-3xl">
+            Welcome to Pizza Dashboard
+          </h2>
+
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
+            Here you can see details about your stores.
+            <br />
+            Enjoy exploring the dashboard.
+          </p>
+
+          <div className="mt-5 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            {/* <Button asChild className="w-full sm:w-auto">
+              <a href={`/${locale}/dashboard`}>
+                <Store className="me-2 h-4 w-4" />
+                Open Dashboard
+              </a>
+            </Button> */}
+            <Button variant="outline" asChild className="w-full sm:w-auto">
+              <a
+                href="https://tasks.rdexperts.tech/support-ticket"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="me-2 h-4 w-4" />
+                Contact Support
+              </a>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ────────────────────────────────────────────────────────────────────────── */
 /*  Main Dashboard                                                          */
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -203,9 +311,19 @@ function ErrorDisplay({
  *  - Last-updated timestamp
  *  - Smooth loading transitions
  */
-export function DsprDashboard() {
+interface DsprDashboardProps {
+  /** Controlled date — pass this + onSelectedDateChange to sync the date across multiple mounted dashboard UIs (e.g. the main/V1 toggle). Uncontrolled (defaults to yesterday) when omitted. */
+  selectedDate?: Date;
+  onSelectedDateChange?: (date: Date) => void;
+}
+
+export function DsprDashboard({
+  selectedDate: controlledDate,
+  onSelectedDateChange,
+}: DsprDashboardProps = {}) {
   const {
     data,
+    wbrData,
     isLoading,
     isRefreshing,
     error,
@@ -215,14 +333,19 @@ export function DsprDashboard() {
     clearError,
     isStale,
     selectedStore,
-  } = useDspr();
+  } = useWbrCard();
 
   const params = useParams();
   const locale = (params?.locale as string) || "en";
 
   // Default date = yesterday
-  const [selectedDate, setSelectedDate] = useState<Date>(subDays(new Date(), 1));
+  const [internalDate, setInternalDate] = useState<Date>(
+    subDays(new Date(), 1),
+  );
+  const selectedDate = controlledDate ?? internalDate;
+  const setSelectedDate = onSelectedDateChange ?? setInternalDate;
   const [dateOpen, setDateOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   // Re-fetch when date changes
   const handleDateSelect = useCallback(
@@ -232,11 +355,15 @@ export function DsprDashboard() {
       setDateOpen(false);
       refetch(toApiDate(date));
     },
-    [refetch]
+    [refetch, setSelectedDate],
   );
 
   // Re-fetch when the selected store changes
-  const storeId = selectedStore?.id ?? null;
+  // Use the human-readable storeId (e.g. "03795-00021") — this is what the DSPR API expects
+  const storeId = selectedStore?.storeId ?? selectedStore?.id ?? null;
+  // Numeric id used as the storePermissions map key for canAccessRoute checks
+  const storeNumericId = selectedStore?.id ?? null;
+  // console.log("[DsprDashboard] render:", { storeId, selectedStore: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null, hasData: !!data, isLoading, error });
   const selectedDateRef = useRef(selectedDate);
 
   useEffect(() => {
@@ -249,11 +376,359 @@ export function DsprDashboard() {
     }
   }, [storeId, refetch]);
 
+  // Manager dashboard — shared fetch for employee cards
+  const managerDashboard = useManagerDashboard(
+    storeId,
+    toApiDate(selectedDate),
+  );
+
+  // Hooks WBR — complaints, feedbacks, money_owed for the week
+  const hooksWbr = useHooksWbr(storeId, toApiDate(selectedDate));
+
   // Format "last updated" time
   const lastUpdatedLabel = useMemo(() => {
     if (!lastFetchedAt) return null;
     return formatDistanceToNow(lastFetchedAt, { addSuffix: true });
   }, [lastFetchedAt]);
+
+  // Guide steps — drop the Store Goals step when there are no non-upselling goals.
+  // goal_metrics is an array; an empty array or one containing only "Upselling"
+  // entries means the StoreGoals ribbon won't show anything meaningful.
+  const guideSteps = useMemo(() => {
+    const hasGoals =
+      Array.isArray(data?.goal_metrics) &&
+      data.goal_metrics.some(
+        (m: { metric_name: string }) => m.metric_name !== "Upselling",
+      );
+    if (hasGoals) return DSPR_GUIDE_STEPS;
+    return DSPR_GUIDE_STEPS.filter((s) => s.id !== "dspr-goals");
+  }, [data?.goal_metrics]);
+
+  // ── Screenshot ref & handler ───────────────────────────────────────────
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isCapturingReport, setIsCapturingReport] = useState(false);
+  const [isCapturingStorePerformance, setIsCapturingStorePerformance] = useState(false);
+  const [storePerfDialogOpen, setStorePerfDialogOpen] = useState(false);
+  const [isCapturingDsprDailyReport, setIsCapturingDsprDailyReport] = useState(false);
+  const [dsprDailyReportDialogOpen, setDsprDailyReportDialogOpen] = useState(false);
+
+  // Toggle to remove section backgrounds (persisted in localStorage)
+  const [hideSectionBackgrounds, setHideSectionBackgrounds] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("dspr.hideSectionBackgrounds");
+      if (v !== null) setHideSectionBackgrounds(JSON.parse(v));
+    } catch (err) {
+      // ignore
+    }
+  }, []);
+
+  const handleScreenshot = useCallback(async () => {
+    if (!dashboardRef.current || isCapturing) return;
+    setIsCapturing(true);
+
+    const node = dashboardRef.current;
+
+    // Hide the screenshot button & refresh shimmer during capture
+    const btn = node.querySelector<HTMLElement>("[data-screenshot-btn]");
+    const ignored = node.querySelectorAll<HTMLElement>(
+      "[data-screenshot-ignore]",
+    );
+    if (btn) btn.style.display = "none";
+    ignored.forEach((el) => (el.style.display = "none"));
+
+    try {
+      // Resolve the background color
+      const isDark = document.documentElement.classList.contains("dark");
+      const bgColor = isDark ? "#09090b" : "#ffffff";
+
+      // Wait for animations / chart reflows to settle
+      await new Promise((r) => setTimeout(r, 400));
+
+      const canvas = await html2canvas(node, {
+        scale: 4,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: bgColor,
+        logging: false,
+        removeContainer: true,
+        imageTimeout: 5000,
+      });
+
+      // Restore hidden elements .
+      if (btn) btn.style.display = "";
+      ignored.forEach((el) => (el.style.display = ""));
+
+      // Download the image
+      const storeName = selectedStore?.name ?? selectedStore?.id ?? "dashboard";
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const link = document.createElement("a");
+      link.download = `DSPR-${storeName}-${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err: unknown) {
+      // Restore hidden elements on failure
+      if (btn) btn.style.display = "";
+      ignored.forEach((el) => (el.style.display = ""));
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : JSON.stringify(err);
+      console.error("Screenshot failed:", message, err);
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [isCapturing, selectedStore, selectedDate]);
+
+  // ── Screenshot the printable "Focus on the Five" HTML report as a PNG ───
+  // Renders the report off-screen in a hidden iframe (so its own fonts/CSS
+  // apply), waits for it to finish loading, then captures it with the same
+  // html2canvas approach as the live dashboard screenshot.
+  const handleScreenshotReport = useCallback(async () => {
+    if (!data || isCapturingReport) return;
+    setIsCapturingReport(true);
+
+    const html = buildDsprReportHtml(data, selectedDate);
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.top = "0";
+    iframe.style.left = "-99999px";
+    iframe.style.width = "1180px";
+    iframe.style.height = "2000px";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        iframe.onload = () => resolve();
+        iframe.onerror = () => reject(new Error("Failed to render report"));
+        iframe.srcdoc = html;
+      });
+
+      const doc = iframe.contentDocument;
+      const dashboardEl = doc?.querySelector<HTMLElement>(".dashboard");
+      if (!doc || !dashboardEl) throw new Error("Report content did not render");
+
+      // Wait for web fonts + Font Awesome icons to finish loading.
+      try {
+        await doc.fonts?.ready;
+      } catch {
+        // ignore — fall through to the fixed delay below
+      }
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Resize the iframe to the report's actual rendered height before capture.
+      iframe.style.height = `${dashboardEl.scrollHeight}px`;
+      await new Promise((r) => setTimeout(r, 50));
+
+      const canvas = await html2canvas(dashboardEl, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#efefef",
+        logging: false,
+        imageTimeout: 8000,
+      });
+
+      const storeName = selectedStore?.storeId ?? selectedStore?.id ?? "store";
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const link = document.createElement("a");
+      link.download = `DSPR-Report-${storeName}-${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Report screenshot failed:", err);
+    } finally {
+      document.body.removeChild(iframe);
+      setIsCapturingReport(false);
+    }
+  }, [data, isCapturingReport, selectedDate, selectedStore]);
+
+  // ── Screenshot the "Daily Store Performance" HTML report as a PNG ───────
+  // Same off-screen iframe + html2canvas flow as handleScreenshotReport, for
+  // the second report design (tips, guest service, feedback/complaints, HNR,
+  // portal, "Yesterday Hero" employee photo). The employee name/photo and the
+  // footer message are collected by StorePerformanceReportDialog just before
+  // this runs — nothing here is derived from the logged-in user.
+  const handleScreenshotStorePerformance = useCallback(async (values: StorePerformanceReportValues) => {
+    if (!data || isCapturingStorePerformance) return;
+    setIsCapturingStorePerformance(true);
+
+    const html = buildStorePerformanceReportHtml(
+      {
+        data,
+        storeId: storeId ?? "store",
+        guestService: wbrData?.["customer-service"],
+        employeeName: values.employeeName,
+        employeeImageDataUrl: values.employeeImageDataUrl,
+        footerMessage: values.footerMessage,
+      },
+      selectedDate,
+    );
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.top = "0";
+    iframe.style.left = "-99999px";
+    iframe.style.width = "1180px";
+    iframe.style.height = "2000px";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        iframe.onload = () => resolve();
+        iframe.onerror = () => reject(new Error("Failed to render report"));
+        iframe.srcdoc = html;
+      });
+
+      const doc = iframe.contentDocument;
+      const dashboardEl = doc?.querySelector<HTMLElement>(".dashboard");
+      if (!doc || !dashboardEl) throw new Error("Report content did not render");
+
+      // Wait for web fonts + Font Awesome icons to finish loading.
+      try {
+        await doc.fonts?.ready;
+      } catch {
+        // ignore — fall through to the fixed delay below
+      }
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Resize the iframe to the report's actual rendered height before capture.
+      iframe.style.height = `${dashboardEl.scrollHeight}px`;
+      await new Promise((r) => setTimeout(r, 50));
+
+      const canvas = await html2canvas(dashboardEl, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#efefef",
+        logging: false,
+        imageTimeout: 8000,
+      });
+
+      const storeName = storeId ?? "store";
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const link = document.createElement("a");
+      link.download = `DSPR-StorePerformance-${storeName}-${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Store performance report screenshot failed:", err);
+    } finally {
+      document.body.removeChild(iframe);
+      setIsCapturingStorePerformance(false);
+    }
+  }, [
+    data,
+    isCapturingStorePerformance,
+    selectedDate,
+    storeId,
+    wbrData,
+  ]);
+
+  // ── Screenshot the "DSPR Report" HTML report as a PNG ───────────────────
+  // Same off-screen iframe + html2canvas flow as the other two reports, for
+  // the day-level HnR Special / Portal / Customer Service / Total Tips recap.
+  // The employee name/photo and the footer message are collected by
+  // DsprDailyReportDialog just before this runs.
+  const handleGenerateDsprDailyReport = useCallback(async (values: DsprReportValues) => {
+    if (!data || isCapturingDsprDailyReport) return;
+    setIsCapturingDsprDailyReport(true);
+
+    const html = buildDsprDailyReportHtml(
+      {
+        data,
+        storeId: storeId ?? "store",
+        employeeName: values.employeeName,
+        employeeImageDataUrl: values.employeeImageDataUrl,
+        footerMessage: values.footerMessage,
+      },
+      selectedDate,
+    );
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.top = "0";
+    iframe.style.left = "-99999px";
+    iframe.style.width = "900px";
+    iframe.style.height = "2000px";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        iframe.onload = () => resolve();
+        iframe.onerror = () => reject(new Error("Failed to render report"));
+        iframe.srcdoc = html;
+      });
+
+      const doc = iframe.contentDocument;
+      const dashboardEl = doc?.querySelector<HTMLElement>(".dashboard");
+      if (!doc || !dashboardEl) throw new Error("Report content did not render");
+
+      // Wait for web fonts to finish loading. The explicit per-face loads
+      // matter: html2canvas measures text against whatever is resolved at
+      // capture time, so a face that is still pending gets measured with a
+      // wider fallback and painted with the real one — which shows up as odd
+      // gaps between characters.
+      try {
+        await Promise.all([
+          doc.fonts?.load("700 40px Oswald"),
+          doc.fonts?.load("600 22px Oswald"),
+          doc.fonts?.load("500 14px Inter"),
+          doc.fonts?.load("700 13px Inter"),
+        ]);
+        await doc.fonts?.ready;
+      } catch {
+        // ignore — fall through to the fixed delay below
+      }
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Resize the iframe to the report's actual rendered height before capture.
+      iframe.style.height = `${dashboardEl.scrollHeight}px`;
+      await new Promise((r) => setTimeout(r, 50));
+
+      const canvas = await html2canvas(dashboardEl, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#efefef",
+        logging: false,
+        imageTimeout: 8000,
+      });
+
+      const storeName = storeId ?? "store";
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const link = document.createElement("a");
+      link.download = `DSPR-Daily-Report-${storeName}-${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("DSPR report screenshot failed:", err);
+    } finally {
+      document.body.removeChild(iframe);
+      setIsCapturingDsprDailyReport(false);
+    }
+  }, [data, isCapturingDsprDailyReport, selectedDate, storeId]);
+
+  const toggleHideBackgrounds = useCallback(() => {
+    setHideSectionBackgrounds((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(
+          "dspr.hideSectionBackgrounds",
+          JSON.stringify(next),
+        );
+      } catch (err) {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
 
   // ── Initial loading (no data yet) ──────────────────────────────────────
   if (isLoading && !data) {
@@ -264,14 +739,15 @@ export function DsprDashboard() {
   if (!selectedStore) {
     return (
       <Card className="border-2 border-dashed border-muted-foreground/25">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center gap-4">
-          <div className="rounded-full bg-muted p-4">
-            <Store className="h-10 w-10 text-muted-foreground" />
+        <CardContent className="flex flex-col items-center justify-center py-8 text-center gap-2">
+          <div className="rounded-full bg-muted p-2.5">
+            <Store className="h-6 w-6 text-muted-foreground" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No Store Selected</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Select a store from the sidebar to view its Daily Store Performance Report.
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold">No Store Selected</h3>
+            <p className="text-[11px] text-muted-foreground max-w-sm">
+              Select a store from the sidebar to view its Daily Store
+              Performance Report.
             </p>
           </div>
         </CardContent>
@@ -281,6 +757,10 @@ export function DsprDashboard() {
 
   // ── Error state (no data) ──────────────────────────────────────────────
   if (error && !data) {
+    if (error.code === "FORBIDDEN") {
+      return <ForbiddenWelcomeScreen locale={locale} />;
+    }
+
     return (
       <ErrorDisplay
         error={error}
@@ -295,14 +775,15 @@ export function DsprDashboard() {
   if (!data) {
     return (
       <Card className="border-2 border-dashed border-muted-foreground/25">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center gap-4">
-          <div className="rounded-full bg-muted p-4">
-            <CalendarIcon className="h-10 w-10 text-muted-foreground" />
+        <CardContent className="flex flex-col items-center justify-center py-8 text-center gap-2">
+          <div className="rounded-full bg-muted p-2.5">
+            <CalendarIcon className="h-6 w-6 text-muted-foreground" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No Report Data</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              No data is available for this store. Select a date to load the report.
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold">No Report Data</h3>
+            <p className="text-[11px] text-muted-foreground max-w-sm">
+              No data is available for this store. Select a date to load the
+              report.
             </p>
           </div>
           <Button
@@ -319,13 +800,23 @@ export function DsprDashboard() {
   }
 
   // ── Success: render dashboard ──────────────────────────────────────────
-  const { filtering, sales, top, day } = data;
+  const { filtering, sales, top, day, goal_metrics, store_score } = data;
 
   return (
-    <div className={cn("space-y-6", isRefreshing && "relative")}>
+    <div
+      ref={dashboardRef}
+      className={cn(
+        "space-y-1",
+        isRefreshing && "relative",
+        hideSectionBackgrounds && "no-section-backgrounds",
+      )}
+    >
       {/* ── Refresh overlay bar ──────────────────────────────────── */}
       {isRefreshing && (
-        <div className="absolute top-0 left-0 right-0 z-10">
+        <div
+          className="absolute top-0 left-0 right-0 z-10"
+          data-screenshot-ignore="true"
+        >
           <div className="h-0.5 bg-primary/30 rounded-full overflow-hidden">
             <div className="h-full w-1/3 bg-primary rounded-full animate-[shimmer_1.5s_ease-in-out_infinite]" />
           </div>
@@ -333,14 +824,17 @@ export function DsprDashboard() {
       )}
 
       {/* ── Header bar ───────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        className="flex flex-wrap items-center gap-1"
+        data-guide-id="dspr-header"
+      >
         {/* Store badge */}
         <Badge
           variant="secondary"
           className="text-xs gap-1.5 px-3 py-1 font-medium"
         >
           <Store className="h-3.5 w-3.5" />
-          Store {filtering.store}
+          Store {selectedStore.storeId}
         </Badge>
 
         {/* Date picker */}
@@ -350,11 +844,11 @@ export function DsprDashboard() {
               variant="outline"
               size="sm"
               className={cn(
-                "h-7 gap-1.5 text-xs font-medium",
-                !selectedDate && "text-muted-foreground"
+                "h-6 gap-1 text-xs font-medium",
+                !selectedDate && "text-muted-foreground",
               )}
             >
-              <CalendarIcon className="h-3.5 w-3.5" />
+              <CalendarIcon className="h-3 w-3" />
               {format(selectedDate, "MMM d, yyyy")}
             </Button>
           </PopoverTrigger>
@@ -369,10 +863,11 @@ export function DsprDashboard() {
           </PopoverContent>
         </Popover>
 
-        {/* Week badge */}
+        {/* Week badge — use week_start date for the number since the fiscal week
+            starts Tuesday; iso_week reflects the Monday end date which is +1 */}
         <Badge variant="outline" className="text-xs gap-1 px-2.5 py-1">
           <CalendarIcon className="h-3 w-3" />
-          Week {filtering.iso_week}
+          Week {getISOWeek(parseISO(filtering.week_start))}
           <span className="text-muted-foreground">
             ({filtering.week_start} → {filtering.week_end})
           </span>
@@ -391,7 +886,12 @@ export function DsprDashboard() {
                 onClick={() => refetch(toApiDate(selectedDate))}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); refetch(toApiDate(selectedDate)); } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    refetch(toApiDate(selectedDate));
+                  }
+                }}
               >
                 <AlertTriangle className="h-3 w-3" />
                 Refresh failed — tap to retry
@@ -402,7 +902,7 @@ export function DsprDashboard() {
         )}
 
         {/* Status indicators */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Stale indicator */}
           {isStale && !isRefreshing && (
             <Tooltip>
@@ -413,7 +913,12 @@ export function DsprDashboard() {
                   onClick={refresh}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); refresh(); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      refresh();
+                    }
+                  }}
                 >
                   <Clock className="h-3 w-3" />
                   Stale
@@ -434,9 +939,7 @@ export function DsprDashboard() {
                   {lastUpdatedLabel}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>
-                Last updated {lastUpdatedLabel}
-              </TooltipContent>
+              <TooltipContent>Last updated {lastUpdatedLabel}</TooltipContent>
             </Tooltip>
           )}
 
@@ -446,14 +949,14 @@ export function DsprDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6"
                 onClick={() => refetch(toApiDate(selectedDate))}
                 disabled={isRefreshing}
               >
                 {isRefreshing ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
+                  <RefreshCw className="h-3 w-3" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -461,34 +964,348 @@ export function DsprDashboard() {
               {isRefreshing ? "Refreshing…" : "Refresh report"}
             </TooltipContent>
           </Tooltip>
+
+          {/* Screenshot / Download report / Toggle section backgrounds */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                data-screenshot-btn
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                title="Export & view options"
+              >
+                {isCapturing || isCapturingReport || isCapturingDsprDailyReport /* || isCapturingStorePerformance — Store Performance report temporarily disabled */ ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <MoreVertical className="h-3 w-3" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={handleScreenshot} disabled={isCapturing}>
+                <Camera className="h-3.5 w-3.5 me-2" />
+                {isCapturing ? "Capturing…" : "Screenshot (Ultra HD)"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleScreenshotReport} disabled={!data || isCapturingReport}>
+                <ImageDown className="h-3.5 w-3.5 me-2" />
+                {isCapturingReport ? "Capturing…" : "Report screenshot (PNG)"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => setDsprDailyReportDialogOpen(true)}
+                disabled={!data || isCapturingDsprDailyReport}
+              >
+                <LayoutTemplate className="h-3.5 w-3.5 me-2" />
+                {isCapturingDsprDailyReport ? "Capturing…" : "DSPR Report (PNG)"}
+              </DropdownMenuItem>
+              {/* Store Performance report — temporarily disabled
+              <DropdownMenuItem
+                onSelect={() => setStorePerfDialogOpen(true)}
+                disabled={!data || isCapturingStorePerformance}
+              >
+                <LayoutTemplate className="h-3.5 w-3.5 me-2" />
+                {isCapturingStorePerformance ? "Capturing…" : "Store Performance report (PNG)"}
+              </DropdownMenuItem>
+              */}
+              <DropdownMenuItem onSelect={toggleHideBackgrounds}>
+                {hideSectionBackgrounds ? (
+                  <Eye className="h-3.5 w-3.5 me-2" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5 me-2" />
+                )}
+                {hideSectionBackgrounds ? "Show section backgrounds" : "Hide section backgrounds"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Store Performance report — temporarily disabled
+          <StorePerformanceReportDialog
+            open={storePerfDialogOpen}
+            onOpenChange={setStorePerfDialogOpen}
+            onGenerate={handleScreenshotStorePerformance}
+            isGenerating={isCapturingStorePerformance}
+          />
+          */}
+
+          <DsprDailyReportDialog
+            open={dsprDailyReportDialogOpen}
+            onOpenChange={setDsprDailyReportDialogOpen}
+            onGenerate={handleGenerateDsprDailyReport}
+            isGenerating={isCapturingDsprDailyReport}
+            employees={managerDashboard.data?.employees}
+          />
+
+          {/* Page guide button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setGuideOpen(true)}
+                aria-label="Open page guide"
+              >
+                <HelpCircle className="h-3 w-3" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Page guide</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
-      {/* ── Day summary stat cards ───────────────────────────────────── */}
-      <DaySummaryStats day={day} />
+      {/* ── Store goals ribbon ────────────────────────────────────── */}
+      {/* <div data-guide-id="dspr-goals">
+        <StoreGoals sales={sales} day={day} goalMetrics={goal_metrics} />
+      </div> */}
 
-      {/* ── Charts row (Sales + Hourly Channels) ────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SalesChart sales={sales} height={320} toolbar={false} />
+      {/* ── Day summary stats ribbon ────────────────────────────── */}
+      <div data-guide-id="dspr-summary">
+        <DaySummaryStats day={day} />
+      </div>
+
+      {/* ── Weekly Sales + Portal gauges ─────────────────────────── */}
+      <div
+        className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4"
+        data-guide-id="dspr-sales"
+      >
+        <SalesChart
+          sales={sales}
+          height={190}
+          toolbar={false}
+          laborWeekToDateByDay={day.labor_week_to_date_by_day}
+          className="md:col-span-2 lg:col-span-2"
+        />
+        {/* <div className="flex flex-row lg:col-span-2 rounded-xl border shadow-sm gap-0 overflow-hidden "> */}
+        <StoreScoreCard
+          upsellingScore={day.upselling_score}
+          goalMetrics={goal_metrics}
+          storeScore={store_score}
+          weeklyLaborEntries={managerDashboard.weeklyLabor?.entries}
+          date={selectedDate}
+          className="lg:col-span-1"
+        />
+        <PortalOnTimeDualGauge portal={day.portal} className="lg:col-span-1" />
+        {/* </div> */}
+      </div>
+
+      {/* ── HNR · Labor · Top 5 Menu Items ───────────────────────── */}
+      {/* <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3"> */}
+      <div
+        className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4"
+        data-guide-id="dspr-channels"
+      >
+        {/* <LaborGauge value={day.labor} /> */}
+
         <HourlyChannelsChart
           hourlyData={day.hourly_sales_and_channels}
-          height={320}
+          weeklyData={day.hourly_sales_and_channels_week_to_date_avg}
+          height={190}
           toolbar={false}
+          className="md:col-span-2 lg:col-span-1"
+        />
+        <DailySalesByChannelChart
+          totalSales={day.total_sales}
+          weeklyTotalSales={day.total_sales_week_to_date_avg}
+          height={200}
+          toolbar={false}
+          className="md:col-span-2 lg:col-span-1"
+        />
+        <HnrCard
+          hnr={day.hnr}
+          weeklyHnr={day.hnr_week_to_date}
+          weeklyAvgHnr={day.hnr_week_to_date_avg}
+          importantItemsHnr={day.important_items_hnr}
+          weeklyImportantItemsHnr={day.important_items_hnr_week_to_date}
+          weeklyAvgImportantItemsHnr={day.important_items_hnr_week_to_date_avg}
+        />
+        <LaborGauge
+          value={day.labor}
+          weeklyValue={day.labor_week_to_date}
+          weeklyAvgValue={day.labor_week_to_date_avg}
+          weeklyLaborEntries={managerDashboard.weeklyLabor?.entries}
+          laborWeekToDateByDay={day.labor_week_to_date_by_day}
         />
       </div>
 
-      {/* ── HNR · Portal · Labor row ─────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <HnrCard hnr={day.hnr} />
-        <PortalCard portal={day.portal} />
-        <LaborGauge value={day.labor} />
+      {/* ── Sales History ─────────────────────────────────────────── */}
+      <div data-guide-id="dspr-sales-history">
+        <SalesHistoryCard data={wbrData?.["sales-history"]} isLoading={isLoading} />
       </div>
 
-      {/* ── Top items + ingredients ───────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <TopItemsList items={top.top_5_items_sales_for_day} />
-        <TopIngredientsList ingredients={top.top_3_ingredients_used} />
+      {/* ── Hourly + Daily Channel Sales ────────────────────────── */}
+      <div
+        className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4"
+        data-guide-id="dspr-top-lists"
+      >
+        <TopItemsList
+          items={top.top_5_items_sales_for_day}
+          weeklyItems={top.top_5_items_sales_week_to_date}
+          countItems={top.top_5_items_count_for_day}
+          weeklyCountItems={top.top_5_items_count_week_to_date}
+          upselling={day.upselling}
+          className="sm:col-span-2 lg:col-span-1"
+        />
+        <TopIngredientsList
+          mainIngredients={top?.ingredients?.main_5_ingredients_usage ?? []}
+          paperIngredients={
+            top?.ingredients?.top_paper_5_ingredients_usage ?? []
+          }
+          usedIngredients={top?.ingredients?.top_3_ingredients_used ?? []}
+          highVarianceIngredients={
+            top?.ingredients?.top_5_ingredients_variance_high
+          }
+          lowVarianceIngredients={
+            top?.ingredients?.top_5_ingredients_variance_low
+          }
+          className="sm:col-span-2 lg:col-span-1"
+        />
+        <RecentMaintenanceTable />
+        <TopQaRatingsCard
+          requirements={[
+            {
+              service: "QA",
+              method: "GET",
+              path: "/audits/ratings-summary/overview",
+              storeId: storeNumericId ? String(storeNumericId) : undefined,
+            },
+          ]}
+        />
       </div>
+
+      {/* ── Current Employees + Birthday + Top Hours ──────────────── */}
+      <div
+        className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4"
+        data-screenshot-ignore="true"
+        data-guide-id="dspr-employees"
+      >
+        <CurrentEmployeesTable
+          requirements={[
+            {
+              service: "Hiring",
+              method: "GET",
+              path: "/v1/stores/*/employees",
+              storeId: storeNumericId ? String(storeNumericId) : undefined,
+            },
+            {
+              service: "Hiring",
+              method: "GET",
+              path: "/v1/stores/*/manager-dashboard/*",
+              storeId: storeNumericId ? String(storeNumericId) : undefined,
+            },
+          ]}
+          managerDashboard={managerDashboard}
+          className="sm:col-span-3 lg:col-span-3"
+        />
+        <EmployeeBirthday
+          requirements={[
+            {
+              service: "Hiring",
+              method: "GET",
+              path: "/v1/stores/*/manager-dashboard/*",
+              storeId: storeNumericId ? String(storeNumericId) : undefined,
+            },
+          ]}
+          managerDashboard={managerDashboard}
+          className="lg:col-span-1"
+        />
+        {/* <TopEmployeeHours
+          requirements={[
+            {
+              service: "Hiring",
+              method: "GET",
+              path: "/v1/stores/*
+              /manager-dashboard/*",
+              storeId: storeNumericId ? String(storeNumericId) : undefined,
+            },
+          ]}
+          managerDashboard={managerDashboard}
+          className="lg:col-span-1"
+        /> */}
+      </div>
+
+      {/* ── WBR Cards ───────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <WbrCustomerSalesCard data={wbrData?.["customer-count-and-sales"]} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrPhoneSalesCard data={wbrData?.["phone-and-adjusted-sales"]} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrChannelSalesCard data={wbrData?.["channel-sales"]} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrCashControlCard data={wbrData?.["cash-control"]} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrPromoCard data={wbrData?.promo} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrLtoCard data={wbrData?.lto} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrPortalWeeklyCard data={wbrData?.["portal-weekly"]} isLoading={isLoading} />
+        </div>
+
+        <div>
+          <WbrGoToCard data={wbrData?.["go-to"]} isLoading={isLoading} />
+        </div>
+
+        <div className="md:col-span-2 lg:col-span-2" data-screenshot-ignore="true">
+          <WbrHighHoursCard data={managerDashboard.highHoursEmployees} isLoading={managerDashboard.isLoading} />
+        </div>
+
+        <div>
+          <WbrOrdersVsSalesCard data={wbrData?.["orders-vs-sales"]} isLoading={isLoading} />
+        </div>
+
+        <div data-screenshot-ignore="true">
+          <WbrTransferInOutCard data={wbrData?.["transfer-in-out"]} storeId={storeId} isLoading={isLoading} />
+        </div>
+
+        <div className="md:col-span-2 lg:col-span-2">
+          <WbrNonNegotiableCard data={wbrData?.["non-negotiable-reports"]} isLoading={isLoading} />
+        </div>
+
+        <div data-screenshot-ignore="true">
+          <WbrComplaintsCard data={hooksWbr.data?.complaints} isLoading={hooksWbr.isLoading} />
+        </div>
+
+        <div data-screenshot-ignore="true">
+          <WbrFeedbacksCard data={hooksWbr.data?.feedbacks} isLoading={hooksWbr.isLoading} />
+        </div>
+
+        <div className="md:col-span-2 lg:col-span-1" data-screenshot-ignore="true">
+          <WbrMoneyOwedCard data={hooksWbr.data?.money_owed} isLoading={hooksWbr.isLoading} />
+        </div>
+
+        <div>
+          <WbrAveragePayCard data={managerDashboard.averageHourlyPay} isLoading={managerDashboard.isLoading} />
+        </div>
+
+        <div>
+          <WbrCustomerServiceCard data={wbrData?.["customer-service"]} isLoading={isLoading} />
+        </div>
+        
+        <div>
+          <WbrCleaningReviewCard data={wbrData?.["cleaning-review"]} isLoading={isLoading} />
+        </div>
+
+        <div className="md:col-span-2 lg:col-span-4">
+          <WbrPortioningCard data={wbrData?.portioning} isLoading={isLoading} />
+        </div>
+      </div>
+      <PageGuide
+        steps={guideSteps}
+        isOpen={guideOpen}
+        onClose={() => setGuideOpen(false)}
+      />
     </div>
   );
 }

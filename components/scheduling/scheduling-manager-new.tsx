@@ -1,0 +1,2979 @@
+"use client";
+
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { fmtFixed } from "@/lib/utils/number-display";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Search,
+  Filter,
+  Users,
+  Clock,
+  TrendingUp,
+  ChevronDown,
+  FileSpreadsheet,
+  Camera,
+  Loader2,
+  RefreshCw,
+  Copy,
+  Trash2,
+  BookmarkPlus,
+  FolderOpen,
+  AlertTriangle,
+  Send,
+  Store,
+  History,
+  CalendarOff,
+  CalendarCheck,
+  ClipboardCheck,
+  GitCompare,
+  HelpCircle,
+  Radio,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PageHeader } from "@/components/layout/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScheduleErrorAlert } from "./schedule-error-alert";
+import { captureFullElement } from "@/lib/screenshot";
+import { useErrorAnnouncer } from "@/lib/hooks/use-error-announcer";
+import { AdjustShiftDialog } from "./adjust-shift-dialog";
+import { OnTheClockDialog } from "./on-the-clock-dialog";
+import { PageGuide, type GuideStep } from "@/components/shared/page-guide";
+import {
+  SCHEDULING_GUIDE,
+  type SchedulingGuideEntry,
+  type SchedulingGuideView,
+} from "./scheduling-guide-config";
+import { useSelectedStoreStore } from "@/lib/store/selected-store.store";
+import { useScheduleWeek } from "@/lib/hooks/use-schedule-week";
+import { useShiftMutations } from "@/lib/hooks/use-shift-mutations";
+import { useActualShiftMutations } from "@/lib/hooks/use-actual-shift-mutations";
+import { useScheduleTemplates } from "@/lib/hooks/use-schedule-templates";
+import { usePublishedSchedules } from "@/lib/hooks/use-published-schedules";
+import { useBulkOperation } from "@/lib/hooks/use-bulk-operation";
+import {
+  useScheduleDraftStore,
+  useWeekDrafts,
+  useWeekDraftSaveMode,
+  type DraftShift,
+} from "@/lib/scheduling/draft.store";
+import { DraftActionBar } from "./draft-action-bar";
+import {
+  useUnsavedShiftsGuard,
+  UnsavedShiftsDialog,
+} from "./unsaved-shifts-guard";
+import { useAvailabilityMutations } from "@/lib/hooks/use-availability-mutations";
+import {
+  schedulingService,
+  handleUnauthorized,
+} from "@/lib/api/services/scheduling.service";
+import { adaptScheduleWeek } from "@/lib/scheduling/adapters";
+import { parseSchedulingError } from "@/lib/scheduling/errors";
+import { ScheduleGrid } from "./schedule-grid-new";
+import { AddShiftDialogNew } from "./add-shift-dialog-new";
+import { EditActualShiftDialog } from "./edit-actual-shift-dialog";
+import { PublishedSchedules } from "./published-schedules";
+import { DataFreshness } from "./data-freshness";
+import { ShiftLegend } from "./shift-legend";
+import { pendingActualKey, pendingShiftKey } from "./shift-pending";
+import { BulkOperationProgress } from "./bulk-operation-progress";
+import { ScheduleWarningDialog } from "./schedule-warning-dialog";
+import {
+  ScheduleSetupError,
+  type SetupErrorCode,
+} from "./schedule-setup-error";
+import {
+  AvailabilityTimeOffDialog,
+  type AvailabilityOverrideDraft,
+  type TimeOffDraft,
+} from "./availability-time-off-dialog";
+import {
+  DEFAULT_OVERTIME_THRESHOLD,
+  calcHours,
+  formatTime,
+  formatWorkedEnd,
+} from "@/lib/scheduling/constants";
+
+/**
+ * Last-resort rate, used only when an employee has no rate on file AND the
+ * store's own `defaultLaborRate` has not loaded yet. The resolution order is
+ * employee rate -> store default -> this.
+ */
+const FALLBACK_LABOR_RATE = 15;
+
+/** Stable empty arrays — a fresh `[]` each render would invalidate every memo. */
+const NO_SHIFTS: Shift[] = [];
+const NO_ACTUAL_SHIFTS: ActualShift[] = [];
+const NO_AVAILABILITY: AvailabilityRule[] = [];
+const NO_TIME_OFF: TimeOffEntry[] = [];
+import {
+  DEFAULT_WEEK_START_DOW,
+  buildWeekInfo,
+  dateForDayIndex,
+  formatIsoDateWithWeekday,
+  shiftIsoDate,
+  snapToWeekStart,
+  todayIso,
+  formatTimestamp,
+} from "@/lib/scheduling/week";
+import {
+  conflictedShiftIds,
+  mergeActualShifts,
+} from "@/lib/scheduling/utils";
+import type {
+  Shift,
+  ScheduleTemplate,
+  ScheduleEmployee,
+  ScheduleDepartment,
+  ScheduleStats,
+  AvailabilityRule,
+  TimeOffEntry,
+  ActualShift,
+  ActualShiftSegment,
+} from "@/types/scheduling.types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export function SchedulingManager() {
+  const { selectedStore } = useSelectedStoreStore();
+  /**
+   * The store_number (e.g. "03795-00001"), NOT the numeric internal id.
+   * OperationsPizza scopes every route by store_number; passing `.id` here
+   * would 404 on every call.
+   */
+  const storeId = selectedStore?.storeId ?? selectedStore?.id ?? null;
+
+  /**
+   * The displayed week, as the ISO date of its first day.
+   *
+   * Deliberately NOT a relative offset: an offset is resolved against
+   * `new Date()` on every render, so a tab left open across a week-start
+   * midnight would silently re-point every cached week at a different
+   * calendar week. The server snaps whatever date we send to the store's true
+   * week start and reports it back.
+   */
+  const [weekStart, setWeekStart] = useState<string>(() =>
+    snapToWeekStart(todayIso(), DEFAULT_WEEK_START_DOW)
+  );
+
+  // Planned vs Actual toggle + Comparison mode
+  const [scheduleMode, setScheduleMode] = useState<"planned" | "actual">("planned");
+  const [comparisonMode, setComparisonMode] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [department, setDepartment] = useState("All");
+  /**
+   * Show only the shifts the server flagged as warranting a look.
+   *
+   * Off by default, and deliberately so. The backend's handoff suggests
+   * defaulting a review grid to this, but this grid is the whole week's
+   * schedule rather than a queue — opening Actual on a clean week and finding
+   * it empty reads as missing data, not as nothing to do.
+   */
+  const [attentionOnly, setAttentionOnly] = useState(false);
+  /** The shift whose split/merge dialog is open. */
+  const [adjustingActual, setAdjustingActual] = useState<ActualShift | null>(
+    null,
+  );
+  const [onTheClockOpen, setOnTheClockOpen] = useState(false);
+  /** The alert stack, so a new failure can scroll itself into view. */
+  const alertsRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * One request serves all three views.
+   *
+   * This used to derive an `apiMode` per view, which made every toggle refetch.
+   * `useScheduleWeek` now always asks for `mode=both` — a strict superset, since
+   * `displayShifts` is merged locally below and the server's `stats` describes
+   * the plan in every mode — so switching views costs nothing.
+   */
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    error: weekError,
+    setupError,
+    refetch,
+    revalidateIfStale,
+    lastFetchedAt,
+  } = useScheduleWeek({ storeId, weekStart, department, search });
+
+  /**
+   * Re-check freshness when the view changes.
+   *
+   * The toggle does not change what is requested — one `both` response serves
+   * Planned, Actual and Compare — so without this a manager parked on one week
+   * could toggle all day and never see another manager's edits. Guarded on the
+   * view actually changing: `revalidateIfStale` also changes identity when the
+   * week does, and that path has just fetched, so firing there would double up.
+   */
+  const prevViewRef = useRef<string>("");
+  useEffect(() => {
+    const view = `${scheduleMode}|${comparisonMode}`;
+    if (prevViewRef.current && prevViewRef.current !== view) {
+      revalidateIfStale();
+    }
+    prevViewRef.current = view;
+  }, [scheduleMode, comparisonMode, revalidateIfStale]);
+
+  /**
+   * Render from the server's week object once it arrives. The local fallback
+   * only covers the very first paint, before any payload exists.
+   */
+  const week = useMemo(
+    () => data?.week ?? buildWeekInfo(weekStart, DEFAULT_WEEK_START_DOW),
+    [data?.week, weekStart]
+  );
+
+  const employees: ScheduleEmployee[] = data?.employees ?? [];
+  const departments: ScheduleDepartment[] = data?.departments ?? [];
+  const store = data?.store ?? null;
+  const overtimeThreshold = store?.overtimeThresholdHours ?? DEFAULT_OVERTIME_THRESHOLD;
+
+  /** employeeId -> employee, for rate and sync lookups. */
+  const employeeLookup = useMemo(
+    () => new Map(employees.map((e) => [e.id, e])),
+    [employees]
+  );
+
+  /**
+   * Read straight from the payload — there is no local copy.
+   *
+   * Every write goes to the API and is followed by a refetch, so a mirror would
+   * only add a frame where the screen disagrees with the server. The shared
+   * empty arrays keep referential identity stable while `data` is null, so the
+   * memos below do not churn.
+   */
+  const shifts = data?.shifts ?? NO_SHIFTS;
+  const actualShifts = data?.actualShifts ?? NO_ACTUAL_SHIFTS;
+  const availability = data?.availability ?? NO_AVAILABILITY;
+  const timeOff = data?.timeOff ?? NO_TIME_OFF;
+
+  // Actual-shift edit dialog state
+  const [actualDialogOpen, setActualDialogOpen] = useState(false);
+  const [editingActualTarget, setEditingActualTarget] = useState<{
+    employeeId: string;
+    dayIndex: number;
+    plannedShift?: Shift;
+    actual?: ActualShift;
+  } | null>(null);
+
+  const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
+  const [isEmployeeScreenshot, setIsEmployeeScreenshot] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);
+  const [publishedOpen, setPublishedOpen] = useState(false);
+  /**
+   * Deleting an actual now deletes the employee's TCP work segment with it —
+   * real payroll data, and no undo. It was a one-click hover button, which is
+   * too little friction for that.
+   */
+  const [deletingActual, setDeletingActual] = useState<ActualShift | null>(null);
+
+  /**
+   * Which shifts have an action in flight, so the card can show it.
+   *
+   * Every mutation here is fire-and-refetch, so between the click and the week
+   * coming back nothing on the card moved — and silence reads as "it didn't
+   * register", which invites a second click on something that already fired.
+   */
+  const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+
+  const withPending = useCallback(
+    async (keys: string[], action: () => Promise<unknown>) => {
+      setPendingIds((prev) => new Set([...prev, ...keys]));
+      try {
+        await action();
+      } finally {
+        // `finally` matters: a rejected mutation must not leave the card
+        // stuck faded with a spinner that never stops.
+        setPendingIds((prev) => {
+          const next = new Set(prev);
+          for (const k of keys) next.delete(k);
+          return next;
+        });
+      }
+    },
+    [],
+  );
+  /**
+   * A setup failure surfaced by a WRITE rather than the initial fetch. The hook
+   * reports fetch-time ones separately; either replaces the grid.
+   */
+  const [writeSetupError, setWriteSetupError] = useState<{
+    code: SetupErrorCode;
+    message: string;
+  } | null>(null);
+
+  const bulk = useBulkOperation({
+    storeId,
+    onSettled: (operation) => {
+      refetch();
+      /**
+       * A whole-batch failure means nothing was created, so the manager's layout
+       * must come back rather than vanish. Per-item failures are NOT restored —
+       * those are recoverable server-side through `retry-failed`, which the
+       * progress dialog already offers, and re-drafting them would double up.
+       */
+      if (operation?.status === "failed" && lastSubmittedDraftsRef.current.length) {
+        // `onSettled` lives in a ref that is refreshed every render, so these
+        // read current values rather than the ones from mount.
+        replaceDraftWeek(
+          storeId!,
+          week.start,
+          lastSubmittedDraftsRef.current.map(({ draftId: _drop, ...rest }) => rest),
+          "merge"
+        );
+        lastSubmittedDraftsRef.current = [];
+        toast.error("Nothing was saved — your shifts have been put back.");
+      }
+    },
+  });
+
+  const templates = useScheduleTemplates({ storeId });
+
+  const published = usePublishedSchedules({
+    storeId,
+    onSuccess: (message) => toast.success(message),
+  });
+
+  const availabilityMutations = useAvailabilityMutations({
+    storeId,
+    // The week payload carries the store's real week start, which the
+    // day_index -> day_of_week conversion depends on.
+    weekStartDow: week.weekStartDow,
+    refetchWeek: refetch,
+    onSuccess: (message) => toast.success(message),
+    onRefused: (message) => toast.error(message),
+  });
+
+  const actualMutations = useActualShiftMutations({
+    storeId,
+    refetchWeek: refetch,
+    onSuccess: (message) => toast.success(message),
+  });
+
+  const mutations = useShiftMutations({
+    storeId,
+    refetchWeek: refetch,
+    onSetupError: (code, message) => setWriteSetupError({ code, message }),
+    onSuccess: (kind) => {
+      // Delete says so itself, because its toast carries the Undo action and
+      // needs the shift that was removed in order to offer it.
+      if (kind !== "delete") {
+        toast.success(kind === "update" ? "Shift updated" : "Shift added");
+      }
+      if (kind !== "delete") {
+        // Also covers the replay that fires once an employee finishes setup,
+        // which does not run through the caller's promise chain.
+        setShiftDialogOpen(false);
+        setPendingAdd(null);
+        setEditingShift(null);
+      }
+    },
+  });
+
+  // Template dialog state (the list itself lives in useScheduleTemplates)
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [loadTemplateOpen, setLoadTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Shift dialog state
+  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
+  const [pendingAdd, setPendingAdd] = useState<{
+    employeeId: string;
+    dayIndex: number;
+  } | null>(null);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  /** Set when the dialog is editing an UNSAVED shift rather than a saved one. */
+  const [editingDraft, setEditingDraft] = useState<DraftShift | null>(null);
+  const [cancelDraftsOpen, setCancelDraftsOpen] = useState(false);
+  const [isCopyingWeek, setIsCopyingWeek] = useState(false);
+  /** The set most recently submitted, so a failed batch can be restored. */
+  const lastSubmittedDraftsRef = useRef<DraftShift[]>([]);
+
+  /* ── Drafts ──────────────────────────────────────────────────────────────
+   * Adding a shift is local until Save. Drafts are persisted per store + week,
+   * so changing week or store parks them rather than losing them.
+   */
+  const drafts = useWeekDrafts(storeId, week.start);
+  const draftSaveMode = useWeekDraftSaveMode(storeId, week.start);
+  const addDraft = useScheduleDraftStore((st) => st.addDraft);
+  const updateDraft = useScheduleDraftStore((st) => st.updateDraft);
+  const removeDraft = useScheduleDraftStore((st) => st.removeDraft);
+  const clearDraftWeek = useScheduleDraftStore((st) => st.clearWeek);
+  const replaceDraftWeek = useScheduleDraftStore((st) => st.replaceWeek);
+  const pruneExpiredDrafts = useScheduleDraftStore((st) => st.pruneExpired);
+
+  useEffect(() => {
+    pruneExpiredDrafts();
+  }, [pruneExpiredDrafts]);
+
+  const hasDrafts = drafts.length > 0;
+
+  /** Warns before any action that moves away from drafted shifts. */
+  const guard = useUnsavedShiftsGuard({ hasDrafts, draftCount: drafts.length });
+
+
+  /**
+   * The roster, already filtered by the server.
+   *
+   * `department` and `search` are sent with the week request, and the server
+   * filters the roster AND the shifts together — so a filtered grid never shows
+   * a card with no row to sit on. Filtering again here would double-filter.
+   */
+  const filteredEmployees = employees;
+
+  /**
+   * How many rows are actually on screen.
+   *
+   * The badge below counts the roster, which the server already narrowed. The
+   * attention filter narrows it again on the client, so without this the badge
+   * would announce twelve employees above a grid showing two.
+   */
+  const visibleEmployeeCount = useMemo(() => {
+    if (!attentionOnly) return filteredEmployees.length;
+    const flagged = new Set(
+      actualShifts.filter((a) => a.needsAttention).map((a) => a.employeeId),
+    );
+    return filteredEmployees.filter((e) => flagged.has(e.id)).length;
+  }, [attentionOnly, actualShifts, filteredEmployees]);
+
+  /** How many shifts the server has flagged, for the filter's own badge. */
+  const attentionCount = useMemo(
+    () => actualShifts.filter((a) => a.needsAttention).length,
+    [actualShifts]
+  );
+
+  /**
+   * The week's counts are in motion and must not be read as fact.
+   *
+   * Covers the whole gap, not just the refetch: drafts clear the moment a batch
+   * is ACCEPTED, so from that instant until the new week lands the totals
+   * describe neither what was there before nor what is there now. Measured at
+   * about five seconds, every second of which used to read "0 shifts" beneath a
+   * dialog reporting success.
+   */
+  const weekIsSettling =
+    isRefetching ||
+    bulk.isStarting ||
+    // Still working. Once it finishes, `isRefetching` carries the rest — the
+    // dialog lingers a moment after that, and claiming to be busy underneath
+    // a result that has already landed is its own small lie.
+    (bulk.operation !== null &&
+      bulk.operation.status !== "completed" &&
+      bulk.operation.status !== "completed_with_errors" &&
+      bulk.operation.status !== "failed");
+
+  /** "All" plus the store's mapped Humanity positions, from the payload. */
+  const departmentOptions = useMemo(
+    () => ["All", ...departments.map((d) => d.name)],
+    [departments]
+  );
+
+  /**
+   * Reviewed-only "what really happened" list — planned shifts merged with their
+   * linked actual entries, un-reviewed ghosts and no-shows excluded, plus any
+   * ad-hoc coverage. Pure planned mode just shows the plan as-is; Actual and
+   * Comparison modes both need the merged reality to compute totals/conflicts.
+   */
+  const displayShifts = useMemo(
+    () =>
+      scheduleMode === "planned" && !comparisonMode
+        ? shifts
+        : mergeActualShifts(shifts, actualShifts),
+    [scheduleMode, comparisonMode, shifts, actualShifts]
+  );
+
+  /**
+   * Summary stats.
+   *
+   * In planned mode the server's `stats` wins outright — it is computed from the
+   * same `duration_minutes` values and includes a labor cost resolved per
+   * employee, so recomputing here could only disagree with it.
+   *
+   * Actual and comparison modes have no server equivalent: `stats` describes the
+   * PLAN. Those totals are derived locally from the merged reality, still using
+   * `durationMinutes` rather than wall-clock arithmetic.
+   *
+   * Note the rates behind the local figure are each employee's CURRENT rate —
+   * the API does not expose the rate in force on the viewed date — so a past
+   * week's cost can change after someone's raise.
+   */
+  const isPlannedOnly = scheduleMode === "planned" && !comparisonMode;
+
+  /**
+   * Guard a view-mode change, but only when it moves AWAY from planned.
+   *
+   * Drafts live in the planned view: that is where they render and where Save
+   * lives. Switching back to planned brings them into view, so warning there is
+   * backwards — it asks the manager to confirm returning to their own work.
+   * Only leaving planned hides them, so only that direction warrants a warning.
+   */
+  /**
+   * The guided tour.
+   *
+   * It drives the view as it advances — the three views are the thing a new
+   * manager most needs shown rather than told — so the view they were on is
+   * kept and restored when the tour ends.
+   */
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideEntries, setGuideEntries] =
+    useState<SchedulingGuideEntry[]>(SCHEDULING_GUIDE);
+  const guideReturnRef = useRef<SchedulingGuideView | null>(null);
+
+  const guideSteps = useMemo<GuideStep[]>(
+    () => guideEntries.map((e) => e.step),
+    [guideEntries],
+  );
+
+  const handleOpenGuide = useCallback(() => {
+    guideReturnRef.current = { mode: scheduleMode, comparison: comparisonMode };
+    // Same guard the V1 dashboard uses: a step whose target is not on the page
+    // would leave the previous step's spotlight stranded with the wrong caption
+    // beside it, because the overlay bails out of measuring a missing element.
+    setGuideEntries(
+      SCHEDULING_GUIDE.filter(
+        (e) =>
+          e.step.noHighlight ||
+          document.querySelector(`[data-guide-id="${e.step.id}"]`) !== null,
+      ),
+    );
+    setGuideOpen(true);
+  }, [scheduleMode, comparisonMode]);
+
+  const handleGuideStep = useCallback(
+    (_step: GuideStep, index: number) => {
+      const view = guideEntries[index]?.view;
+      if (!view) return;
+      /*
+       * Set directly rather than through `requestModeChange`.
+       *
+       * That guard exists to warn before unsaved drafts are hidden — but drafts
+       * survive the switch, the tour returns to the starting view anyway, and a
+       * confirm dialog opening on top of the spotlight would be worse than the
+       * thing it is warning about.
+       */
+      setScheduleMode(view.mode);
+      setComparisonMode(view.comparison);
+    },
+    [guideEntries],
+  );
+
+  const handleCloseGuide = useCallback(() => {
+    setGuideOpen(false);
+    const back = guideReturnRef.current;
+    guideReturnRef.current = null;
+    if (!back) return;
+    setScheduleMode(back.mode);
+    setComparisonMode(back.comparison);
+  }, []);
+
+  /**
+   * The one error the page is currently showing, in the order the stack draws
+   * them — and gated by exactly the conditions those alerts use, so nothing is
+   * announced that is not on screen, and nothing on screen goes unannounced.
+   */
+  const announcedError =
+    weekError ??
+    (bulk.error && !bulk.operation ? bulk.error : null) ??
+    actualMutations.error ??
+    availabilityMutations.error ??
+    (!shiftDialogOpen ? mutations.error : null) ??
+    (!publishedOpen ? published.error : null) ??
+    null;
+
+  useErrorAnnouncer(announcedError, alertsRef);
+
+  /**
+   * Is the grid showing the week we are actually in?
+   *
+   * The Today button and the live board both need this, and they must agree —
+   * a board offered on a week where Today is also offered would be answering
+   * about a different week than the one on screen.
+   */
+  const isCurrentWeek =
+    week.start === snapToWeekStart(todayIso(), week.weekStartDow);
+
+  useEffect(() => {
+    if (!isCurrentWeek) setOnTheClockOpen(false);
+  }, [isCurrentWeek]);
+
+  const requestModeChange = useCallback(
+    (targetIsPlanned: boolean, run: () => void) => {
+      if (isPlannedOnly && !targetIsPlanned) {
+        guard.requestAction(run);
+        return;
+      }
+      run();
+    },
+    // `guard` is a fresh object each render; `requestAction` is the stable part.
+    [isPlannedOnly, guard.requestAction]
+  );
+
+  const stats = useMemo<ScheduleStats>(() => {
+    // The server's figures describe SAVED shifts only, so once drafts exist
+    // they would be stale — the manager would add five shifts and watch the
+    // totals refuse to move. Fall through to the local calculation instead.
+    if (isPlannedOnly && data?.stats && !hasDrafts) return data.stats;
+
+    // Drafts have no server-computed duration, so their hours come from the
+    // times on screen. Wall-clock is acceptable here and nowhere else: these
+    // shifts are not saved, so no payroll figure depends on them yet.
+    const draftMinutes = isPlannedOnly
+      ? drafts.reduce(
+          (acc, d) => acc + Math.round(calcHours(d.startTime, d.endTime) * 60),
+          0
+        )
+      : 0;
+    const totalHours =
+      displayShifts.reduce((acc, s) => acc + s.durationMinutes / 60, 0) +
+      draftMinutes / 60;
+    const rateFor = (employeeId: string) =>
+      employeeLookup.get(employeeId)?.hourlyRate ??
+      store?.defaultLaborRate ??
+      FALLBACK_LABOR_RATE;
+    const countedDrafts = isPlannedOnly ? drafts : [];
+    return {
+      totalHours,
+      totalShifts: displayShifts.length + countedDrafts.length,
+      activeEmployees: new Set([
+        ...displayShifts.map((s) => s.employeeId),
+        ...countedDrafts.map((d) => d.employeeId),
+      ]).size,
+      laborCost:
+        displayShifts.reduce(
+          (acc, s) => acc + (s.durationMinutes / 60) * rateFor(s.employeeId),
+          0
+        ) +
+        countedDrafts.reduce(
+          (acc, d) =>
+            acc + calcHours(d.startTime, d.endTime) * rateFor(d.employeeId),
+          0
+        ),
+    };
+  }, [
+    isPlannedOnly,
+    data?.stats,
+    displayShifts,
+    employeeLookup,
+    store?.defaultLaborRate,
+    hasDrafts,
+    drafts,
+  ]);
+
+  /**
+   * Conflicts and overtime, authoritative from the server.
+   *
+   * The server computes conflicts on UTC INSTANTS, so it catches a 22:00-02:00
+   * shift colliding with the next morning's 01:00-09:00 one — precisely the
+   * overnight double-booking a wall-clock client check misses. Never re-derive
+   * these locally.
+   *
+   * Both describe the PLAN, so in actual/comparison mode they are left empty
+   * rather than shown against merged data they were not computed from.
+   */
+  const conflicts = useMemo(
+    () => (isPlannedOnly ? (data?.conflicts ?? []) : []),
+    [isPlannedOnly, data?.conflicts]
+  );
+  const conflictIds = useMemo(() => conflictedShiftIds(conflicts), [conflicts]);
+  const overtimeEmpIds = useMemo(
+    () => (isPlannedOnly ? (data?.overtimeEmployeeIds ?? new Set<string>()) : new Set<string>()),
+    [isPlannedOnly, data?.overtimeEmployeeIds]
+  );
+
+  // Dialog target employee
+  const targetEmployee = useMemo(() => {
+    const id =
+      editingDraft?.employeeId ??
+      editingShift?.employeeId ??
+      pendingAdd?.employeeId;
+    return id ? employeeLookup.get(id) ?? null : null;
+  }, [editingShift, editingDraft, pendingAdd, employeeLookup]);
+
+  // Actual-shift dialog target employee
+  const targetActualEmployee = useMemo(() => {
+    const id = editingActualTarget?.employeeId;
+    return id ? employeeLookup.get(id) ?? null : null;
+  }, [editingActualTarget]);
+
+  // --- Handlers ---
+
+  const handleAddShift = useCallback(
+    (employeeId: string, dayIndex: number) => {
+      setPendingAdd({ employeeId, dayIndex });
+      setEditingShift(null);
+      setShiftDialogOpen(true);
+    },
+    []
+  );
+
+  const handleEditShift = useCallback((shift: Shift) => {
+    setEditingShift(shift);
+    setPendingAdd(null);
+    setShiftDialogOpen(true);
+  }, []);
+
+  /**
+   * Delete a shift.
+   *
+   * Addresses `shiftId` — the SHIFT — not the assignment id the card carries as
+   * `id`. One Humanity shift can hold several employees, so an assignment id
+   * would address the wrong thing or 404.
+   *
+   * No optimistic removal. If the write fails the shift is still live for the
+   * employee, and a card that vanished locally but not upstream is the worst
+   * divergence this system can produce.
+   */
+  const handleDeleteShift = useCallback(
+    (assignmentId: string) => {
+      const shift = shifts.find((s) => s.id === assignmentId);
+      if (!shift) return;
+      const who = employeeLookup.get(shift.employeeId)?.name ?? "This employee";
+      void withPending([pendingShiftKey(shift.id)], async () => {
+        const removed = await mutations.deleteShift(shift.shiftId, {
+          detail: `${who} · ${formatIsoDateWithWeekday(shift.shiftDate)} · ${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}`,
+        });
+
+        /*
+         * Undo, because delete is one click on a hover icon sitting right
+         * beside edit and there is no confirmation in front of it.
+         *
+         * This re-creates the shift rather than resurrecting it — Humanity
+         * gives the new one its own id — so it restores the hours, not the
+         * row. Good enough for a misclick, which is what this is for.
+         */
+        if (removed) {
+          toast.success("Shift removed", {
+            action: {
+              label: "Undo",
+              onClick: () => {
+                void mutations.createShift(
+                  {
+                    // `shift_date`, not `day_index` — the single-shift endpoint
+                    // takes a real date, unlike the bulk one.
+                    employee_id: Number(shift.employeeId) || shift.employeeId,
+                    shift_date: shift.shiftDate,
+                    start_time: shift.startTime,
+                    end_time: shift.endTime,
+                    label: shift.label || undefined,
+                    shift_type: shift.type || undefined,
+                    note: shift.note || undefined,
+                    /*
+                     * Putting back what was just there, so the availability and
+                     * conflict guards have already been answered — by whoever
+                     * created it, or by the bulk path, which does not apply
+                     * them at all. Without this an undo can be refused for a
+                     * shift that existed a second earlier, which is not a
+                     * decision to re-open at the moment of a misclick.
+                     */
+                    force: true,
+                  },
+                  { employeeId: shift.employeeId, detail: `${who} · restored` }
+                );
+              },
+            },
+          });
+        }
+
+        return removed;
+      });
+    },
+    [shifts, employeeLookup, mutations, withPending]
+  );
+
+  /**
+   * Save the add/edit shift dialog.
+   *
+   * Three destinations:
+   *   new shift        -> a local DRAFT, no request. Submitted later in one
+   *                      bulk call when the manager presses Save.
+   *   saved shift      -> straight to the API, exactly as before. Editing an
+   *                      existing shift is not draftable, because the bulk
+   *                      endpoint only creates.
+   *   unsaved draft    -> update the draft in place.
+   */
+  const handleConfirmShift = useCallback(
+    (
+      startTime: string,
+      endTime: string,
+      label: string,
+      type: Shift["type"],
+      isRecurring: boolean,
+      note: string
+    ) => {
+      // Editing an unsaved shift never touches the network.
+      if (editingDraft) {
+        updateDraft(storeId!, week.start, editingDraft.draftId, {
+          startTime,
+          endTime,
+          label,
+          type,
+          note: note || undefined,
+        });
+        setShiftDialogOpen(false);
+        setEditingDraft(null);
+        return;
+      }
+
+      const target = editingShift
+        ? { employeeId: editingShift.employeeId, dayIndex: editingShift.dayIndex }
+        : pendingAdd;
+      if (!target) return;
+
+      // A new shift becomes a draft. Nothing is sent yet.
+      if (!editingShift) {
+        addDraft(storeId!, week.start, {
+          employeeId: target.employeeId,
+          dayIndex: target.dayIndex,
+          startTime,
+          endTime,
+          label,
+          type,
+          note: note || undefined,
+        });
+        setShiftDialogOpen(false);
+        setPendingAdd(null);
+        return;
+      }
+
+      const who = employeeLookup.get(target.employeeId)?.name ?? "This employee";
+      // The absolute date comes from the week payload — never computed here.
+      const shiftDate = dateForDayIndex(week, target.dayIndex);
+      const detail = `${who} · ${formatIsoDateWithWeekday(shiftDate)} · ${formatTime(startTime)} – ${formatTime(endTime)}`;
+
+      const payload: Record<string, unknown> = {
+        employee_id: Number(target.employeeId) || target.employeeId,
+        shift_date: shiftDate,
+        start_time: startTime,
+        end_time: endTime,
+        label: label || undefined,
+        shift_type: type,
+        note: note || undefined,
+      };
+
+      // Keyed on the assignment id, which is what the card in the grid carries —
+      // `shiftId` is the row the API addresses and matches nothing on screen.
+      void withPending([pendingShiftKey(editingShift.id)], () =>
+        mutations.updateShift(editingShift.shiftId, payload, {
+          employeeId: target.employeeId,
+          detail,
+        }),
+      );
+    },
+    [
+      pendingAdd,
+      editingShift,
+      editingDraft,
+      employeeLookup,
+      week,
+      mutations,
+      storeId,
+      addDraft,
+      updateDraft,
+      withPending,
+    ]
+  );
+
+  /**
+   * Submit every drafted shift in one request.
+   *
+   * `day_index` is week-relative, which is exactly what the grid carries — no
+   * date maths on the way out. The endpoint caps a request at 500 shifts; beyond
+   * that it is split, and only the FIRST batch may carry `replace`, since
+   * repeating it would delete what the previous batch just created.
+   */
+  const handleSaveDrafts = useCallback(() => {
+    if (!storeId || drafts.length === 0) return;
+
+    const MAX_PER_REQUEST = 500;
+    const batches: DraftShift[][] = [];
+    for (let i = 0; i < drafts.length; i += MAX_PER_REQUEST) {
+      batches.push(drafts.slice(i, i + MAX_PER_REQUEST));
+    }
+
+    // Held so a total batch failure can put the manager's layout back.
+    lastSubmittedDraftsRef.current = drafts;
+
+    void bulk
+      .run(
+        async () => {
+          let last: unknown = null;
+          for (const [index, batch] of batches.entries()) {
+            last = await schedulingService.bulkCreateShifts(storeId, {
+              week_start: week.start,
+              mode: index === 0 ? draftSaveMode : "merge",
+              shifts: batch.map((d) => ({
+                employee_id: Number(d.employeeId) || d.employeeId,
+                day_index: d.dayIndex,
+                start_time: d.startTime,
+                end_time: d.endTime,
+                label: d.label || undefined,
+                shift_type: d.type || undefined,
+                note: d.note || undefined,
+              })),
+            });
+          }
+          return last;
+        },
+        { fallbackMessage: "Could not save these shifts." }
+      )
+      .then((accepted) => {
+        /**
+         * Only clear once the batch has actually been ACCEPTED. Clearing on
+         * submit would throw the manager's layout away on a rejected request,
+         * even though nothing was written. If the batch later fails outright,
+         * `onSettled` puts the drafts back.
+         */
+        if (accepted) clearDraftWeek(storeId, week.start);
+      });
+  }, [storeId, drafts, draftSaveMode, week.start, bulk, clearDraftWeek]);
+
+  const handleCancelDrafts = useCallback(() => {
+    setCancelDraftsOpen(false);
+    if (!storeId) return;
+    clearDraftWeek(storeId, week.start);
+    refetch();
+    toast.info("Unsaved shifts discarded");
+  }, [storeId, week.start, clearDraftWeek, refetch]);
+
+  const handleEditDraft = useCallback((draft: DraftShift) => {
+    setEditingDraft(draft);
+    setEditingShift(null);
+    setPendingAdd(null);
+    setShiftDialogOpen(true);
+  }, []);
+
+  const handleDeleteDraft = useCallback(
+    (draftId: string) => {
+      removeDraft(storeId!, week.start, draftId);
+      toast.info("Unsaved shift removed");
+    },
+    [removeDraft, storeId, week.start]
+  );
+
+  /** One-click "worked exactly as planned" — no dialog, addresses the assignment. */
+  const handleConfirmActualShift = useCallback(
+    (plannedShift: Shift) => {
+      void withPending([pendingShiftKey(plannedShift.id)], () =>
+        actualMutations.confirmAsPlanned(plannedShift),
+      );
+    },
+    [actualMutations, withPending]
+  );
+
+  /** Open the actual-shift dialog to edit a linked/ghost shift, or add ad-hoc coverage */
+  const handleOpenActualDialog = useCallback(
+    (plannedShift: Shift | undefined, actual: ActualShift | undefined) => {
+      if (plannedShift) {
+        setEditingActualTarget({
+          employeeId: plannedShift.employeeId,
+          dayIndex: plannedShift.dayIndex,
+          plannedShift,
+          actual,
+        });
+      } else if (actual) {
+        setEditingActualTarget({
+          employeeId: actual.employeeId,
+          dayIndex: actual.dayIndex,
+          actual,
+        });
+      }
+      setActualDialogOpen(true);
+    },
+    []
+  );
+
+  /** Open the actual-shift dialog blank, for logging ad-hoc coverage */
+  const handleAddCoverage = useCallback((employeeId: string, dayIndex: number) => {
+    setEditingActualTarget({ employeeId, dayIndex });
+    setActualDialogOpen(true);
+  }, []);
+
+  /**
+   * Save the actual-shift dialog.
+   *
+   * `status` is NOT computed here any more — the server derives it from the
+   * times and sends it back. The old local derivation compared only start and
+   * end, so a label-only change was reported as "confirmed" even though the type
+   * itself documents that as "modified".
+   *
+   * Three cases, and they need different endpoints:
+   *
+   *   Linked to a planned shift -> post with the ASSIGNMENT id, which amends
+   *   that assignment's actual rather than stacking a duplicate.
+   *
+   *   Editing existing AD-HOC coverage -> there is no assignment behind it, so
+   *   it must address the actual's own id. Posting to the collection endpoint
+   *   without an assignment id would create a SECOND coverage row.
+   *
+   *   Brand-new ad-hoc coverage -> post with no assignment id.
+   */
+  const handleSaveActualShift = useCallback(
+    (startTime: string, endTime: string, label: string, type: Shift["type"], note: string) => {
+      if (!editingActualTarget) return;
+      const { employeeId, dayIndex, plannedShift, actual } = editingActualTarget;
+
+      const done = (ok: boolean) => {
+        if (ok) {
+          setActualDialogOpen(false);
+          setEditingActualTarget(null);
+        }
+      };
+
+      // The card that should look busy: the record being amended, or the plan
+      // the new entry is being written against.
+      const keys = [
+        ...(actual ? [pendingActualKey(actual.id)] : []),
+        ...(plannedShift ? [pendingShiftKey(plannedShift.id)] : []),
+      ];
+
+      /**
+       * Anything that already exists is amended through its own id.
+       *
+       * The collection endpoint amends "the actual behind this assignment", so
+       * it is only safe once the two are linked. A timeclock punch sitting on a
+       * plan is NOT linked — `planned_shift_id` is null — so posting the
+       * assignment id would write a second record and leave the punch orphaned,
+       * which under TCP write-through means duplicated payroll data. Editing a
+       * grouped punch therefore corrects and links it in one call, exactly as
+       * agreeing to it does.
+       */
+      if (actual) {
+        const linkTo =
+          plannedShift && !actual.plannedShiftId ? plannedShift.id : undefined;
+        if (!plannedShift || linkTo) {
+          void withPending(keys, () =>
+            actualMutations
+              .updateActual(actual.id, {
+                startTime,
+                endTime,
+                label,
+                shiftType: type,
+                note,
+                assignmentId: linkTo,
+              })
+              .then(done),
+          );
+          return;
+        }
+      }
+
+      void withPending(keys, () =>
+        actualMutations
+          .saveActual({
+            employeeId,
+            shiftDate: plannedShift?.shiftDate ?? dateForDayIndex(week, dayIndex),
+            startTime,
+            endTime,
+            label,
+            shiftType: type,
+            note,
+            assignmentId: plannedShift?.id,
+          })
+          .then(done),
+      );
+    },
+    [editingActualTarget, week, actualMutations, withPending]
+  );
+
+  /** Mark a planned shift as a no-show. */
+  const handleMarkAbsent = useCallback(() => {
+    if (!editingActualTarget) return;
+    const { plannedShift, actual } = editingActualTarget;
+
+    /**
+     * The absent endpoint addresses an ACTUAL. When a planned shift has not been
+     * reviewed yet there is no actual to mark, so one is created from the plan
+     * first and then flipped — two calls, but it keeps the client from having to
+     * assert a status the server owns.
+     */
+    // The card behind the dialog is the one that will change, so it is the one
+    // that should look busy once the dialog closes.
+    const keys = actual
+      ? [pendingActualKey(actual.id)]
+      : plannedShift
+        ? [pendingShiftKey(plannedShift.id)]
+        : [];
+
+    const run = async () => {
+      // No actual yet: the hook creates one from the plan and flips it in a
+      // single step. This used to stop after the create and ask the user to
+      // repeat the action from the card — so "mark no attendance" recorded them
+      // as having WORKED the shift, the opposite of what was clicked.
+      if (!actual && plannedShift) {
+        const ok = await actualMutations.markAbsentForPlan(plannedShift);
+        if (ok) {
+          setActualDialogOpen(false);
+          setEditingActualTarget(null);
+        }
+        return;
+      }
+      if (!actual) return;
+      const ok = await actualMutations.markAbsent(actual);
+      if (ok) {
+        setActualDialogOpen(false);
+        setEditingActualTarget(null);
+      }
+    };
+
+    void withPending(keys, run);
+  }, [editingActualTarget, actualMutations, withPending]);
+
+  /**
+   * Accept a timeclock punch as the actual for the planned shift it sits on.
+   *
+   * The punch arrives unlinked, so this attaches it to the plan and leaves the
+   * recorded times exactly as the clock captured them — see `agreeClockIn` for
+   * why it must not re-enter them as a new record.
+   */
+  const handleAgreeClockIn = useCallback(
+    (plannedShift: Shift, clockIn: ActualShift) => {
+      void withPending(
+        [pendingShiftKey(plannedShift.id), pendingActualKey(clockIn.id)],
+        () => actualMutations.agreeClockIn(plannedShift, clockIn),
+      );
+    },
+    [actualMutations, withPending],
+  );
+
+  /** Accept a record as reviewed, without opening anything. */
+  /**
+   * The rest of that person's day, so the dialog can offer them for merging.
+   *
+   * Read live rather than captured when the dialog opened — a refetch between
+   * opening and acting would otherwise leave stale options on screen.
+   */
+  const adjustSameDay = useMemo(
+    () =>
+      adjustingActual
+        ? actualShifts.filter(
+            (a) =>
+              a.employeeId === adjustingActual.employeeId &&
+              a.dayIndex === adjustingActual.dayIndex,
+          )
+        : [],
+    [adjustingActual, actualShifts],
+  );
+
+  const handleSplitActual = useCallback(
+    (actual: ActualShift, segments: ActualShiftSegment[]) => {
+      void withPending([pendingActualKey(actual.id)], () =>
+        actualMutations.splitActual(actual, segments),
+      );
+    },
+    [actualMutations, withPending],
+  );
+
+  const handleMergeActuals = useCallback(
+    (into: ActualShift, others: ActualShift[]) => {
+      // Every card involved should look busy — the others are about to vanish.
+      void withPending(
+        [into, ...others].map((a) => pendingActualKey(a.id)),
+        () => actualMutations.mergeActuals(into, others),
+      );
+    },
+    [actualMutations, withPending],
+  );
+
+  const handleMarkReviewed = useCallback(
+    (actual: ActualShift) => {
+      void withPending([pendingActualKey(actual.id)], () =>
+        actualMutations.markReviewed(actual),
+      );
+    },
+    [actualMutations, withPending],
+  );
+
+  const handleDeleteActualShift = useCallback((actual: ActualShift) => {
+    setDeletingActual(actual);
+  }, []);
+
+  const handleConfirmDeleteActual = useCallback(() => {
+    const target = deletingActual;
+    if (!target) return;
+    setDeletingActual(null);
+    void withPending([pendingActualKey(target.id)], () =>
+      actualMutations.deleteActual(target),
+    );
+  }, [deletingActual, actualMutations, withPending]);
+
+  const handleAddAvailability = useCallback(
+    (draft: AvailabilityOverrideDraft) => {
+      void availabilityMutations.addAvailability(draft);
+    },
+    [availabilityMutations]
+  );
+
+  const handleDeleteAvailability = useCallback(
+    (rule: AvailabilityRule) => {
+      void availabilityMutations.deleteAvailability(rule);
+    },
+    [availabilityMutations]
+  );
+
+  const handleAddTimeOff = useCallback(
+    (draft: TimeOffDraft) => {
+      void availabilityMutations.addTimeOff(draft);
+    },
+    [availabilityMutations]
+  );
+
+  const handleDeleteTimeOff = useCallback(
+    (entry: TimeOffEntry) => {
+      void availabilityMutations.deleteTimeOff(entry);
+    },
+    [availabilityMutations]
+  );
+
+  const handleGoToToday = useCallback(() => {
+    setWeekStart(snapToWeekStart(todayIso(), week.weekStartDow));
+  }, [week.weekStartDow]);
+
+  /**
+   * Copy the previous week in as DRAFTS.
+   *
+   * Fetches last week rather than calling the server-side copy endpoint, so the
+   * manager can review and adjust before anything is written. The copied set
+   * describes the whole intended week, so it saves with `mode: "replace"` — that
+   * is the only place replace is used, and it is why the confirm dialog says the
+   * current schedule will be replaced.
+   */
+  const handleConfirmCopyPreviousWeek = useCallback(async () => {
+    setCopyConfirmOpen(false);
+    if (!storeId) return;
+
+    setIsCopyingWeek(true);
+    try {
+      const raw = await schedulingService.getWeek(storeId, {
+        week_start: shiftIsoDate(week.start, -7),
+        mode: "planned",
+      });
+      const previous = adaptScheduleWeek(raw);
+
+      if (previous.shifts.length === 0) {
+        toast.warning("The previous week has no shifts to copy.");
+        return;
+      }
+
+      /**
+       * Someone scheduled last week may have left, or moved store, since. Their
+       * shifts cannot be created here, so drop them and say who rather than
+       * letting the whole save fail on EMPLOYEE_NOT_IN_STORE.
+       */
+      const currentIds = new Set(employees.map((e) => e.id));
+      const kept = previous.shifts.filter((sh) => currentIds.has(sh.employeeId));
+      const droppedNames = Array.from(
+        new Set(
+          previous.shifts
+            .filter((sh) => !currentIds.has(sh.employeeId))
+            .map(
+              (sh) =>
+                previous.employees.find((e) => e.id === sh.employeeId)?.name ??
+                "an employee no longer here"
+            )
+        )
+      );
+
+      if (kept.length === 0) {
+        toast.warning(
+          "None of last week's staff are on this week's roster, so there is nothing to copy."
+        );
+        return;
+      }
+
+      replaceDraftWeek(
+        storeId,
+        week.start,
+        kept.map((sh) => ({
+          employeeId: sh.employeeId,
+          dayIndex: sh.dayIndex,
+          startTime: sh.startTime,
+          endTime: sh.endTime,
+          label: sh.label,
+          type: sh.type,
+          note: sh.note,
+        })),
+        // The drafts ARE the week, so saving replaces what is there.
+        "replace"
+      );
+
+      toast.success(
+        `Copied ${kept.length} shift${kept.length !== 1 ? "s" : ""} — review, then press Save.`
+      );
+      if (droppedNames.length > 0) {
+        toast.warning(
+          `Skipped shifts for ${droppedNames.join(", ")} — not on this week's roster.`
+        );
+      }
+    } catch (err) {
+      const parsed = parseSchedulingError(
+        err,
+        "Could not load the previous week."
+      );
+      if (handleUnauthorized(parsed.status)) return;
+      toast.error(parsed.message);
+    } finally {
+      setIsCopyingWeek(false);
+    }
+  }, [storeId, week.start, employees, replaceDraftWeek]);
+
+  /**
+   * Save the current week as a reusable template.
+   *
+   * Only the NAME and the WEEK go to the server — it snapshots the week itself.
+   * The client used to build the shift list, which described what the browser
+   * had rendered rather than what was actually saved.
+   */
+  const handleSaveTemplate = useCallback(() => {
+    // The server snapshots the week from its OWN data, so drafts are invisible
+    // to it — saving now would produce a template missing the shifts on screen.
+    if (hasDrafts) {
+      toast.warning("Save your unsaved shifts first — a template can't include them.");
+      return;
+    }
+    if (!templateName.trim()) {
+      toast.warning("Please enter a template name");
+      return;
+    }
+    if (shifts.length === 0) {
+      toast.warning("No shifts to save as a template");
+      return;
+    }
+    void templates
+      .saveTemplate({
+        name: templateName.trim(),
+        description: templateDescription.trim(),
+        weekStart: week.start,
+      })
+      .then((ok) => {
+        if (!ok) return;
+        setSaveTemplateOpen(false);
+        setTemplateName("");
+        setTemplateDescription("");
+        toast.success(`Template "${templateName.trim()}" saved`);
+      });
+  }, [templateName, templateDescription, shifts.length, week.start, templates, hasDrafts]);
+
+  /**
+   * Apply a template to the displayed week.
+   *
+   * This fans out into one Humanity write per shift, so it runs as an async
+   * batch rather than a single request. `replace` matches what "Load Week
+   * Template" has always implied, and it sequences deletes before creates so a
+   * mid-run failure is visible instead of silently doubling the week.
+   */
+  const handleLoadTemplate = useCallback(
+    (template: ScheduleTemplate) => {
+      setLoadTemplateOpen(false);
+      void bulk.run(
+        () =>
+          schedulingService.applyTemplate(storeId!, {
+            template_id: template.id,
+            week_start: week.start,
+            mode: "replace",
+          }),
+        { fallbackMessage: `Could not apply "${template.name}".` }
+      );
+    },
+    [bulk, storeId, week.start]
+  );
+
+  const handleDeleteTemplate = useCallback(
+    (templateId: string) => {
+      void templates.deleteTemplate(templateId).then((ok) => {
+        if (ok) toast.info("Template deleted");
+      });
+    },
+    [templates]
+  );
+
+  /** Export the schedule as a CSV file that Excel opens natively */
+  const handleExportExcel = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Header row
+      const headers = [
+        "Employee",
+        "Role",
+        "Department",
+        ...week.dayNamesShort.map((d, i) => `${d} ${week.dayDates[i] ?? ""}`),
+        "Total Hours",
+        "Total Shifts",
+      ];
+
+      const rows: string[][] = [headers];
+
+      for (const emp of employees) {
+        let totalHours = 0;
+        let totalShifts = 0;
+        const dayCells = week.dayNamesShort.map((_, dayIdx) => {
+          const dayShifts = shifts.filter(
+            (s) => s.employeeId === emp.id && s.dayIndex === dayIdx
+          );
+          if (dayShifts.length === 0) return "—";
+          totalShifts += dayShifts.length;
+          return dayShifts
+            .map((s) => {
+              const h = s.durationMinutes / 60;
+              totalHours += h;
+              return `${formatTime(s.startTime)}-${formatTime(s.endTime)} (${s.label})`;
+            })
+            .join(" / ");
+        });
+
+        rows.push([
+          emp.name,
+          emp.role,
+          emp.department,
+          ...dayCells,
+          `${totalHours.toFixed(1)}h`,
+          String(totalShifts),
+        ]);
+      }
+
+      // Add summary footer row
+      rows.push([]);
+      const dayTotalRow = [
+        "Daily Totals",
+        "",
+        "",
+        ...week.dayNamesShort.map((_, dayIdx) => {
+          const h = shifts
+            .filter((s) => s.dayIndex === dayIdx)
+            .reduce((acc, s) => acc + s.durationMinutes / 60, 0);
+          return h > 0 ? `${h.toFixed(1)}h` : "—";
+        }),
+        `${shifts.reduce((acc, s) => acc + s.durationMinutes / 60, 0).toFixed(1)}h`,
+        String(shifts.length),
+      ];
+      rows.push(dayTotalRow);
+
+      // Build CSV string with UTF-8 BOM so Excel recognises the encoding
+      const csv =
+        "\uFEFF" +
+        rows
+          .map((row) =>
+            row
+              .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+              .join(",")
+          )
+          .join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `schedule-${week.label.replace(/[^a-z0-9]/gi, "-")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Schedule exported as Excel CSV");
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }, [shifts, week]);
+
+  /** Capture the schedule grid as a PNG screenshot */
+  const handleScreenshot = useCallback(async () => {
+    setIsTakingScreenshot(true);
+    try {
+      const target = gridRef.current;
+      if (!target) { toast.error("Could not find grid"); return; }
+
+      // Takes the WHOLE table, not just the part the window can show. The grid
+      // scrolls sideways and the app shell clips it again, so a plain capture
+      // loses the end of the week.
+      const canvas = await captureFullElement(target);
+
+      const a = document.createElement("a");
+      a.download = `schedule-${week.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+      toast.success("Screenshot downloaded");
+    } catch {
+      toast.error("Screenshot failed");
+    } finally {
+      setIsTakingScreenshot(false);
+    }
+  }, [week.label]);
+
+  /** Capture an employee-facing screenshot (no hours, totals, or time-off) */
+  /**
+   * Publish the current week.
+   *
+   * Uses the EMPLOYEE view — no hours, totals or time off — because that is what
+   * actually gets posted in store, and it must not leak pay-adjacent detail to
+   * everyone who walks past the noticeboard.
+   *
+   * `canvas.toBlob`, never `toDataURL`: the upload is multipart, and a data URL
+   * would put 1-3 MB of base64 inside a JSON body. The download-a-PNG handlers
+   * elsewhere still use `toDataURL`, which is correct for an <a download>.
+   */
+  const handlePublishWeek = useCallback(async () => {
+    setIsEmployeeScreenshot(true);
+    // Let React paint the employee-view grid before capturing it.
+    await new Promise((r) => setTimeout(r, 100));
+
+    let blob: Blob | null = null;
+    try {
+      const target = gridRef.current;
+      if (target) {
+        // The image that ends up on the noticeboard — a cropped week here is a
+        // cropped rota in the store, so this one matters most of the three.
+        const canvas = await captureFullElement(target);
+        blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), "image/png")
+        );
+      }
+    } catch {
+      // The screenshot is optional upstream — publishing the week still matters
+      // more than the image, so carry on without it rather than blocking.
+      blob = null;
+    } finally {
+      setIsEmployeeScreenshot(false);
+    }
+
+    if (!blob) {
+      toast.warning("Publishing without a preview image — the grid couldn't be captured.");
+    }
+
+    await published.publish(week.start, blob);
+  }, [week.start, published]);
+
+  const handleDeletePublished = useCallback(
+    (id: string) => {
+      void published.remove(id);
+    },
+    [published]
+  );
+
+  /**
+   * Clear every shift in the displayed week.
+   *
+   * `confirm: true` is mandatory upstream — this deletes real shifts employees
+   * may already be working from. Runs as a batch and there is no undo.
+   */
+  const handleConfirmClearWeek = useCallback(() => {
+    setClearConfirmOpen(false);
+    void bulk.run(() => schedulingService.clearWeek(storeId!, week.start), {
+      fallbackMessage: "Could not clear this week.",
+    });
+  }, [bulk, storeId, week.start]);
+
+  const handleEmployeeScreenshot = useCallback(async () => {
+    setIsEmployeeScreenshot(true);
+    // Give React one tick to re-render with employeeView=true
+    await new Promise((r) => setTimeout(r, 100));
+    try {
+      const target = gridRef.current;
+      if (!target) { toast.error("Could not find grid"); return; }
+
+      const canvas = await captureFullElement(target);
+
+      const a = document.createElement("a");
+      a.download = `schedule-employees-${week.label.replace(/[^a-z0-9]/gi, "-")}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+      toast.success("Employee schedule screenshot downloaded");
+    } catch {
+      toast.error("Screenshot failed");
+    } finally {
+      setIsEmployeeScreenshot(false);
+    }
+  }, [week.label]);
+
+  const pageHeader = (
+    <PageHeader
+      title="Employee Schedule"
+      description="Manage weekly shifts for your team"
+    >
+      {/*
+        Chrome, not data — kept out of the screenshot actions.
+
+        Desktop only. The tour spotlights toolbar controls that wrap onto
+        several rows on a narrow screen, and it drives the view between Planned,
+        Actual and Compare — on a phone or tablet that is a caption box sitting
+        on top of the thing it is describing. Hiding the way in is honest;
+        offering a tour that cannot land its own highlights is not.
+      */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            data-screenshot-ignore="true"
+            variant="ghost"
+            size="icon"
+            className="hidden h-8 w-8 text-muted-foreground lg:inline-flex"
+            onClick={handleOpenGuide}
+            aria-label="Open page guide"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          Page guide
+        </TooltipContent>
+      </Tooltip>
+    </PageHeader>
+  );
+
+  if (!selectedStore) {
+    return (
+      <div className="space-y-6">
+        {pageHeader}
+        <Card className="border-2 border-dashed border-muted-foreground/25">
+          <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <div className="rounded-full bg-muted p-2.5">
+              <Store className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold">No Store Selected</h3>
+              <p className="max-w-sm text-[11px] text-muted-foreground">
+                Select a store from the sidebar to view and edit its schedule.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const activeSetupError = setupError ?? writeSetupError;
+
+  if (activeSetupError) {
+    return (
+      <div className="space-y-6">
+        {pageHeader}
+        <ScheduleSetupError
+          code={activeSetupError.code}
+          message={activeSetupError.message}
+          storeLabel={selectedStore?.name ?? selectedStore?.storeId ?? null}
+        />
+      </div>
+    );
+  }
+
+  /**
+   * Nothing to show and something on the way.
+   *
+   * Gated on BOTH flags deliberately. `isLoading` alone left a hole: a request
+   * that counted itself a refetch while `data` was null fell through to the
+   * full grid and rendered empty arrays — a blank schedule with no indicator.
+   * The hook no longer produces that combination, but "no data plus a request
+   * in flight" should show a skeleton whatever the flag bookkeeping decides.
+   */
+  if (!data && (isLoading || isRefetching)) {
+    return (
+      <div className="space-y-4">
+        {pageHeader}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-45 rounded-md" />
+            <Skeleton className="h-8 w-32 rounded-md" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+        <Skeleton className="h-125 rounded-lg" />
+      </div>
+    );
+  }
+
+  /**
+   * A hard load failure with nothing cached. The server's own message is the
+   * headline — a bare status code tells a manager nothing actionable.
+   */
+  if (weekError && !data) {
+    return (
+      <div className="space-y-4">
+        {pageHeader}
+        <ScheduleErrorAlert
+          error={weekError}
+          title="Couldn't load this week's schedule"
+          onRetry={refetch}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-4">
+        {/* Page header */}
+        {pageHeader}
+
+        {/*
+          Every page-level failure, in one place so there is one thing to
+          scroll to. `useErrorAnnouncer` above watches the same set under the
+          same conditions — nothing here goes unannounced, and nothing is
+          announced that is not here.
+        */}
+        <div ref={alertsRef} className="scroll-mt-4 empty:hidden space-y-4">
+        {/*
+          A bulk operation that never started. `operation` stays null in that
+          case, so the progress dialog cannot report it — without this the
+          manager confirms an action and sees nothing happen at all.
+        */}
+        {bulk.error && !bulk.operation && (
+          <ScheduleErrorAlert
+            error={bulk.error}
+            title="Couldn't start that operation"
+            onDismiss={bulk.dismiss}
+            compact
+          />
+        )}
+
+        {/* A refetch failed but we still have a usable week on screen. */}
+        {weekError && data && (
+          <ScheduleErrorAlert
+            error={weekError}
+            title="Couldn't refresh this week"
+            onRetry={refetch}
+            compact
+          />
+        )}
+
+        {/*
+          Failed writes from the cell-level actions.
+          Planned-shift errors have always had the dialog to surface them, but
+          these two hooks are driven straight from the grid, so a refusal had
+          nowhere to appear — the card simply went back to how it was and the
+          manager was left to guess. The card's busy state made that worse, not
+          better: it now clearly does something and then clearly undoes it.
+        */}
+        {actualMutations.error && (
+          <ScheduleErrorAlert
+            error={actualMutations.error}
+            title="Couldn't record that"
+            onDismiss={actualMutations.clearError}
+            compact
+          />
+        )}
+        {availabilityMutations.error && (
+          <ScheduleErrorAlert
+            error={availabilityMutations.error}
+            title="Couldn't save that entry"
+            onDismiss={availabilityMutations.clearError}
+            compact
+          />
+        )}
+
+        {/*
+          Planned-shift writes, when there is no dialog to carry the message.
+          The add/edit dialog shows this error itself, so it is suppressed while
+          that is open — but deleting happens straight from a card in the grid,
+          and a refused delete had nowhere at all to appear. The shift simply
+          stayed where it was, which reads as a click that never registered.
+        */}
+        {mutations.error && !shiftDialogOpen && (
+          <ScheduleErrorAlert
+            error={mutations.error}
+            title="Couldn't change that shift"
+            onDismiss={mutations.clearError}
+            compact
+          />
+        )}
+
+        {/*
+          Publishing, same reasoning. Publish Week runs from the Actions menu
+          with nothing open, while the history dialog below renders this error
+          for the deletes taken inside it — hence the gate, so one failure is
+          never announced twice.
+        */}
+        {published.error && !publishedOpen && (
+          <ScheduleErrorAlert
+            error={published.error}
+            title="Couldn't publish this week"
+            onDismiss={published.clearError}
+            compact
+          />
+        )}
+        </div>
+
+        {/*
+          Toolbar — two rows, each wrapping on its own.
+
+          This was one `justify-between` row holding two wrapping groups. When
+          it overflowed, `justify-between` spread the fragments apart and the
+          inner items wrapped independently, so single buttons ended up stranded
+          on lines of their own (Compare, then Actions). Splitting it into two
+          rows of related controls, and keeping tightly-coupled controls in
+          non-wrapping groups, makes the reflow predictable at any width —
+          which matters because the sidebar swings the available width by 192px
+          and no media query can see that.
+        */}
+        <div className="@container space-y-2">
+          {/* Row 1 — which week, and which view of it */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/*
+              The four week controls travel together, for the same reason the
+              view controls below do: they are one decision, and a stranded
+              arrow on its own line reads as a stray button. It also gives the
+              page guide a single thing to point at.
+            */}
+            <div
+              className="flex shrink-0 items-center gap-2"
+              data-guide-id="sched-week"
+            >
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() =>
+                  guard.requestAction(() =>
+                    setWeekStart((w) => shiftIsoDate(w, -7))
+                  )
+                }
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <div className="flex items-center gap-2 rounded-md border bg-card px-3 py-1.5">
+              {isRefetching ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : (
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="text-sm font-medium whitespace-nowrap">
+                {week.label}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() =>
+                  guard.requestAction(() =>
+                    setWeekStart((w) => shiftIsoDate(w, 7))
+                  )
+                }
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+
+            {!isCurrentWeek && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => guard.requestAction(handleGoToToday)}
+              >
+                Today
+              </Button>
+            )}
+            </div>
+
+
+            {/*
+              The view controls travel together: the Planned/Actual toggle and
+              Compare are one choice, and Compare stranded on its own line was
+              the most visible symptom of the old layout. `shrink-0` keeps the
+              pair intact so they wrap as a unit.
+            */}
+            <div
+              className="flex shrink-0 items-center gap-2"
+              data-guide-id="sched-views"
+            >
+            <div
+              className={cn(
+                "flex items-center rounded-md border bg-muted/40 p-0.5 transition-opacity",
+                comparisonMode && "opacity-50 pointer-events-none"
+              )}
+            >
+              <Button
+                variant={scheduleMode === "planned" ? "default" : "ghost"}
+                size="sm"
+                className="h-7 gap-1 text-xs px-2.5"
+                onClick={() =>
+                  requestModeChange(true, () => setScheduleMode("planned"))
+                }
+                disabled={comparisonMode}
+              >
+                <CalendarCheck className="h-3.5 w-3.5" />
+                Planned
+              </Button>
+              <Button
+                variant={scheduleMode === "actual" ? "default" : "ghost"}
+                size="sm"
+                className="h-7 gap-1 text-xs px-2.5"
+                onClick={() =>
+                  requestModeChange(false, () => setScheduleMode("actual"))
+                }
+                disabled={comparisonMode}
+              >
+                <ClipboardCheck className="h-3.5 w-3.5" />
+                Actual
+              </Button>
+            </div>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={comparisonMode ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() =>
+                      requestModeChange(
+                        comparisonMode && scheduleMode === "planned",
+                        () => setComparisonMode((c) => !c)
+                      )
+                    }
+                >
+                  <GitCompare className="h-3.5 w-3.5" />
+                  Compare
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Comparison always shows both planned and actual times side by side
+              </TooltipContent>
+            </Tooltip>
+            </div>
+          </div>
+
+          {/* Row 2 — narrowing what the grid shows, and acting on it */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="relative min-w-32 flex-1 sm:max-w-xs"
+              data-guide-id="sched-search"
+            >
+              <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search employees..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 w-full ps-8 text-sm"
+              />
+            </div>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-sm"
+                  data-guide-id="sched-availability"
+                  disabled={comparisonMode}
+                  onClick={() => setAvailabilityOpen(true)}
+                >
+                  <CalendarOff className="h-3.5 w-3.5 text-muted-foreground" />
+                  Availability
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {comparisonMode
+                  ? "Not available while comparing — switch to Planned or Actual"
+                  : "Manage blocked times and time off for this week"}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-sm"
+                  data-guide-id="sched-on-the-clock"
+                  disabled={!isCurrentWeek}
+                  onClick={() => setOnTheClockOpen(true)}
+                >
+                  <Radio className="h-3.5 w-3.5 text-muted-foreground" />
+                  On the clock
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-56 text-xs">
+                {isCurrentWeek
+                  ? "Who is punched in right now, and clock people in or out"
+                  : "Only while you're on this week — the board shows who is on the clock right now, which has nothing to do with the week you're browsing."}
+              </TooltipContent>
+            </Tooltip>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-sm">
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                  {department}
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {departmentOptions.map((dept) => (
+                  <DropdownMenuItem
+                    key={dept}
+                    onSelect={() => setDepartment(dept)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    {dept === department && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                    <span className={dept === department ? "font-medium" : "ps-3.5"}>{dept}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/*
+              Actual only: nothing else in the week carries this flag, and in
+              Compare the grid is read-only so there is nothing to work through.
+            */}
+            {scheduleMode === "actual" && !comparisonMode && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={attentionOnly ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 gap-1.5 text-sm"
+                    data-guide-id="sched-attention"
+                    onClick={() => setAttentionOnly((v) => !v)}
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Needs attention
+                    {/*
+                      The count is the point of the filter: it answers "is there
+                      anything to do this week?" without switching the grid and
+                      finding it empty, which is why this stays off by default.
+                    */}
+                    {attentionCount > 0 && (
+                      <span
+                        className={cn(
+                          "ms-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                          attentionOnly
+                            ? "bg-primary-foreground/20"
+                            : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                        )}
+                      >
+                        {attentionCount}
+                      </span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-56 text-xs">
+                  {attentionCount > 0
+                    ? `${attentionCount} shift${attentionCount === 1 ? "" : "s"} worth a look — a missed punch, a forgotten clock-out, hours that don't match the plan, or hours that changed after you signed them off.`
+                    : "Nothing needs a look this week. This filter shows missed punches, forgotten clock-outs, hours that don't match the plan, and hours that changed after you signed them off."}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/*
+              Freshness, refresh and Actions travel together at the inline-end.
+
+              The age sits immediately left of the control that changes it, so
+              "how old is this" and "make it newer" read as one unit. `ms-auto`
+              is on the group rather than on Actions alone, so the three wrap as
+              a block instead of Actions detaching from the pair.
+            */}
+            <div className="ms-auto flex items-center gap-2">
+              <DataFreshness
+                lastFetchedAt={lastFetchedAt}
+                isRefreshing={isRefetching || isLoading}
+                className="hidden @2xl:inline"
+              />
+
+              <span className="inline-flex" data-guide-id="sched-legend">
+                <ShiftLegend />
+              </span>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-sm"
+                    data-guide-id="sched-refresh"
+                    onClick={refetch}
+                    disabled={isLoading || isRefetching}
+                  >
+                    {isRefetching || isLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    Refresh
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Fetch this week again now
+                </TooltipContent>
+              </Tooltip>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-sm"
+                  data-guide-id="sched-actions"
+                >
+                  Actions
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {/*
+                  Why half this menu is greyed out.
+
+                  Everything below down to Export edits the PLANNED schedule, so
+                  it is available in Planned only. Without a reason stated here
+                  a manager in Actual just sees dead items — and the old copy
+                  was worse than nothing once Actual became a gated mode too,
+                  since it told them to switch to Actual to make changes.
+                */}
+                {!isPlannedOnly && (
+                  <>
+                    <div className="px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
+                      {comparisonMode
+                        ? "Compare is a read-only view. Switch to Planned to change the schedule."
+                        : "You're viewing recorded attendance. Switch to Planned to change the schedule."}
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Schedule</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isCopyingWeek || !isPlannedOnly}
+                  onSelect={() => setCopyConfirmOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <Copy className="h-4 w-4 text-blue-600" />
+                  Copy Previous Week
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={shifts.length === 0 || !isPlannedOnly}
+                  onSelect={() => setClearConfirmOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <Trash2 className="h-4 w-4 text-rose-500" />
+                  Clear Week
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                  Publish
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={
+                    published.isPublishing || shifts.length === 0 || !isPlannedOnly
+                  }
+                  onSelect={handlePublishWeek}
+                  className="gap-2 cursor-pointer"
+                >
+                  {published.isPublishing ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+                  ) : (
+                    <Send className="h-4 w-4 text-emerald-600" />
+                  )}
+                  Publish Week
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setPublishedOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <History className="h-4 w-4 text-sky-600" />
+                  Published History
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Templates</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={shifts.length === 0 || !isPlannedOnly}
+                  onSelect={() => setSaveTemplateOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <BookmarkPlus className="h-4 w-4 text-violet-500" />
+                  Save as Template
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={templates.templates.length === 0 || !isPlannedOnly}
+                  onSelect={() => setLoadTemplateOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <FolderOpen className="h-4 w-4 text-indigo-500" />
+                  Load Week Template
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Export</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isExporting || !isPlannedOnly}
+                  onSelect={handleExportExcel}
+                  className="gap-2 cursor-pointer"
+                >
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  )}
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Capture</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isTakingScreenshot}
+                  onSelect={handleScreenshot}
+                  className="gap-2 cursor-pointer"
+                >
+                  {isTakingScreenshot ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4 text-violet-600" />
+                  )}
+                  Screenshot
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isEmployeeScreenshot}
+                  onSelect={handleEmployeeScreenshot}
+                  className="gap-2 cursor-pointer"
+                >
+                  {isEmployeeScreenshot ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 text-sky-600" />
+                  )}
+                  Employee Screenshot
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </div>
+          </div>
+        </div>
+
+        {/*
+          Summary cards.
+
+          `@container` + `@2xl:` rather than `sm:` on purpose. Viewport media
+          queries cannot see the sidebar, which swings the content box by 192px
+          (w-64 expanded vs w-16 collapsed) — so `sm:grid-cols-4` fired on a
+          1024px viewport even when the sidebar left only ~720px, squeezing four
+          tiles to ~140px each and wrapping their labels onto three lines. A
+          container query tracks the width these cards actually get.
+          `@2xl` (672px) is where four tiles clear ~150px each plus gaps.
+        */}
+        <div className="@container">
+        {/*
+          Dimmed while a refetch is in flight. These numbers go stale the moment
+          drafts are saved — the tiles read 0 shifts / 0.0h for the few seconds
+          before the new week lands — and a confident wrong total is worse than
+          a visibly pending one.
+        */}
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-3 @2xl:grid-cols-4 transition-opacity",
+            weekIsSettling && "opacity-50"
+          )}
+        >
+          <Card className="p-0">
+            <CardContent className="flex items-center gap-2 sm:gap-3 py-2.5 px-3 sm:py-3 sm:px-4">
+              <div className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-medium leading-tight text-muted-foreground uppercase tracking-wider">
+                  Total Hours
+                </p>
+                <p className="text-base sm:text-lg font-bold leading-tight">
+                  {fmtFixed(stats.totalHours, 1)}h
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-0">
+            <CardContent className="flex items-center gap-2 sm:gap-3 py-2.5 px-3 sm:py-3 sm:px-4">
+              <div className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-medium leading-tight text-muted-foreground uppercase tracking-wider">
+                  Shifts
+                </p>
+                <p className="text-base sm:text-lg font-bold leading-tight">
+                  {stats.totalShifts}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-0">
+            <CardContent className="flex items-center gap-2 sm:gap-3 py-2.5 px-3 sm:py-3 sm:px-4">
+              <div className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-medium leading-tight text-muted-foreground uppercase tracking-wider">
+                  Active Staff
+                </p>
+                <p className="text-base sm:text-lg font-bold leading-tight">
+                  {stats.activeEmployees}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-0">
+            <CardContent className="flex items-center gap-2 sm:gap-3 py-2.5 px-3 sm:py-3 sm:px-4">
+              <div className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">$</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-medium leading-tight text-muted-foreground uppercase tracking-wider">
+                  Est. Labor
+                </p>
+                <p className="text-base sm:text-lg font-bold leading-tight">
+                  ${stats.laborCost.toLocaleString("en-US", {
+                    minimumFractionDigits: 0,
+                  })}
+                </p>
+                {/* The qualifier that used to sit in the label and wrap it. */}
+                <p className="truncate text-[9px] leading-tight text-muted-foreground/70">
+                  at current rates
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        </div>
+
+        {/* Conflict & overtime warnings */}
+        {conflicts.length > 0 && (
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-2.5">
+            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300">
+              <strong>{conflicts.length}</strong> shift conflict{conflicts.length !== 1 ? "s" : ""} detected this week — overlapping shifts for the same employee.
+            </p>
+          </div>
+        )}
+
+        {overtimeEmpIds.size > 0 && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-2.5">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              <strong>{overtimeEmpIds.size}</strong> employee{overtimeEmpIds.size !== 1 ? "s" : ""} exceed{overtimeEmpIds.size === 1 ? "s" : ""} the {overtimeThreshold}h overtime threshold.
+            </p>
+          </div>
+        )}
+
+        {/* Active filters badge */}
+        {(search || department !== "All" || attentionOnly) && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Showing:</span>
+            {department !== "All" && (
+              <Badge variant="secondary" className="text-xs">
+                {department}
+              </Badge>
+            )}
+            {search && (
+              <Badge variant="secondary" className="text-xs">
+                &quot;{search}&quot;
+              </Badge>
+            )}
+            {attentionOnly && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <AlertTriangle className="h-3 w-3" />
+                Needs attention
+              </Badge>
+            )}
+            <span className="text-xs text-muted-foreground">
+              ({visibleEmployeeCount} employee
+              {visibleEmployeeCount !== 1 ? "s" : ""})
+            </span>
+          </div>
+        )}
+
+        {/*
+          Save / Cancel for unsaved shifts. Deliberately outside `gridRef`: the
+          screenshot and publish handlers capture that element, and this bar has
+          no business appearing in the PNG that goes up in the store.
+        */}
+        {/*
+          Planned mode only. Drafts are unsaved additions to the PLAN, so a Save
+          button in Actual or Compare would act on shifts that view does not
+          render — which is exactly what it used to do.
+        */}
+        {isPlannedOnly && (
+          <DraftActionBar
+            count={drafts.length}
+            saveMode={draftSaveMode}
+            isSaving={bulk.isStarting}
+            onSave={handleSaveDrafts}
+            onCancel={() => setCancelDraftsOpen(true)}
+          />
+        )}
+
+        {/* The schedule view — week grid */}
+        <div ref={gridRef} data-guide-id="sched-grid">
+          <ScheduleGrid
+            employees={filteredEmployees}
+            shifts={shifts}
+            week={week}
+            conflictIds={conflictIds}
+            overtimeEmpIds={overtimeEmpIds}
+            overtimeThreshold={overtimeThreshold}
+            availability={availability}
+            timeOff={timeOff}
+            onAddShift={handleAddShift}
+            onEditShift={handleEditShift}
+            onDeleteShift={handleDeleteShift}
+            employeeView={isEmployeeScreenshot}
+            scheduleMode={scheduleMode}
+            comparisonMode={comparisonMode}
+            actualShifts={actualShifts}
+            displayShifts={displayShifts}
+            onConfirmActual={handleConfirmActualShift}
+            onAgreeClockIn={handleAgreeClockIn}
+            onMarkReviewed={handleMarkReviewed}
+            attentionOnly={attentionOnly}
+            onAdjustActual={setAdjustingActual}
+            pendingIds={pendingIds}
+            onEditActual={handleOpenActualDialog}
+            onDeleteActual={handleDeleteActualShift}
+            onAddCoverage={handleAddCoverage}
+            draftShifts={drafts}
+            onEditDraft={handleEditDraft}
+            onDeleteDraft={handleDeleteDraft}
+          />
+
+        </div>
+
+        {/* Quick actions footer */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <p>
+            {/*
+              Drafts clear the moment the batch is accepted, but the shifts they
+              became only arrive with the refetch a few seconds later. Asserting
+              a count in that window told the manager "0 shifts" underneath a
+              dialog saying the save worked, which reads as lost work.
+            */}
+            {weekIsSettling ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Updating this week…
+              </span>
+            ) : (
+              <>
+                {shifts.length} shift{shifts.length !== 1 ? "s" : ""} scheduled
+                this week
+              </>
+            )}
+          </p>
+          {shifts.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive text-xs"
+              onClick={() => setClearConfirmOpen(true)}
+            >
+              Clear All Shifts
+            </Button>
+          )}
+        </div>
+
+        {/* Add/Edit shift dialog */}
+        <AddShiftDialogNew
+          open={shiftDialogOpen}
+          onOpenChange={(open) => {
+            setShiftDialogOpen(open);
+            if (!open) {
+              mutations.cancelSyncWait();
+              mutations.clearError();
+              setPendingAdd(null);
+              setEditingShift(null);
+              setEditingDraft(null);
+            }
+          }}
+          employee={targetEmployee}
+          dayLabel={
+            week.dayNames[
+              editingDraft?.dayIndex ??
+                editingShift?.dayIndex ??
+                pendingAdd?.dayIndex ??
+                0
+            ] ?? ""
+          }
+          dayIndex={
+            editingDraft?.dayIndex ??
+            editingShift?.dayIndex ??
+            pendingAdd?.dayIndex ??
+            0
+          }
+          currentShifts={shifts}
+          availability={availability}
+          timeOff={timeOff}
+          onConfirm={handleConfirmShift}
+          editingShift={editingShift}
+          editingDraft={editingDraft}
+          isSubmitting={mutations.isSubmitting}
+          syncWait={mutations.syncWait}
+          onCancelSyncWait={() => {
+            mutations.cancelSyncWait();
+            setShiftDialogOpen(false);
+            setPendingAdd(null);
+            setEditingShift(null);
+          }}
+          onRequestManualSync={() => void mutations.requestManualSync()}
+          onRetryAfterSync={mutations.retryPending}
+          isRequestingSync={mutations.isRequestingSync}
+          error={mutations.error}
+        />
+
+        {/* Warns before week / mode changes and before leaving the page */}
+        <UnsavedShiftsDialog {...guard.dialogProps} />
+
+        {/* Cancel drafts — this one genuinely discards, so it says so */}
+        <AlertDialog open={cancelDraftsOpen} onOpenChange={setCancelDraftsOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Discard {drafts.length} unsaved shift
+                {drafts.length !== 1 ? "s" : ""}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This removes the shifts you have laid out but not saved, and
+                reloads the week as it is actually scheduled. This cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep editing</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancelDrafts}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                Discard
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Availability & time off */}
+        <AvailabilityTimeOffDialog
+          open={availabilityOpen}
+          onOpenChange={setAvailabilityOpen}
+          week={week}
+          employees={employees}
+          availability={availability}
+          timeOff={timeOff}
+          onAddAvailability={handleAddAvailability}
+          onDeleteAvailability={handleDeleteAvailability}
+          onAddTimeOff={handleAddTimeOff}
+          onDeleteTimeOff={handleDeleteTimeOff}
+        />
+
+        {/* Published history */}
+        <Dialog open={publishedOpen} onOpenChange={setPublishedOpen}>
+          {/*
+            Single scroller, same fix as the availability dialog: the content
+            box no longer scrolls as a whole while an inner div also scrolls,
+            which chained the wheel between the two and pushed the footer away.
+          */}
+          <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Published schedules</DialogTitle>
+              <DialogDescription>
+                Weeks that have been published for staff. Re-publishing a week
+                supersedes its previous record.
+              </DialogDescription>
+            </DialogHeader>
+            {published.error && (
+              <ScheduleErrorAlert
+                error={published.error}
+                title="Publishing problem"
+                onDismiss={published.clearError}
+                compact
+              />
+            )}
+            <div className="min-h-0 flex-1 overflow-y-auto px-1 pt-1">
+              <PublishedSchedules
+                schedules={published.schedules}
+                onDelete={handleDeletePublished}
+                readOnly={comparisonMode}
+              />
+            </div>
+            <DialogFooter className="mt-3 border-t pt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPublishedOpen(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Overridable refusals (conflict / unavailable / on leave / published) */}
+        <ScheduleWarningDialog
+          code={mutations.warning?.code ?? null}
+          message={mutations.warning?.message}
+          detail={mutations.warning?.detail}
+          onConfirm={mutations.confirmWarning}
+          onCancel={mutations.cancelWarning}
+          isSubmitting={mutations.isSubmitting}
+        />
+
+        {/* Async bulk operation progress */}
+        <BulkOperationProgress
+          operation={bulk.operation}
+          onRetryFailed={() => void bulk.retryFailed()}
+          onClose={bulk.dismiss}
+          isRetrying={bulk.isRetrying}
+        />
+
+        {/* Clear week confirmation */}
+        <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear this week?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This deletes all <strong>{shifts.length}</strong> shift
+                {shifts.length !== 1 ? "s" : ""} in <strong>{week.label}</strong>.
+                Employees may already be working from this schedule, and this
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmClearWeek}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                Clear week
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={deletingActual !== null}
+          onOpenChange={(open) => !open && setDeletingActual(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this recorded time?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deletingActual && (
+                  <>
+                    This removes the{" "}
+                    <strong>
+                      {formatTime(deletingActual.startTime)} –{" "}
+                      {formatWorkedEnd(deletingActual.endTime, deletingActual.isOpen)}
+                    </strong>{" "}
+                    record. Worked time feeds payroll, so this deletes it there
+                    too and cannot be undone.
+                    {deletingActual.source === "timeclock" && (
+                      <>
+                        {" "}
+                        <strong>
+                          Somebody physically punched this on the time clock.
+                        </strong>{" "}
+                        Deleting it throws away the evidence of when they were
+                        here, and nothing on this page can put it back — only a
+                        real punch, or a correction made on the clock itself.
+                      </>
+                    )}
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDeleteActual}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Edit Actual Shift dialog */}
+        <EditActualShiftDialog
+          open={actualDialogOpen}
+          onOpenChange={(open) => {
+            setActualDialogOpen(open);
+            if (!open) setEditingActualTarget(null);
+          }}
+          employee={targetActualEmployee}
+          dayLabel={editingActualTarget ? week.dayNames[editingActualTarget.dayIndex] : ""}
+          plannedShift={editingActualTarget?.plannedShift}
+          editingActual={editingActualTarget?.actual}
+          onSave={handleSaveActualShift}
+          onMarkAbsent={handleMarkAbsent}
+        />
+
+        {/* Copy Previous Week — confirmation dialog */}
+        <AlertDialog open={copyConfirmOpen} onOpenChange={setCopyConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Copy previous week’s schedule?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will <strong>replace</strong> all shifts currently scheduled
+                for <strong>{week.label}</strong> with the shifts from the
+                previous week.
+                {shifts.length > 0 && (
+                  <span className="block mt-1 text-destructive">
+                    {shifts.length} existing shift{shifts.length !== 1 ? "s" : ""} will be overwritten.
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmCopyPreviousWeek}
+              >
+                Yes, copy schedule
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Save as Template dialog */}
+        <Dialog
+          open={saveTemplateOpen}
+          onOpenChange={(open) => {
+            setSaveTemplateOpen(open);
+            if (!open) {
+              setTemplateName("");
+              setTemplateDescription("");
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Save as Template</DialogTitle>
+              <DialogDescription>
+                Save the current week&apos;s {shifts.length} shift{shifts.length !== 1 ? "s" : ""} as a reusable template.
+              </DialogDescription>
+            </DialogHeader>
+            {/* The dialog stays open on failure, so the reason belongs in it. */}
+            {templates.error && (
+              <ScheduleErrorAlert
+                error={templates.error}
+                title="Couldn't save this template"
+                onDismiss={templates.clearError}
+                compact
+              />
+            )}
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="template-name">Template Name</Label>
+                <Input
+                  id="template-name"
+                  placeholder="e.g. Standard Week, Holiday Coverage..."
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveTemplate();
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="template-desc">Description (optional)</Label>
+                <Textarea
+                  id="template-desc"
+                  placeholder="Add any notes about this schedule template..."
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveTemplateOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveTemplate} disabled={!templateName.trim()}>
+                <BookmarkPlus className="h-4 w-4 mr-1.5" />
+                Save Template
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Load Week Template dialog */}
+        <Dialog open={loadTemplateOpen} onOpenChange={setLoadTemplateOpen}>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Load Week Template</DialogTitle>
+              <DialogDescription>
+                Choose a saved template to load into <strong>{week.label}</strong>.
+                This will replace all current shifts.
+              </DialogDescription>
+            </DialogHeader>
+            {/*
+              Deleting a template happens in this list. Applying one closes the
+              dialog and runs as a batch, so that failure surfaces through the
+              bulk alert on the page instead.
+            */}
+            {templates.error && (
+              <ScheduleErrorAlert
+                error={templates.error}
+                title="Couldn't delete that template"
+                onDismiss={templates.clearError}
+                compact
+              />
+            )}
+            {templates.templates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <FolderOpen className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  No templates saved yet.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use &quot;Save as Template&quot; to create one from any week.
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="max-h-80">
+                <div className="space-y-2 pr-3">
+                  {templates.templates.map((tmpl) => (
+                    <div
+                      key={tmpl.id}
+                      className="group flex items-start gap-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 mt-0.5">
+                        <FolderOpen className="h-4 w-4 text-indigo-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{tmpl.name}</p>
+                        {tmpl.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {tmpl.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-muted-foreground">
+                            {tmpl.shiftCount} shift{tmpl.shiftCount !== 1 ? "s" : ""}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {fmtFixed(tmpl.totalHours, 1)}h
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatTimestamp(tmpl.createdAt, "MMM d, yyyy")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleDeleteTemplate(tmpl.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleLoadTemplate(tmpl)}
+                        >
+                          Load
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLoadTemplateOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <OnTheClockDialog
+          open={onTheClockOpen}
+          onOpenChange={setOnTheClockOpen}
+          storeId={storeId}
+          employees={employees}
+          // A punch creates or closes an actual shift, so the week behind the
+          // dialog is already out of date by the time it returns.
+          onPunched={refetch}
+          onSuccess={(message) => toast.success(message)}
+        />
+
+        <AdjustShiftDialog
+          open={!!adjustingActual}
+          onOpenChange={(open) => !open && setAdjustingActual(null)}
+          actual={adjustingActual}
+          sameDay={adjustSameDay}
+          employeeName={
+            (adjustingActual &&
+              employeeLookup.get(adjustingActual.employeeId)?.name) ||
+            "This employee"
+          }
+          onSplit={handleSplitActual}
+          onMerge={handleMergeActuals}
+        />
+
+        <PageGuide
+          steps={guideSteps}
+          isOpen={guideOpen}
+          onClose={handleCloseGuide}
+          onStepChange={handleGuideStep}
+        />
+      </div>
+    </TooltipProvider>
+  );
+}

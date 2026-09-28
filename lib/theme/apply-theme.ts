@@ -1,7 +1,16 @@
 import type { Theme, ThemeColors } from "./types";
 
+/**
+ * The single localStorage key both theme-mode engines must share
+ * (next-themes' own ThemeProvider and @space-man/react-theme-animation's
+ * NextThemeProvider) — they independently toggle the same `.dark` class on
+ * `document.documentElement`, and if they read/write different keys they
+ * disagree about which mode is active. See components/providers/feature-providers.tsx.
+ */
+export const THEME_STORAGE_KEY = "color-mode";
+
 // CSS variable names that map to theme color properties
-const COLOR_VAR_MAP: Record<keyof ThemeColors, string> = {
+export const COLOR_VAR_MAP: Record<keyof ThemeColors, string> = {
   background: "--background",
   foreground: "--foreground",
   card: "--card",
@@ -17,14 +26,10 @@ const COLOR_VAR_MAP: Record<keyof ThemeColors, string> = {
   accent: "--accent",
   accentForeground: "--accent-foreground",
   destructive: "--destructive",
+  destructiveForeground: "--destructive-foreground",
   border: "--border",
   input: "--input",
   ring: "--ring",
-  chart1: "--chart-1",
-  chart2: "--chart-2",
-  chart3: "--chart-3",
-  chart4: "--chart-4",
-  chart5: "--chart-5",
   sidebar: "--sidebar",
   sidebarForeground: "--sidebar-foreground",
   sidebarPrimary: "--sidebar-primary",
@@ -33,6 +38,11 @@ const COLOR_VAR_MAP: Record<keyof ThemeColors, string> = {
   sidebarAccentForeground: "--sidebar-accent-foreground",
   sidebarBorder: "--sidebar-border",
   sidebarRing: "--sidebar-ring",
+  skeletonBase: "--skeleton-base",
+  skeletonHighlight: "--skeleton-highlight",
+  scrollbarThumb: "--scrollbar-thumb",
+  scrollbarTrack: "--scrollbar-track",
+  shellBackground: "--shell-background",
 };
 
 /**
@@ -61,17 +71,23 @@ function applyRadius(radius: string) {
  */
 export function getCurrentMode(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
-  
-  // Check for class on documentElement (next-themes uses this)
-  if (document.documentElement.classList.contains("dark")) {
+
+  // Explicit mode class on documentElement (next-themes sets "light" or "dark"
+  // when attribute="class"). An explicit class always wins — the OS preference
+  // must not override a theme the user (or the app) has deliberately chosen.
+  const root = document.documentElement;
+  if (root.classList.contains("dark")) {
     return "dark";
   }
-  
-  // Check media query as fallback
+  if (root.classList.contains("light")) {
+    return "light";
+  }
+
+  // No explicit class yet — fall back to the OS preference.
   if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
     return "dark";
   }
-  
+
   return "light";
 }
 
@@ -155,8 +171,14 @@ export function createFOUCPreventionScript(): string {
       var state = JSON.parse(stored);
       if (state.state && state.state.activeTheme) {
         var theme = state.state.activeTheme;
-        var isDark = document.documentElement.classList.contains('dark') ||
-          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // Read the saved mode directly — at this point (before next-themes'
+        // own script has run) the 'dark' class never exists yet, so checking
+        // for it here always falls through to the OS preference and ignores
+        // whatever the user actually chose. next-themes stores a bare string
+        // ('dark' | 'light' | 'system'), not JSON.
+        var modeStored = localStorage.getItem('${THEME_STORAGE_KEY}');
+        var isDark = modeStored === 'dark' ||
+          (modeStored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         var colors = isDark ? theme.colors.dark : theme.colors.light;
         var root = document.documentElement;
         
